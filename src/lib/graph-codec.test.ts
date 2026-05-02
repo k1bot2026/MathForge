@@ -23,8 +23,8 @@ describe("graph-codec / encode + decode", () => {
 
   test("round-trips a non-trivial graph (matrix → matvec ← vector)", () => {
     const nodes: Node[] = [
-      seedNode("m", "la.matrix2x2", { a: 1, b: 0, c: 0, d: 1 }),
-      seedNode("v", "la.vector2", { x: 3, y: 4 }),
+      seedNode("m", "la.matrix", { rows: 2, cols: 2, r0c0: 1, r0c1: 0, r1c0: 0, r1c1: 1 }),
+      seedNode("v", "la.vector", { dim: 2, c0: 3, c1: 4 }),
       seedNode("mv", "la.matvec"),
     ];
     const edges: Edge[] = [
@@ -36,10 +36,35 @@ describe("graph-codec / encode + decode", () => {
     expect(decoded.ok).toBe(true);
     if (decoded.ok) {
       expect(decoded.graph.nodes).toHaveLength(3);
-      expect(decoded.graph.nodes[0]?.data.blockId).toBe("la.matrix2x2");
-      expect(decoded.graph.nodes[0]?.data.params).toEqual({ a: 1, b: 0, c: 0, d: 1 });
+      expect(decoded.graph.nodes[0]?.data.blockId).toBe("la.matrix");
+      expect(decoded.graph.nodes[0]?.data.params).toEqual({
+        rows: 2,
+        cols: 2,
+        r0c0: 1,
+        r0c1: 0,
+        r1c0: 0,
+        r1c1: 1,
+      });
       expect(decoded.graph.edges).toHaveLength(2);
       expect(decoded.graph.edges[0]?.sourceHandle).toBe("M");
+    }
+  });
+
+  test("v1→v2 migration: old la.vector2/la.matrix2x2 IDs are upgraded on decode", () => {
+    // This hash encodes schemaVersion:1 with la.matrix2x2 and la.vector2 nodes.
+    // Generated from the Phase-1 codec with the seed graph params.
+    const v1Hash =
+      "jZC9rgIhEEbfZWpyc1mNxT6BFrY2xmKEiW5cFgNo1mx4dwfUFQt_GgLD-eYwDODVngyuyPnGdlBLAZ3V5KFeD9BoqMGAgHA5Em-3rVUHPh6tb0LGB-ih_hdw4TUK0BgwFTO4SOkW_wwG1_RVX6UkOjTcfADm2LXNaZVXxmWMUdy95x-9VfXWfCYVrHv1cm6Sc9PCZb7LJrObTspPg7KxtLFiI4D0rvxQkox4e3Iq6fL3ottReLzjdjXHTrcJWI5AURpfTmm6sVke41OzJ1CU4iZeAQ";
+    const decoded = decodeGraph(v1Hash);
+    expect(decoded.ok).toBe(true);
+    if (decoded.ok) {
+      expect(decoded.graph.schemaVersion).toBe(2);
+      const blockIds = decoded.graph.nodes.map((n) => n.data.blockId).sort();
+      expect(blockIds).toEqual(["la.matrix", "la.matvec", "la.vector"].sort());
+      const matrix = decoded.graph.nodes.find((n) => n.data.blockId === "la.matrix");
+      expect(matrix?.data.params).toEqual({ rows: 2, cols: 2, r0c0: 1, r0c1: 0, r1c0: 0, r1c1: 1 });
+      const vector = decoded.graph.nodes.find((n) => n.data.blockId === "la.vector");
+      expect(vector?.data.params).toEqual({ dim: 2, c0: 3, c1: 4 });
     }
   });
 

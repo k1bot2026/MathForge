@@ -7,8 +7,11 @@
 //
 // Schema versioning: every encoded payload carries a `schemaVersion`.
 // When the structural shape changes (new node-data fields, edge changes,
-// param-spec evolution), bump the version and add a migration in
-// src/lib/migrations/. Phase 1 ships at version 1.
+// param-spec evolution), bump the version and add a migration here.
+// Version history:
+//   v1 — Phase 1: la.vector2, la.matrix2x2 block IDs.
+//   v2 — Phase 2: la.vector (dim + c0..cN-1 params),
+//                 la.matrix (rows + cols + r{i}c{j} params).
 //
 // fflate (pinned 0.8.2) replaces the docs/ARCHITECTURE.md "zstd" choice
 // for Phase 1 — see docs/adr/0002-fflate-for-url-sharing.md.
@@ -17,7 +20,7 @@ import type { Edge, Node } from "@xyflow/react";
 import { deflateSync, inflateSync, strFromU8, strToU8 } from "fflate";
 import type { ResolvedParams } from "~/blocks/types";
 
-export const GRAPH_SCHEMA_VERSION = 1;
+export const GRAPH_SCHEMA_VERSION = 2;
 
 export type SerializedNode = {
   id: string;
@@ -41,6 +44,62 @@ export type SerializedGraph = {
 };
 
 export type DecodeResult = { ok: true; graph: SerializedGraph } | { ok: false; reason: string };
+
+// ──────────────────────────────────────────────────────────────────────
+// Migrations
+// ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Upgrades a v1 raw payload to v2 schema by remapping retired block IDs.
+ * la.vector2 { x, y } → la.vector { dim: 2, c0: x, c1: y }
+ * la.matrix2x2 { a, b, c, d } → la.matrix { rows:2, cols:2, r0c0:a, r0c1:b, r1c0:c, r1c1:d }
+ */
+function migrateV1toV2(raw: Record<string, unknown>): Record<string, unknown> {
+  const nodes = Array.isArray(raw.nodes) ? raw.nodes : [];
+  const migratedNodes = nodes.map((n: unknown) => {
+    if (typeof n !== "object" || n === null) return n;
+    const node = n as Record<string, unknown>;
+    const data =
+      typeof node.data === "object" && node.data !== null
+        ? (node.data as Record<string, unknown>)
+        : {};
+    const blockId = data.blockId;
+    const params =
+      typeof data.params === "object" && data.params !== null
+        ? (data.params as Record<string, unknown>)
+        : {};
+
+    if (blockId === "la.vector2") {
+      return {
+        ...node,
+        data: {
+          ...data,
+          blockId: "la.vector",
+          params: { dim: 2, c0: params.x ?? 0, c1: params.y ?? 0 },
+        },
+      };
+    }
+    if (blockId === "la.matrix2x2") {
+      return {
+        ...node,
+        data: {
+          ...data,
+          blockId: "la.matrix",
+          params: {
+            rows: 2,
+            cols: 2,
+            r0c0: params.a ?? 0,
+            r0c1: params.b ?? 0,
+            r1c0: params.c ?? 0,
+            r1c1: params.d ?? 0,
+          },
+        },
+      };
+    }
+    return node;
+  });
+  return { ...raw, schemaVersion: 2, nodes: migratedNodes };
+}
 
 // ──────────────────────────────────────────────────────────────────────
 // Encode
@@ -100,6 +159,13 @@ export function decodeGraph(encoded: string): DecodeResult {
     parsed = JSON.parse(json);
   } catch (err) {
     return { ok: false, reason: `json parse: ${asMessage(err)}` };
+  }
+  // Run v1→v2 migration before validation so old shared links still open.
+  if (typeof parsed === "object" && parsed !== null) {
+    const v = parsed as Record<string, unknown>;
+    if (v.schemaVersion === 1) {
+      parsed = migrateV1toV2(v);
+    }
   }
   return validateGraph(parsed);
 }
