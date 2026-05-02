@@ -116,9 +116,9 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - [x] SymPy fixture infrastructure (Node script + `tests/fixtures/sympy/*.json`)
 - [x] Property tests for `la.vector` (arithmetic identities)
 - [x] Property tests for `la.matrix`
-- [ ] Property test for `la.transpose` (involution)
-- [ ] Property test for `la.add` (associativity, commutativity, identity)
-- [ ] Property test for `la.det` (multiplicative, transpose-invariant)
+- [x] Property test for `la.transpose` (involution)
+- [x] Property test for `la.add` (associativity, commutativity, identity)
+- [x] Property test for `la.det` (multiplicative, transpose-invariant)
 
 ### Visualization
 - `viz.unit-grid-3d` (react-three-fiber): apply a 3×3 matrix to a 3D unit grid.
@@ -129,6 +129,30 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - Every operation block has property tests (associativity, distributivity, identity, inverse where applicable) cross-checked against SymPy.
 - 60 fps with 100 nodes.
 - IB0602 huiswerk 1–4 (linear algebra portions) reproducible as graphs.
+
+### Phase 2 retrospective (in-session summary as of 2026-05-03)
+
+**Velocity (single keep-working session, ~3 hours wall-clock):**
+
+| Category | Count |
+|---|---|
+| Operation blocks shipped | 8 (`la.transpose`, `la.add`, `la.sub`, `la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`) |
+| Foundation blocks (polymorphic) | 2 (`la.vector`, `la.matrix`) + 2 updated (`la.matvec`, `la.matmul`) |
+| Bug fixes / gap closures | 1 (React Flow event-handler wiring — user edits now captured in replay log) |
+| SymPy fixture sets | 5 (`la-vector`, `la-matrix`, `la-det-multiplicativity`, `la-add-sub-trace`, per-block tests) |
+| New arbitraries | 3 (`invertibleMatrix`, `orthogonalMatrix`, `singularMatrix`) |
+| Test commits (tester agent) | ~15 |
+| Doc commits (docs-writer agent) | ~20 |
+| Total new tests | ~200 (301 → ~500 at end of session) |
+
+**What the agent-team structure enabled:**
+- Developer, tester, and docs-writer agents ran concurrently. Tester unblocked on each operation block within the same session cycle; docs-writer captured shipped work immediately rather than deferring to a later pass.
+- Each agent worked atomically (one commit per task, push after each commit), keeping `main` always green and reviewable.
+
+**Remaining Phase 2 work (not yet shipped):**
+- Operations: `la.lu`, `la.qr`, `la.svd`, `la.eigen`, `la.solve`, `la.basis-change`, `la.kernel`, `la.image`, `la.project`
+- Visualization: `viz.unit-grid-3d`, eigenvector highlighting, determinant area/volume animation
+- Performance: 60 fps at 100 nodes (tested at 25 and 50 nodes via wallclock guards; 100 not yet gated)
 
 ---
 
