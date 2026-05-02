@@ -10,6 +10,7 @@ import { InverseBlock } from "./inverse/definition";
 import { MatMulBlock } from "./matmul/definition";
 import { MatrixBlock } from "./matrix/definition";
 import { MatVecBlock } from "./matvec/definition";
+import { RrefBlock } from "./rref/definition";
 import { SubBlock } from "./sub/definition";
 import { TraceBlock } from "./trace/definition";
 import { TransposeBlock } from "./transpose/definition";
@@ -27,5 +28,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(TraceBlock);
   registry.register(DetBlock);
   registry.register(InverseBlock);
+  registry.register(RrefBlock);
   registry.register(UnitGridBlock);
 }
