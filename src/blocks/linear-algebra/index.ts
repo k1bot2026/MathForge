@@ -7,6 +7,7 @@ import type { BlockRegistry } from "../registry";
 import { AddBlock } from "./add/definition";
 import { DetBlock } from "./det/definition";
 import { InverseBlock } from "./inverse/definition";
+import { LuBlock } from "./lu/definition";
 import { MatMulBlock } from "./matmul/definition";
 import { MatrixBlock } from "./matrix/definition";
 import { MatVecBlock } from "./matvec/definition";
@@ -29,6 +30,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(TraceBlock);
   registry.register(DetBlock);
   registry.register(InverseBlock);
+  registry.register(LuBlock);
   registry.register(RrefBlock);
   registry.register(RankBlock);
   registry.register(UnitGridBlock);
