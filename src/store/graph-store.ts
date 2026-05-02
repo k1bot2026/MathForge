@@ -1,7 +1,11 @@
 import type { Edge, Node } from "@xyflow/react";
 import { create } from "zustand";
 import type { ResolvedParams } from "~/blocks/types";
+import { type ConstructionEvent, synthesizeFromSnapshot } from "~/engine/construction-events";
 import type { EvalResult } from "~/engine/types";
+import { useHistoryStore } from "./history-store";
+
+export type ReplaceReason = "url-hash" | "template" | "user";
 
 export type GraphState = {
   nodes: Node[];
@@ -20,8 +24,42 @@ export type GraphState = {
   setEvalStatus: (status: "idle" | "running") => void;
   setSelectedNodeId: (id: string | null) => void;
   updateNodeParams: (id: string, params: ResolvedParams) => void;
-  /** Atomically replace the entire graph (used by the URL-hash loader). */
-  replaceGraph: (nodes: Node[], edges: Edge[]) => void;
+  /** Atomically replace the entire graph (used by URL-hash loader, templates,
+   *  and any future programmatic replacement). The `reason` flows into the
+   *  synthesized graph-reset event in the construction-protocol log. */
+  replaceGraph: (nodes: Node[], edges: Edge[], reason?: ReplaceReason) => void;
+};
+
+const now = (): number => (typeof performance !== "undefined" ? performance.now() : Date.now());
+
+type EventDraft = ConstructionEvent extends infer E
+  ? E extends ConstructionEvent
+    ? Omit<E, "at">
+    : never
+  : never;
+
+const record = (e: EventDraft): void => {
+  useHistoryStore.getState().pushEvent({ ...e, at: now() } as ConstructionEvent);
+};
+
+const nodeSnapshot = (n: Node) => ({
+  id: n.id,
+  type: n.type,
+  position: { x: n.position.x, y: n.position.y },
+  data: n.data,
+});
+
+const edgeSnapshot = (e: Edge) => {
+  const snap: {
+    id: string;
+    source: string;
+    target: string;
+    sourceHandle?: string;
+    targetHandle?: string;
+  } = { id: e.id, source: e.source, target: e.target };
+  if (e.sourceHandle !== undefined && e.sourceHandle !== null) snap.sourceHandle = e.sourceHandle;
+  if (e.targetHandle !== undefined && e.targetHandle !== null) snap.targetHandle = e.targetHandle;
+  return snap;
 };
 
 // Phase-1 seed graph: demos the matvec pipeline end-to-end so a
@@ -95,6 +133,7 @@ export const useGraphStore = create<GraphState>((set) => ({
   selectedNodeId: null,
   addNode: (node) => {
     set((state) => ({ nodes: [...state.nodes, node] }));
+    record({ kind: "node-added", node: nodeSnapshot(node) });
   },
   removeNode: (id) => {
     set((state) => ({
@@ -102,12 +141,16 @@ export const useGraphStore = create<GraphState>((set) => ({
       edges: state.edges.filter((e) => e.source !== id && e.target !== id),
       selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
     }));
+    record({ kind: "node-removed", nodeId: id });
   },
   connect: (edge) => {
+    let appended = false;
     set((state) => {
       if (state.edges.some((e) => e.id === edge.id)) return state;
+      appended = true;
       return { edges: [...state.edges, edge] };
     });
+    if (appended) record({ kind: "edge-added", edge: edgeSnapshot(edge) });
   },
   setNodes: (nodes) => {
     set({ nodes });
@@ -134,8 +177,9 @@ export const useGraphStore = create<GraphState>((set) => ({
         return { ...n, data: { ...data, params } };
       }),
     }));
+    record({ kind: "params-updated", nodeId: id, params });
   },
-  replaceGraph: (nodes, edges) => {
+  replaceGraph: (nodes, edges, reason: ReplaceReason = "user") => {
     set({
       nodes,
       edges,
@@ -143,5 +187,18 @@ export const useGraphStore = create<GraphState>((set) => ({
       evalStatus: "idle",
       selectedNodeId: null,
     });
+    useHistoryStore
+      .getState()
+      .setEvents(
+        synthesizeFromSnapshot(nodes.map(nodeSnapshot), edges.map(edgeSnapshot), reason, now),
+      );
   },
 }));
+
+// Synthesize seed-graph history at module load so replay starts with a
+// meaningful sequence even when the user hasn't touched anything.
+useHistoryStore
+  .getState()
+  .setEvents(
+    synthesizeFromSnapshot(seedNodes.map(nodeSnapshot), seedEdges.map(edgeSnapshot), "seed", now),
+  );

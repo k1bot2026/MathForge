@@ -1,6 +1,7 @@
 import type { Edge, Node } from "@xyflow/react";
 import { beforeEach, describe, expect, test } from "vitest";
 import { useGraphStore } from "./graph-store";
+import { useHistoryStore } from "./history-store";
 
 const initialState = useGraphStore.getState();
 
@@ -85,6 +86,74 @@ describe("graph-store", () => {
     const { nodes, edges } = useGraphStore.getState();
     expect(nodes.find((n) => n.id === "a")).toBeUndefined();
     expect(edges).toHaveLength(0);
+  });
+
+  test("addNode pushes a node-added event to the history store", () => {
+    useHistoryStore.getState().reset();
+    const node: Node = {
+      id: "n1",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: { blockId: "core.constant", params: { value: 1 } },
+    };
+    useGraphStore.getState().addNode(node);
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("node-added");
+    if (ev?.kind === "node-added") expect(ev.node.id).toBe("n1");
+  });
+
+  test("removeNode pushes a node-removed event", () => {
+    useHistoryStore.getState().reset();
+    useGraphStore.getState().addNode({
+      id: "n1",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: {},
+    });
+    useGraphStore.getState().removeNode("n1");
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("node-removed");
+    if (ev?.kind === "node-removed") expect(ev.nodeId).toBe("n1");
+  });
+
+  test("connect pushes an edge-added event", () => {
+    useHistoryStore.getState().reset();
+    useGraphStore.getState().connect({ id: "e1", source: "a", target: "b" });
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("edge-added");
+  });
+
+  test("connect on a duplicate id does NOT emit a second event", () => {
+    useHistoryStore.getState().reset();
+    useGraphStore.getState().connect({ id: "e1", source: "a", target: "b" });
+    useGraphStore.getState().connect({ id: "e1", source: "x", target: "y" });
+    expect(useHistoryStore.getState().events).toHaveLength(1);
+  });
+
+  test("updateNodeParams pushes a params-updated event", () => {
+    useHistoryStore.getState().reset();
+    useGraphStore.getState().addNode({
+      id: "n1",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: { blockId: "core.constant", params: { value: 1 } },
+    });
+    useGraphStore.getState().updateNodeParams("n1", { value: 7 });
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("params-updated");
+    if (ev?.kind === "params-updated") expect(ev.params).toEqual({ value: 7 });
+  });
+
+  test("replaceGraph synthesizes graph-reset + node-added + edge-added", () => {
+    useHistoryStore.getState().reset();
+    useGraphStore
+      .getState()
+      .replaceGraph(
+        [{ id: "a", type: "block", position: { x: 0, y: 0 }, data: {} }],
+        [{ id: "e", source: "a", target: "a" }],
+      );
+    const events = useHistoryStore.getState().events;
+    expect(events.map((e) => e.kind)).toEqual(["graph-reset", "node-added", "edge-added"]);
   });
 
   test("setResults turns the evaluator's Map into a plain record", () => {

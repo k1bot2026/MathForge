@@ -54,6 +54,7 @@ export function useUrlSync(): void {
             if (e.targetHandle !== undefined) edge.targetHandle = e.targetHandle;
             return edge;
           }),
+          "url-hash",
         );
       } else {
         console.warn(`useUrlSync: failed to decode hash payload — ${decoded.reason}`);
