@@ -6,16 +6,12 @@
 import type { BlockRegistry } from "../registry";
 import { MatMulBlock } from "./matmul/definition";
 import { MatrixBlock } from "./matrix/definition";
-import { Matrix2x2Block } from "./matrix2x2/definition";
 import { MatVecBlock } from "./matvec/definition";
 import { UnitGridBlock } from "./unit-grid/definition";
 import { VectorBlock } from "./vector/definition";
-import { Vector2Block } from "./vector2/definition";
 
 export function register(registry: BlockRegistry): void {
-  registry.register(Vector2Block);
   registry.register(VectorBlock);
-  registry.register(Matrix2x2Block);
   registry.register(MatrixBlock);
   registry.register(MatVecBlock);
   registry.register(MatMulBlock);

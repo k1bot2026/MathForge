@@ -20,7 +20,7 @@ type Story = StoryObj<typeof meta>;
 const matrixValue = (rows: number[][]): MathValue => ({
   type: { kind: "Matrix", m: 2, n: 2, field: "real" },
   payload: rows,
-  provenance: provenance("la.matrix2x2"),
+  provenance: provenance("la.matrix"),
 });
 
 // The visualizer reads `inputs.M` from the store via useNodeInputs(),
