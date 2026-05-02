@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext", "WebWorker"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "jsx": "preserve",
+    "allowJs": false,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "incremental": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+    "plugins": [{ "name": "next" }]
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    "e2e/**/*.ts",
+    ".storybook/**/*.ts",
+    "*.ts",
+    "*.mjs",
+    "*.tsx"
+  ],
+  "exclude": ["node_modules", ".next", "out", "storybook-static", "test-results"]
+}

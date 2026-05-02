@@ -1,0 +1,97 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "tests/**/*.ts",
+      "e2e/**/*.ts",
+      ".storybook/**/*.ts",
+      "*.ts",
+      "*.tsx",
+      "*.mjs",
+      "*.json",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/out",
+      "!**/storybook-static",
+      "!**/test-results",
+      "!**/playwright-report",
+      "!**/coverage",
+      "!**/pnpm-lock.yaml",
+      "!next-env.d.ts"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noDefaultExport": "error",
+        "useNamingConvention": "off",
+        "useImportType": "error",
+        "useExportType": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noConsole": { "level": "warn", "options": { "allow": ["warn", "error"] } }
+      },
+      "complexity": {
+        "noBannedTypes": "error"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/app/**/page.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/error.tsx",
+        "src/app/**/not-found.tsx",
+        "src/app/**/route.ts",
+        "src/app/**/template.tsx",
+        "src/app/**/global-error.tsx",
+        "src/app/**/default.tsx",
+        "src/app/**/opengraph-image.tsx",
+        "src/app/**/twitter-image.tsx",
+        "src/app/**/icon.tsx",
+        "src/app/**/apple-icon.tsx",
+        "src/app/sitemap.ts",
+        "src/app/robots.ts",
+        "src/app/manifest.ts",
+        "*.config.ts",
+        "*.config.mjs",
+        "*.config.js"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    }
+  ]
+}

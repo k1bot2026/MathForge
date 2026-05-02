@@ -19,8 +19,8 @@ Current phase: see the active phase header in `docs/ROADMAP.md`.
 
 ## Tech stack
 
-- **Runtime:** Node 22 LTS, pnpm 9
-- **Framework:** Next.js 15 App Router, React 19, TypeScript 5.x strict
+- **Runtime:** Node 22 LTS, pnpm 10
+- **Framework:** Next.js 16 App Router, React 19, TypeScript 6 strict
 - **Styling:** Tailwind v4 + shadcn/ui (`new-york`), Framer Motion
 - **Editor canvas:** `@xyflow/react` (React Flow)
 - **State:** Zustand (+ immer)
@@ -32,6 +32,7 @@ Current phase: see the active phase header in `docs/ROADMAP.md`.
 - **3D viz:** react-three-fiber + drei
 - **Statistical plots:** Observable Plot
 - **Persistent cache:** idb-keyval (IndexedDB)
+- **Validation (boundaries only):** Zod
 - **Testing:** Vitest, fast-check, Playwright, Storybook
 - **Lint/format:** Biome
 - **Backend (Phase 3+):** Supabase (Postgres + Auth)
@@ -90,7 +91,7 @@ design-handoff/             # Claude Design exports land here (see workflow doc)
 ## Code style
 
 - ESM only, no CommonJS.
-- **Named exports only**. No `index.ts` barrel files — they hurt tree-shaking and hide origins.
+- **Named exports only**. No `index.ts` re-export barrels — they hurt tree-shaking and hide origins. Plugin entry `index.ts` files (e.g. `src/blocks/<domain>/index.ts`) that export a single `register(registry)` function are not barrels and are allowed.
 - TypeScript `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`.
 - Prefer `type` over `interface` unless declaration merging is required.
 - Discriminated unions instead of `any` / unchecked casts.
