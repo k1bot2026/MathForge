@@ -17,19 +17,59 @@ export type GraphState = {
   setEvalStatus: (status: "idle" | "running") => void;
 };
 
-const seedConstantNode: Node = {
-  id: "constant-1",
-  type: "block",
-  position: { x: 0, y: 0 },
-  data: {
-    blockId: "core.constant",
-    params: { value: 42 },
+// Phase-1 seed graph: demos the matvec pipeline end-to-end so a
+// first-time visitor can see the type-checked DAG do something visible
+// without dragging anything. Two source nodes (a 2×2 scaling matrix
+// and a 2-vector) feed an la.matvec operation; the operation's output
+// node shows the computed result. A bare core.constant sits to the
+// side as the simplest possible source-block example.
+const seedNodes: Node[] = [
+  {
+    id: "matrix-1",
+    type: "block",
+    position: { x: 0, y: 0 },
+    data: { blockId: "la.matrix2x2", params: { a: 2, b: 0, c: 0, d: 1 } },
   },
-};
+  {
+    id: "vector-1",
+    type: "block",
+    position: { x: 0, y: 220 },
+    data: { blockId: "la.vector2", params: { x: 1, y: 1 } },
+  },
+  {
+    id: "matvec-1",
+    type: "block",
+    position: { x: 360, y: 110 },
+    data: { blockId: "la.matvec", params: {} },
+  },
+  {
+    id: "constant-1",
+    type: "block",
+    position: { x: 720, y: 0 },
+    data: { blockId: "core.constant", params: { value: 42 } },
+  },
+];
+
+const seedEdges: Edge[] = [
+  {
+    id: "e-matrix-matvec",
+    source: "matrix-1",
+    target: "matvec-1",
+    sourceHandle: "M",
+    targetHandle: "M",
+  },
+  {
+    id: "e-vector-matvec",
+    source: "vector-1",
+    target: "matvec-1",
+    sourceHandle: "v",
+    targetHandle: "v",
+  },
+];
 
 export const useGraphStore = create<GraphState>((set) => ({
-  nodes: [seedConstantNode],
-  edges: [],
+  nodes: seedNodes,
+  edges: seedEdges,
   results: {},
   evalStatus: "idle",
   addNode: (node) => {

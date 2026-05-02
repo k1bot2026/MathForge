@@ -5,16 +5,26 @@ import { useGraphStore } from "./graph-store";
 const initialState = useGraphStore.getState();
 
 beforeEach(() => {
-  useGraphStore.setState(initialState, true);
+  // Clear out the Phase-1 seed graph so each test starts from a clean
+  // store; the "seeds with…" test below restores the original state
+  // explicitly before asserting on it.
+  useGraphStore.setState(
+    { ...initialState, nodes: [], edges: [], results: {}, evalStatus: "idle" },
+    true,
+  );
 });
 
 describe("graph-store", () => {
-  test("seeds with one constant block node and zero edges", () => {
+  test("seeds with the matvec demo graph (matrix + vector → matvec) plus a stand-alone constant", () => {
+    useGraphStore.setState(initialState, true);
     const { nodes, edges, results, evalStatus } = useGraphStore.getState();
-    expect(nodes).toHaveLength(1);
-    expect(nodes[0]?.type).toBe("block");
-    expect((nodes[0]?.data as { blockId?: string } | undefined)?.blockId).toBe("core.constant");
-    expect(edges).toHaveLength(0);
+    expect(nodes).toHaveLength(4);
+    const blockIds = nodes
+      .map((n) => (n.data as { blockId?: string } | undefined)?.blockId)
+      .filter(Boolean)
+      .sort();
+    expect(blockIds).toEqual(["core.constant", "la.matrix2x2", "la.matvec", "la.vector2"].sort());
+    expect(edges).toHaveLength(2);
     expect(results).toEqual({});
     expect(evalStatus).toBe("idle");
   });
@@ -28,8 +38,8 @@ describe("graph-store", () => {
     };
     useGraphStore.getState().addNode(node);
     const { nodes } = useGraphStore.getState();
-    expect(nodes).toHaveLength(2);
-    expect(nodes[1]).toEqual(node);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0]).toEqual(node);
   });
 
   test("connect adds the edge to the graph", () => {
@@ -67,7 +77,7 @@ describe("graph-store", () => {
     store.addNode(a);
     store.addNode(b);
     store.connect(edge);
-    expect(useGraphStore.getState().nodes).toHaveLength(3);
+    expect(useGraphStore.getState().nodes).toHaveLength(2);
 
     useGraphStore.getState().removeNode("a");
     const { nodes, edges } = useGraphStore.getState();
