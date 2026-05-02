@@ -186,6 +186,78 @@ Every fixture file has:
 
 All values use integer or exact-integer arithmetic so SymPy results are exact (`int(...)` in the Python snippet). Irrational results (e.g. norms) are stored as their square to avoid irrational serialisation (see `la-vector.json` — `normASq` rather than `norm`).
 
+## Property testing pattern
+
+Every cross-engine test follows the same three-part structure. The worked example uses `la.vector`.
+
+### Part 1 — Load the fixture (once per file)
+
+```typescript
+// src/blocks/linear-algebra/vector/vector-sympy.test.ts
+import { loadVectorFixture, type VectorCase } from "../../../../tests/sympy-reference";
+
+// Synchronous read. No async, no Pyodide, no network.
+const fixture = loadVectorFixture();
+```
+
+`loadVectorFixture()` reads `tests/fixtures/sympy/la-vector.json` at import time. The fixture was written by `pnpm generate:fixtures` and committed to the repository — CI sees the same values as your local machine.
+
+### Part 2 — Structural sanity check
+
+```typescript
+describe("la.vector cross-engine (SymPy fixtures)", () => {
+  test("fixture schema is present and non-empty", () => {
+    expect(fixture.schemaVersion).toBe(1);
+    expect(fixture.cases.length).toBeGreaterThan(0);
+  });
+```
+
+This catches a missing or corrupted fixture file before any of the per-case tests run. It also fails if `schemaVersion` is bumped in the fixture without updating the loader type.
+
+### Part 3 — Per-case assertions
+
+```typescript
+  describe("dot product matches SymPy exact values", () => {
+    for (const c of fixture.cases) {
+      const label = `dot([${c.a}], [${c.b}]) = ${c.dot}`;
+      test(label, () => {
+        // math.js returns IEEE 754; SymPy returns exact integers.
+        // Normalise -0 → +0 so exact equality holds.
+        const raw = dot(c.a, c.b) as number;
+        const result = raw === 0 ? 0 : raw;
+        expect(result).toBe(c.dot);
+      });
+    }
+  });
+```
+
+Key conventions:
+- **One `test()` per case**, named with the inputs and expected value. Failures identify the exact case immediately in the Vitest output.
+- **Exact equality** (`toBe`) for integer inputs — SymPy computes exact integers, so a floating-point approximation that differs by even 1 ULP should fail.
+- **`Math.round` for determinants** — floating-point accumulation in `det()` can shift the result by a small fraction. Since all fixture inputs are integers, `det` is always an exact integer; `Math.round(result)` converts safely. See `matrix-sympy.test.ts`.
+- **Normalise `-0 → +0`** — IEEE 754 distinguishes `-0` and `+0`; SymPy always returns `0`. Use `x === 0 ? 0 : x` before `toBe` on any value that could be zero.
+
+### Putting it together: the full file shape
+
+```
+src/blocks/linear-algebra/vector/
+├── vector-sympy.test.ts   ← cross-engine test, loads la-vector.json
+├── vector.test.ts          ← fast-check property tests (no fixture needed)
+├── compute.ts
+└── definition.ts
+```
+
+Cross-engine tests go in `*-sympy.test.ts`; fast-check structural tests (associativity, identity, etc.) go in the plain `*.test.ts`. Keeping them separate means `pnpm test` runs both, but you can filter with `pnpm test vector-sympy` when working on the cross-engine layer.
+
+### Why this pattern
+
+- **Deterministic** — fixtures are committed; CI never calls SymPy, so results don't vary by Pyodide version or network state.
+- **Fast** — a synchronous `readFileSync` at test startup is negligible; no Worker boot, no async.
+- **Cheap to extend** — add a case to the generator, re-run `pnpm generate:fixtures`, commit the JSON. The test loop picks it up automatically.
+- **Auditable** — the JSON fixtures are human-readable and diff cleanly in PRs. A reviewer can verify the expected values without running SymPy.
+
+---
+
 ## Precision rules
 
 - `Fraction` and `BigNumber` (math.js) for `precision: "exact"` — always tested with exact equality.
