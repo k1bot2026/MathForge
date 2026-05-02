@@ -66,6 +66,56 @@ describe("la.matvec compute", () => {
     expect(() => computeMatVec({})).toThrow(MatVecError);
   });
 
+  test("polymorphic: 4×3 matrix applied to 3-vector yields 4-vector", () => {
+    const M = [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+      [1, 1, 1],
+    ];
+    const v = [1, 2, 3];
+    const result = computeMatVec({
+      M: asMathValue(M, REAL_MATRIX(4, 3)),
+      v: asMathValue(v, REAL_VECTOR(3)),
+    });
+    expect(result.payload).toEqual([1, 2, 3, 6]);
+    expect(result.type).toEqual({ kind: "Vector", n: 4, field: "real" });
+  });
+
+  test("polymorphic: output type.n equals number of rows in M", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 5 }).chain((m) =>
+          fc.integer({ min: 1, max: 5 }).chain((n) =>
+            fc.tuple(
+              fc.constant(m),
+              fc.constant(n),
+              fc
+                .array(fc.array(fc.integer({ min: -5, max: 5 }), { minLength: n, maxLength: n }), {
+                  minLength: m,
+                  maxLength: m,
+                })
+                .chain((mat) =>
+                  fc.tuple(
+                    fc.constant(mat),
+                    fc.array(fc.integer({ min: -5, max: 5 }), { minLength: n, maxLength: n }),
+                  ),
+                ),
+            ),
+          ),
+        ),
+        ([m, _n, [mat, vec]]) => {
+          const result = computeMatVec({
+            M: asMathValue(mat, REAL_MATRIX(m, mat[0]?.length ?? 0)),
+            v: asMathValue(vec, REAL_VECTOR(vec.length)),
+          });
+          expect((result.type as { n: number }).n).toBe(m);
+          expect((result.payload as number[]).length).toBe(m);
+        },
+      ),
+    );
+  });
+
   test("property: linearity — M(av + bw) = a(Mv) + b(Mw)", () => {
     fc.assert(
       fc.property(

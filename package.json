@@ -28,7 +28,8 @@
     "test:property": "vitest run",
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "generate:fixtures": "node scripts/generate-sympy-fixtures.mjs"
   },
   "dependencies": {
     "@xyflow/react": "12.10.2",
