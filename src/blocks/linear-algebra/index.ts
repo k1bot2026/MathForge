@@ -6,6 +6,7 @@
 import type { BlockRegistry } from "../registry";
 import { AddBlock } from "./add/definition";
 import { DetBlock } from "./det/definition";
+import { EigenBlock } from "./eigen/definition";
 import { InverseBlock } from "./inverse/definition";
 import { LuBlock } from "./lu/definition";
 import { MatMulBlock } from "./matmul/definition";
@@ -30,6 +31,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(SubBlock);
   registry.register(TraceBlock);
   registry.register(DetBlock);
+  registry.register(EigenBlock);
   registry.register(InverseBlock);
   registry.register(LuBlock);
   registry.register(QrBlock);
