@@ -167,3 +167,46 @@ export type AddSubTraceFixture = {
 export function loadAddSubTraceFixture(): AddSubTraceFixture {
   return loadJson<AddSubTraceFixture>("la-add-sub-trace");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.inverse fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type InverseCase = {
+  A: number[][];
+  Ainv: number[][];
+  detA: number;
+};
+
+export type InverseFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: InverseCase[];
+};
+
+export function loadInverseFixture(): InverseFixture {
+  return loadJson<InverseFixture>("la-inverse");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.rref / la.rank fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type RrefRankCase = {
+  A: number[][];
+  rref: number[][];
+  rank: number;
+  pivots: number[];
+};
+
+export type RrefRankFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: RrefRankCase[];
+};
+
+export function loadRrefRankFixture(): RrefRankFixture {
+  return loadJson<RrefRankFixture>("la-rref-rank");
+}

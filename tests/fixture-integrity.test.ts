@@ -14,12 +14,14 @@
  * These Vitest tests run in `pnpm test` (fast, no Pyodide, no network).
  */
 
-import { add, det, dot, multiply, subtract, trace, transpose } from "mathjs";
+import { add, det, dot, inv, multiply, subtract, trace, transpose } from "mathjs";
 import { describe, expect, test } from "vitest";
 import {
   loadAddSubTraceFixture,
   loadDetMultiplicativityFixture,
+  loadInverseFixture,
   loadMatrixFixture,
+  loadRrefRankFixture,
   loadTransposeFixture,
   loadVectorFixture,
 } from "./sympy-reference";
@@ -211,6 +213,85 @@ describe("la-add-sub-trace.json fixture guard", () => {
     const squareCases = f.cases.filter((c) => c.trApB !== undefined);
     for (const c of squareCases) {
       expect(c.trApB).toBe((c.trA ?? 0) + (c.trB ?? 0));
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// la-inverse.json guard
+// ──────────────────────────────────────────────────────────────────────────
+
+describe("la-inverse.json fixture guard", () => {
+  const f = loadInverseFixture();
+
+  test("A · Ainv ≈ I for all cases (math.js recomputation)", () => {
+    for (const c of f.cases) {
+      const n = c.A.length;
+      const product = normMatrix(multiply(c.A, c.Ainv) as number[][]);
+      for (let r = 0; r < n; r++) {
+        for (let col = 0; col < n; col++) {
+          const expected = r === col ? 1 : 0;
+          expect(product[r]?.[col] ?? 0).toBeCloseTo(expected, 9);
+        }
+      }
+    }
+  });
+
+  test("detA matches math.js recomputation", () => {
+    for (const c of f.cases) {
+      const recomputed = Math.round(det(c.A) as number);
+      expect(recomputed).toBe(c.detA);
+    }
+  });
+
+  test("Ainv matches math.js inv() recomputation within tolerance", () => {
+    for (const c of f.cases) {
+      const recomputed = inv(c.A) as number[][];
+      for (let r = 0; r < c.A.length; r++) {
+        for (let col = 0; col < c.A.length; col++) {
+          expect(recomputed[r]?.[col] ?? 0).toBeCloseTo(c.Ainv[r]?.[col] ?? 0, 9);
+        }
+      }
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// la-rref-rank.json guard
+// ──────────────────────────────────────────────────────────────────────────
+
+describe("la-rref-rank.json fixture guard", () => {
+  const f = loadRrefRankFixture();
+
+  test("rank equals number of pivots for all cases", () => {
+    for (const c of f.cases) {
+      expect(c.rank).toBe(c.pivots.length);
+    }
+  });
+
+  test("rank is bounded by min(m, n) for all cases", () => {
+    for (const c of f.cases) {
+      const m = c.A.length;
+      const n = c.A[0]?.length ?? 0;
+      expect(c.rank).toBeLessThanOrEqual(Math.min(m, n));
+      expect(c.rank).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  test("rref dimensions match input dimensions for all cases", () => {
+    for (const c of f.cases) {
+      expect(c.rref.length).toBe(c.A.length);
+      expect(c.rref[0]?.length ?? 0).toBe(c.A[0]?.length ?? 0);
+    }
+  });
+
+  test("leading 1 at pivot position in rref for all cases", () => {
+    for (const c of f.cases) {
+      for (let pivotIdx = 0; pivotIdx < c.pivots.length; pivotIdx++) {
+        const col = c.pivots[pivotIdx];
+        if (col === undefined) continue;
+        expect(c.rref[pivotIdx]?.[col] ?? 0).toBeCloseTo(1, 9);
+      }
     }
   });
 });

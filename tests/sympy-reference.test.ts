@@ -9,7 +9,9 @@ import {
   loadAddSubTraceFixture,
   loadDetMultiplicativityFixture,
   loadFixtureJson,
+  loadInverseFixture,
   loadMatrixFixture,
+  loadRrefRankFixture,
   loadTransposeFixture,
   loadVectorFixture,
 } from "./sympy-reference";
@@ -231,18 +233,22 @@ describe("loadAddSubTraceFixture", () => {
 });
 
 describe("fixture file integrity", () => {
-  test("all five fixture files exist and contain valid JSON (loader returns objects)", () => {
+  test("all seven fixture files exist and contain valid JSON (loader returns objects)", () => {
     // If any file is missing or corrupt, these calls will throw.
     const v = loadVectorFixture();
     const m = loadMatrixFixture();
     const d = loadDetMultiplicativityFixture();
     const t = loadTransposeFixture();
     const ast = loadAddSubTraceFixture();
+    const inv = loadInverseFixture();
+    const rr = loadRrefRankFixture();
     expect(typeof v).toBe("object");
     expect(typeof m).toBe("object");
     expect(typeof d).toBe("object");
     expect(typeof t).toBe("object");
     expect(typeof ast).toBe("object");
+    expect(typeof inv).toBe("object");
+    expect(typeof rr).toBe("object");
   });
 
   test("fixture generated timestamps are valid ISO-8601 strings", () => {
@@ -252,9 +258,55 @@ describe("fixture file integrity", () => {
       loadDetMultiplicativityFixture(),
       loadTransposeFixture(),
       loadAddSubTraceFixture(),
+      loadInverseFixture(),
+      loadRrefRankFixture(),
     ];
     for (const f of fixtures) {
       expect(Number.isNaN(new Date(f.generated).getTime())).toBe(false);
+    }
+  });
+});
+
+describe("loadInverseFixture", () => {
+  test("returns an object with schemaVersion 1", () => {
+    expect(loadInverseFixture().schemaVersion).toBe(1);
+  });
+
+  test("cases array is non-empty", () => {
+    expect(loadInverseFixture().cases.length).toBeGreaterThan(0);
+  });
+
+  test("every case has A (square), Ainv (same size), detA (non-zero)", () => {
+    for (const c of loadInverseFixture().cases) {
+      const n = c.A.length;
+      expect(n).toBeGreaterThan(0);
+      expect(c.Ainv.length).toBe(n);
+      for (const row of c.A) expect(row.length).toBe(n);
+      for (const row of c.Ainv) expect(row.length).toBe(n);
+      expect(c.detA).not.toBe(0);
+    }
+  });
+});
+
+describe("loadRrefRankFixture", () => {
+  test("returns an object with schemaVersion 1", () => {
+    expect(loadRrefRankFixture().schemaVersion).toBe(1);
+  });
+
+  test("cases array is non-empty", () => {
+    expect(loadRrefRankFixture().cases.length).toBeGreaterThan(0);
+  });
+
+  test("every case has A, rref (same dimensions), rank, pivots", () => {
+    for (const c of loadRrefRankFixture().cases) {
+      const m = c.A.length;
+      const n = c.A[0]?.length ?? 0;
+      expect(c.rref.length).toBe(m);
+      expect(c.rref[0]?.length ?? 0).toBe(n);
+      expect(typeof c.rank).toBe("number");
+      expect(c.rank).toBeGreaterThanOrEqual(0);
+      expect(Array.isArray(c.pivots)).toBe(true);
+      expect(c.pivots.length).toBe(c.rank);
     }
   });
 });

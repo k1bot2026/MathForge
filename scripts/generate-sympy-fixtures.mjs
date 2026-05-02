@@ -705,6 +705,204 @@ json.dumps({"At": mat_to_list(At)})
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.inverse — A⁻¹ reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, A⁻¹) pairs for la.inverse cross-engine tests.
+ *
+ * Strategy: use unimodular matrices (|det|=1) and matrices with |det|=2
+ * so the inverse entries are exact integers or halves — representable as
+ * IEEE 754 doubles without rounding error. SymPy returns rational entries;
+ * we convert to float (Rational → float → JSON) for the fixture.
+ *
+ * Sizes: 1×1, 2×2, 3×3, 4×4 (one each at a minimum).
+ */
+async function generateInverseCases(py) {
+  const matrices = [
+    // 1×1
+    [[2]],
+    [[-3]],
+    // 2×2, det=1 (unimodular — inverse is exact integers)
+    [
+      [1, 2],
+      [0, 1],
+    ],
+    [
+      [1, 0],
+      [3, 1],
+    ],
+    // 2×2, det=2 — inverse has halves (exact floats)
+    [
+      [2, 0],
+      [0, 2],
+    ],
+    [
+      [2, 1],
+      [1, 1],
+    ],
+    // 3×3, det=1
+    [
+      [1, 0, 1],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    [
+      [1, 1, 0],
+      [0, 1, 1],
+      [0, 0, 1],
+    ],
+    // 3×3, det=2
+    [
+      [2, 1, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    // 4×4, det=1
+    [
+      [1, 0, 0, 1],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1],
+    ],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix, Rational
+import json
+
+A = Matrix(${JSON.stringify(A)})
+Ainv = A.inv()
+
+def mat_to_floats(m):
+    return [[float(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+det_A = int(A.det())
+
+json.dumps({
+  "Ainv": mat_to_floats(Ainv),
+  "detA": det_A
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, Ainv: parsed.Ainv, detA: parsed.detA });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference A⁻¹ values computed by SymPy 1.13.x. Uses unimodular (|det|=1) and |det|=2 matrices so inverse entries are exact floats. Covers 1×1, 2×2, 3×3, 4×4.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.rref / la.rank — row-reduced echelon form reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, rref(A), rank(A)) triples for la.rref and la.rank
+ * cross-engine tests. Covers:
+ *   - full-rank square matrices (RREF = I)
+ *   - rank-deficient square matrices (RREF has zero rows)
+ *   - non-square matrices (fat and tall)
+ *   - zero matrix (RREF = zero, rank = 0)
+ */
+async function generateRrefRankCases(py) {
+  const matrices = [
+    // 1×1 invertible
+    [[3]],
+    // 1×1 zero
+    [[0]],
+    // 2×2 full rank
+    [
+      [1, 2],
+      [3, 4],
+    ],
+    // 2×2 rank 1 (rows proportional)
+    [
+      [1, 2],
+      [2, 4],
+    ],
+    // 2×2 all zeros
+    [
+      [0, 0],
+      [0, 0],
+    ],
+    // 3×3 full rank (identity)
+    [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    // 3×3 rank 2
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ],
+    // 3×3 rank 1
+    [
+      [1, 2, 3],
+      [2, 4, 6],
+      [3, 6, 9],
+    ],
+    // 2×3 full row rank (rank 2)
+    [
+      [1, 0, 2],
+      [0, 1, 3],
+    ],
+    // 3×2 full column rank (rank 2)
+    [
+      [1, 0],
+      [0, 1],
+      [2, 3],
+    ],
+    // 4×4 rank 3
+    [
+      [1, 2, 3, 4],
+      [5, 6, 7, 8],
+      [9, 10, 11, 12],
+      [13, 14, 15, 16],
+    ],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+rref_mat, pivots = A.rref()
+rank_A = len(pivots)
+
+def mat_to_floats(m):
+    return [[float(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+json.dumps({
+  "rref": mat_to_floats(rref_mat),
+  "rank": rank_A,
+  "pivots": list(pivots)
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, rref: parsed.rref, rank: parsed.rank, pivots: parsed.pivots });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference rref(A) and rank(A) values computed by SymPy 1.13.x. Covers full-rank, rank-deficient, non-square, and zero matrices.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -738,6 +936,14 @@ async function main() {
   console.log("\nGenerating la.add / la.sub / la.trace fixtures…");
   const addSubTraceFixture = await generateAddSubTrace(py);
   writeFixture("la-add-sub-trace", addSubTraceFixture);
+
+  console.log("\nGenerating la.inverse fixtures…");
+  const inverseFixture = await generateInverseCases(py);
+  writeFixture("la-inverse", inverseFixture);
+
+  console.log("\nGenerating la.rref / la.rank fixtures…");
+  const rrefRankFixture = await generateRrefRankCases(py);
+  writeFixture("la-rref-rank", rrefRankFixture);
 
   console.log("\nDone.");
 }
