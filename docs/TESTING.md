@@ -75,14 +75,116 @@ test("matches SymPy on random integer inputs", async () => {
 
 For any block where SymPy can compute the same thing:
 
-1. Generate random inputs via `fast-check` arbitraries.
-2. Compute with our engine (math.js by default).
-3. Compute with SymPy in Pyodide.
-4. Assert exact equality on rationals / integers; assert close-to-ε on reals.
+1. Add a generator function to `scripts/generate-sympy-fixtures.mjs` that runs SymPy offline and writes a JSON fixture to `tests/fixtures/sympy/`.
+2. Add a typed loader in `tests/sympy-reference.ts`.
+3. Write a cross-engine test (`*-sympy.test.ts`) that loads the fixture and asserts our engine's output matches the precomputed values.
+4. Commit both the script change and the JSON file.
 
-These tests are tagged `@cross-engine` and run in `pnpm test:property`. They are slower; full suite runs nightly and on PRs that touch any `src/blocks/**` or `src/math/**`.
+These tests are tagged `@cross-engine`. They run in `pnpm test` alongside unit tests — they are fast (no Pyodide boot) because the SymPy values are precomputed.
 
-For each domain, write an adapter `tests/sympy-reference.ts` that wraps Pyodide calls behind a typed function (e.g. `sympy.matmul(A, B): Promise<ExactMatrix>`).
+See "SymPy fixture workflow" below for step-by-step instructions.
+
+## SymPy fixture workflow
+
+### Why fixtures instead of live Pyodide calls
+
+Pyodide cannot be initialised inside a Vitest worker (it requires a browser or a full Node environment with `SharedArrayBuffer`). Running the Pyodide worker in CI is also slow and fragile. Instead:
+
+- Fixtures are generated **once** by `pnpm generate:fixtures`, which runs Pyodide in a plain Node process.
+- The resulting JSON files are committed to `tests/fixtures/sympy/`.
+- Vitest loads them synchronously at test startup — no async boot, no network, deterministic across machines.
+
+This means CI is always testing against a known, vetted SymPy output. If a fixture goes stale (engine version bump, input range change), you re-run the generator and commit the new JSON.
+
+### When to regenerate
+
+Regenerate whenever you:
+- Add a new property test that needs SymPy reference values that don't exist in any current fixture.
+- Extend an existing generator to cover new inputs or new operations.
+- Bump the Pyodide / SymPy version (`node_modules/.pnpm/pyodide@*/`).
+
+Do not regenerate just because a test fails — if the test asserts something wrong about our engine, fix the test or the engine, not the fixture.
+
+### How to run the generator
+
+```bash
+pnpm generate:fixtures
+```
+
+This calls `node scripts/generate-sympy-fixtures.mjs`, which:
+1. Loads Pyodide from `node_modules/.pnpm/pyodide@0.29.3/`.
+2. Loads SymPy (downloads once, then cached by Pyodide).
+3. Runs each `generate*` function and writes pretty-printed JSON to `tests/fixtures/sympy/`.
+
+Commit the updated JSON files alongside any script or test changes.
+
+### How to add a new fixture set
+
+**Step 1 — Add a generator function in `scripts/generate-sympy-fixtures.mjs`:**
+
+```javascript
+/**
+ * Generates reference values for la.transpose (involution).
+ * Input: integer matrices, sizes 1×1 through 4×4.
+ */
+async function generateTransposeInvolution(py) {
+  const cases = [];
+  // ... build cases array using py.runPython(...)
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description: "Reference transpose values computed by SymPy 1.13.x.",
+    cases,
+  };
+}
+```
+
+Then call it in `main()` and write the result:
+
+```javascript
+console.log("\nGenerating la.transpose fixtures…");
+const transposeFixture = await generateTransposeInvolution(py);
+writeFixture("la-transpose", transposeFixture);
+```
+
+**Step 2 — Add a typed loader in `tests/sympy-reference.ts`:**
+
+```typescript
+export type TransposeCase = {
+  A: number[][];
+  At: number[][];
+};
+
+export type TransposeFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: TransposeCase[];
+};
+
+export function loadTransposeFixture(): TransposeFixture {
+  return loadJson<TransposeFixture>("la-transpose");
+}
+```
+
+**Step 3 — Run the generator and commit:**
+
+```bash
+pnpm generate:fixtures
+git add scripts/generate-sympy-fixtures.mjs tests/sympy-reference.ts tests/fixtures/sympy/la-transpose.json
+```
+
+**Step 4 — Write the cross-engine test** (see "Property testing pattern" below).
+
+### Fixture file format
+
+Every fixture file has:
+- `schemaVersion: 1` — bump if the shape changes incompatibly.
+- `generated` — ISO timestamp; helps trace which SymPy run produced the file.
+- `description` — one sentence naming the operations and SymPy version.
+- A cases array (or named top-level arrays for multi-kind fixtures like `la-matrix.json`).
+
+All values use integer or exact-integer arithmetic so SymPy results are exact (`int(...)` in the Python snippet). Irrational results (e.g. norms) are stored as their square to avoid irrational serialisation (see `la-vector.json` — `normASq` rather than `norm`).
 
 ## Precision rules
 
