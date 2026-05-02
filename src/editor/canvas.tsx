@@ -10,16 +10,20 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { blockRegistry } from "~/blocks";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import { useAutoEvaluate } from "~/engine/use-auto-evaluate";
+import { useGraphProjection } from "~/engine/use-graph-projection";
 import { useUrlSync } from "~/engine/use-url-sync";
 import type { MathType } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
+import { useHistoryStore } from "~/store/history-store";
 import { canConnect } from "./connections";
 import { InspectorPanel } from "./inspector/inspector-panel";
 import { BlockNode } from "./nodes/block-node";
+import { ReplayBar } from "./replay-bar";
+import { ReplayToggle } from "./replay-toggle";
 
 const nodeTypes: NodeTypes = {
   block: BlockNode,
@@ -28,9 +32,28 @@ const nodeTypes: NodeTypes = {
 export function EditorCanvas() {
   useUrlSync();
   useAutoEvaluate();
-  const nodes = useGraphStore((s) => s.nodes);
-  const edges = useGraphStore((s) => s.edges);
+  const liveNodes = useGraphStore((s) => s.nodes);
+  const liveEdges = useGraphStore((s) => s.edges);
+  const mode = useHistoryStore((s) => s.mode);
+  const projection = useGraphProjection();
   const setSelected = useGraphStore((s) => s.setSelectedNodeId);
+
+  const isReplay = mode === "replay";
+
+  // In replay mode the canvas reads the projected graph instead of the
+  // live store, and tags `justAppeared: true` on the nodes whose ids
+  // were touched by the last applied event so BlockNode can trigger
+  // its glow CSS.
+  const nodes = useMemo<Node[]>(() => {
+    if (!isReplay) return liveNodes;
+    const justAppeared = new Set(projection.justAppearedIds);
+    return projection.nodes.map((n) => ({
+      ...n,
+      data: { ...((n.data ?? {}) as object), justAppeared: justAppeared.has(n.id) },
+    }));
+  }, [isReplay, liveNodes, projection]);
+
+  const edges: Edge[] = isReplay ? projection.edges : liveEdges;
 
   const onNodeClick = useCallback(
     (_event: unknown, node: Node) => {
@@ -74,6 +97,7 @@ export function EditorCanvas() {
 
   return (
     <div className="relative h-dvh w-full">
+      <ReplayToggle />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -86,6 +110,7 @@ export function EditorCanvas() {
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
       </ReactFlow>
       <InspectorPanel />
+      {isReplay ? <ReplayBar /> : null}
     </div>
   );
 }

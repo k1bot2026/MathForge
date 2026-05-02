@@ -28,11 +28,12 @@ const fillByRole: Readonly<Record<ColorToken, string>> = {
 };
 
 export function BlockNode({ id, data }: NodeProps) {
-  const blockData = data as Partial<BlockNodeData>;
+  const blockData = data as Partial<BlockNodeData> & { justAppeared?: boolean };
   const blockId = blockData.blockId ?? "unknown";
   const def = blockRegistry.get(blockId);
   const result = useGraphStore((s) => s.results[id]);
   const inputs = useNodeInputs(id);
+  const justAppeared = blockData.justAppeared === true;
 
   if (def === undefined) {
     return (
@@ -53,7 +54,8 @@ export function BlockNode({ id, data }: NodeProps) {
     <div
       data-testid={`block-${def.id}`}
       data-block-id={def.id}
-      className={`min-w-[180px] rounded-[10px] border ${baseClasses} ${errorClasses} px-3 py-2 shadow-block-1 transition-shadow hover:shadow-block-2`}
+      data-just-appeared={justAppeared ? "true" : undefined}
+      className={`replay-glow-target min-w-[180px] rounded-[10px] border ${baseClasses} ${errorClasses} px-3 py-2 shadow-block-1 transition-shadow hover:shadow-block-2`}
     >
       <BlockHeader def={def} />
       <BlockBody def={def} result={result} inputs={inputs} />

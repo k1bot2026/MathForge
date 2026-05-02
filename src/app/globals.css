@@ -177,3 +177,25 @@
     }
   }
 }
+
+/* Construction Protocol replay-mode glow. Applied to BlockNode roots
+   whose id was touched by the last applied event. Duration 400 ms,
+   centred in the 300-600 ms band specified in
+   docs/DESIGN_PRINCIPLES.md "Animation grammar — Replay step advance". */
+@keyframes replay-glow {
+  0%   { box-shadow: 0 0 0 0   oklch(from var(--accent) l c h / 0); }
+  40%  { box-shadow: 0 0 0 8px oklch(from var(--accent) l c h / 0.45); }
+  100% { box-shadow: 0 0 0 0   oklch(from var(--accent) l c h / 0); }
+}
+
+.replay-glow-target[data-just-appeared="true"] {
+  animation: replay-glow 400ms var(--ease-out-soft, ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .replay-glow-target[data-just-appeared="true"] {
+    animation: none !important;
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
