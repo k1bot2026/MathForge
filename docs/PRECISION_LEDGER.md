@@ -20,7 +20,8 @@ and any ε bound that changed. Newest first.
 
 ---
 
-_No entries yet._ Phase 0 ships only an integer-matmul smoke test, with
-no possibility of precision loss. The first real entry is expected when
-Phase 1's `la.matvec` / `la.matmul` cross-engine SymPy diff tests start
-running.
+_No entries yet._ Cross-engine SymPy diff tests are active for `la.matvec`,
+`la.matmul`, `la.transpose`, `la.add`, `la.sub`, `la.trace`, and `la.det`
+(Phase 1 + Phase 2). All integer-input test cases pass with exact equality.
+The first entry here will appear when a floating-point edge case or
+precision-propagation bug is found and fixed.
