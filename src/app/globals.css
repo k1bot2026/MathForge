@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   Design tokens — OKLCH per docs/BRAND.md.
+   Defined as plain CSS custom properties on :root (with prefers-color-scheme
+   dark overrides), then re-exposed to Tailwind v4 via `@theme inline` so
+   utilities such as `bg-bg`, `text-fg`, `border-border` resolve to them.
+   ============================================================================= */
+
+:root {
+  /* ----- Neutral scale (light) ----- */
+  --bg: oklch(99% 0.005 240);
+  --surface: oklch(98% 0.005 240);
+  --surface-2: oklch(96% 0.006 240);
+  --border: oklch(92% 0.008 240);
+  --fg: oklch(20% 0.015 240);
+  --fg-muted: oklch(45% 0.012 240);
+  --fg-faint: oklch(60% 0.01 240);
+
+  /* ----- Role colours (light) ----- */
+  /* Source — sky 235 */
+  --role-source-fill: oklch(95% 0.05 235);
+  --role-source-border: oklch(75% 0.1 235);
+  /* Operation — violet 285 */
+  --role-operation-fill: oklch(95% 0.05 285);
+  --role-operation-border: oklch(70% 0.12 285);
+  /* Function — amber 80 */
+  --role-function-fill: oklch(95% 0.06 80);
+  --role-function-border: oklch(78% 0.14 80);
+  /* Visualizer / sink — emerald 155 */
+  --role-visualizer-fill: oklch(95% 0.05 155);
+  --role-visualizer-border: oklch(72% 0.14 155);
+  /* Stochastic source — rose 15 */
+  --role-stochastic-fill: oklch(95% 0.05 15);
+  --role-stochastic-border: oklch(72% 0.13 15);
+  /* Control — slate (neutral chroma) */
+  --role-control-fill: oklch(95% 0.01 240);
+  --role-control-border: oklch(75% 0.02 240);
+
+  /* ----- Status (light) ----- */
+  --ok: oklch(60% 0.14 150);
+  --warn: oklch(70% 0.16 70);
+  --error: oklch(58% 0.2 25);
+  --info: oklch(60% 0.13 240);
+
+  /* ----- Accent (marketing only) ----- */
+  --accent: oklch(62% 0.2 285);
+
+  /* ----- Elevation ----- */
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / 0.04), 0 1px 1px oklch(0% 0 0 / 0.02);
+  --shadow-2: 0 2px 6px oklch(0% 0 0 / 0.06), 0 1px 2px oklch(0% 0 0 / 0.03);
+  --shadow-3: 0 8px 24px oklch(0% 0 0 / 0.08), 0 2px 8px oklch(0% 0 0 / 0.04);
+
+  /* ----- Motion ----- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-instant: 80ms;
+  --duration-fast: 180ms;
+  --duration-default: 240ms;
+  --duration-slow: 380ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ----- Neutral scale (dark) ----- */
+    --bg: oklch(13% 0.012 240);
+    --surface: oklch(17% 0.012 240);
+    --surface-2: oklch(20% 0.013 240);
+    --border: oklch(28% 0.015 240);
+    --fg: oklch(95% 0.01 240);
+    --fg-muted: oklch(70% 0.012 240);
+    --fg-faint: oklch(55% 0.01 240);
+
+    /* ----- Role colours (dark) ----- */
+    --role-source-fill: oklch(30% 0.06 235);
+    --role-source-border: oklch(60% 0.1 235);
+    --role-operation-fill: oklch(30% 0.07 285);
+    --role-operation-border: oklch(60% 0.12 285);
+    --role-function-fill: oklch(30% 0.07 80);
+    --role-function-border: oklch(70% 0.14 80);
+    --role-visualizer-fill: oklch(30% 0.07 155);
+    --role-visualizer-border: oklch(60% 0.14 155);
+    --role-stochastic-fill: oklch(30% 0.07 15);
+    --role-stochastic-border: oklch(62% 0.13 15);
+    --role-control-fill: oklch(30% 0.015 240);
+    --role-control-border: oklch(60% 0.02 240);
+
+    /* ----- Status (dark) ----- */
+    --ok: oklch(70% 0.14 150);
+    --warn: oklch(78% 0.16 70);
+    --error: oklch(70% 0.18 25);
+    --info: oklch(72% 0.13 240);
+  }
+}
+
+@theme inline {
+  /* Fonts (variables injected by next/font in src/app/layout.tsx). */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Neutral */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-faint: var(--fg-faint);
+
+  /* Roles */
+  --color-role-source-fill: var(--role-source-fill);
+  --color-role-source-border: var(--role-source-border);
+  --color-role-operation-fill: var(--role-operation-fill);
+  --color-role-operation-border: var(--role-operation-border);
+  --color-role-function-fill: var(--role-function-fill);
+  --color-role-function-border: var(--role-function-border);
+  --color-role-visualizer-fill: var(--role-visualizer-fill);
+  --color-role-visualizer-border: var(--role-visualizer-border);
+  --color-role-stochastic-fill: var(--role-stochastic-fill);
+  --color-role-stochastic-border: var(--role-stochastic-border);
+  --color-role-control-fill: var(--role-control-fill);
+  --color-role-control-border: var(--role-control-border);
+
+  /* Status */
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-accent: var(--accent);
+
+  /* Elevation */
+  --shadow-block-1: var(--shadow-1);
+  --shadow-block-2: var(--shadow-2);
+  --shadow-block-3: var(--shadow-3);
+
+  /* Easings */
+  --ease-soft: var(--ease-out-soft);
+  --ease-balanced: var(--ease-in-out-default);
+
+  /* Durations (Tailwind generates `duration-instant`, `duration-fast`, ...) */
+  --duration-instant: var(--duration-instant);
+  --duration-fast: var(--duration-fast);
+  --duration-default: var(--duration-default);
+  --duration-slow: var(--duration-slow);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Honour reduced-motion preference globally per docs/DESIGN_PRINCIPLES.md. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

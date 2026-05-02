@@ -64,6 +64,10 @@
   },
   "overrides": [
     {
+      "includes": ["tsconfig.json", "next-env.d.ts"],
+      "formatter": { "enabled": false }
+    },
+    {
       "includes": [
         "src/app/**/page.tsx",
         "src/app/**/layout.tsx",

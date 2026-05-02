@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext", "WebWorker"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "WebWorker"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "allowJs": false,
     "esModuleInterop": true,
     "isolatedModules": true,
@@ -22,9 +27,15 @@
     "useDefineForClassFields": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": [
+        "./src/*"
+      ]
     },
-    "plugins": [{ "name": "next" }]
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",
@@ -35,7 +46,15 @@
     ".storybook/**/*.ts",
     "*.ts",
     "*.mjs",
-    "*.tsx"
+    "*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next", "out", "storybook-static", "test-results"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "storybook-static",
+    "test-results"
+  ]
 }
