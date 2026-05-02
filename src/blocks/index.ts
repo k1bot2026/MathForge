@@ -10,11 +10,13 @@
 // domain), not a barrel re-export — see CLAUDE.md.
 
 import * as common from "./common";
+import * as linearAlgebra from "./linear-algebra";
 import { BlockRegistry } from "./registry";
 
 export function buildRegistry(): BlockRegistry {
   const registry = new BlockRegistry();
   common.register(registry);
+  linearAlgebra.register(registry);
   return registry;
 }
 
