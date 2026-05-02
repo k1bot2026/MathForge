@@ -74,6 +74,69 @@ describe("la.matmul compute", () => {
     expect(() => computeMatMul({})).toThrow(MatMulError);
   });
 
+  test("polymorphic: 3×4 · 4×2 = 3×2 output shape", () => {
+    const A = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+    ];
+    const B = [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+      [7, 8],
+    ];
+    const result = computeMatMul({ A: mvalue(A), B: mvalue(B) });
+    expect(result.type).toEqual(REAL_MATRIX(3, 2));
+    expect(result.payload).toEqual([
+      [1, 2],
+      [3, 4],
+      [5, 6],
+    ]);
+  });
+
+  test("polymorphic: output type reflects m×n from input shapes", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 4 }).chain((m) =>
+          fc.integer({ min: 1, max: 4 }).chain((k) =>
+            fc.integer({ min: 1, max: 4 }).chain((n) =>
+              fc.tuple(
+                fc.constant(m),
+                fc.constant(n),
+                fc.array(
+                  fc.array(fc.integer({ min: -3, max: 3 }), { minLength: k, maxLength: k }),
+                  {
+                    minLength: m,
+                    maxLength: m,
+                  },
+                ),
+                fc.array(
+                  fc.array(fc.integer({ min: -3, max: 3 }), { minLength: n, maxLength: n }),
+                  {
+                    minLength: k,
+                    maxLength: k,
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+        ([m, n, A, B]) => {
+          const result = computeMatMul({ A: mvalue(A), B: mvalue(B) });
+          const t = result.type as { m: number; n: number };
+          expect(t.m).toBe(m);
+          expect(t.n).toBe(n);
+          const payload = result.payload as number[][];
+          expect(payload.length).toBe(m);
+          for (const row of payload) {
+            expect(row.length).toBe(n);
+          }
+        },
+      ),
+    );
+  });
+
   describe("algebraic properties (integer matrices, exact equality)", () => {
     test("identity: A · I = A and I · A = A", () => {
       fc.assert(
