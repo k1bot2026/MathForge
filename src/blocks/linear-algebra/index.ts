@@ -15,6 +15,7 @@ import { MatVecBlock } from "./matvec/definition";
 import { QrBlock } from "./qr/definition";
 import { RankBlock } from "./rank/definition";
 import { RrefBlock } from "./rref/definition";
+import { SolveBlock } from "./solve/definition";
 import { SubBlock } from "./sub/definition";
 import { TraceBlock } from "./trace/definition";
 import { TransposeBlock } from "./transpose/definition";
@@ -37,5 +38,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(QrBlock);
   registry.register(RrefBlock);
   registry.register(RankBlock);
+  registry.register(SolveBlock);
   registry.register(UnitGridBlock);
 }
