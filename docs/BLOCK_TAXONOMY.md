@@ -211,10 +211,10 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.matrix` [shipped] — m×n real matrix, `rows`/`cols` parameters. Output type `Matrix<"any","any">` statically. Folder: `src/blocks/linear-algebra/matrix/`.
 
 **Operations**
-- `la.transpose` [in progress] — `Matrix<m,n> → Matrix<n,m>`. Property test: involution `(Aᵀ)ᵀ = A`.
-- `la.add` [in progress] — element-wise matrix addition, same shape required.
-- `la.sub` — element-wise matrix subtraction, same shape required.
-- `la.trace` — sum of diagonal; square-matrix only (shape constraint enforced at `compute` time, not by the type system).
+- `la.transpose` [shipped] — `Matrix<m,n> → Matrix<n,m>`. Property tests: involution, shape reversal, `(A·B)ᵀ = BᵀAᵀ`. (`ed24132`)
+- `la.add` [shipped] — element-wise matrix addition, same shape required. (`061f40a`)
+- `la.sub` [shipped] — element-wise matrix subtraction, same shape required. (`0ccaae9`)
+- `la.trace` [shipped] — sum of diagonal; square-matrix only (typed error for non-square inputs). (`7704e07`)
 - `la.det` — determinant; square-matrix only. Property tests: `det(I) = 1`, `det(A·B) = det(A)·det(B)`, `det(Aᵀ) = det(A)`.
 - `la.inverse` — matrix inverse; square + full-rank.
 - `la.rank` — matrix rank.

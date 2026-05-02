@@ -89,8 +89,8 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 - [x] `la.transpose`
 - [x] `la.add`
-- [ ] `la.sub`
-- [ ] `la.trace`
+- [x] `la.sub`
+- [x] `la.trace`
 - [ ] `la.det`
 - [ ] `la.inverse`
 - [ ] `la.rank`
