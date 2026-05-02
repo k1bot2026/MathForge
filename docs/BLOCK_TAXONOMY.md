@@ -207,12 +207,12 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 ### Phase 2 (Linear algebra full)
 
 **Generalized sources (replacing Phase 1 fixed-size blocks)**
-- `la.vector` [in progress] — N-D real vector, `dim` parameter controls length. Output type `Vector<"any">` at static registration; concrete `n` resolved at runtime. Folder: `src/blocks/linear-algebra/vector/`.
-- `la.matrix` [in progress] — m×n real matrix, `rows`/`cols` parameters. Output type `Matrix<"any","any">` statically. Folder: `src/blocks/linear-algebra/matrix/`.
+- `la.vector` [shipped] — N-D real vector, `dim` parameter controls length. Output type `Vector<"any">` at static registration; concrete `n` resolved at runtime. Folder: `src/blocks/linear-algebra/vector/`.
+- `la.matrix` [shipped] — m×n real matrix, `rows`/`cols` parameters. Output type `Matrix<"any","any">` statically. Folder: `src/blocks/linear-algebra/matrix/`.
 
 **Operations**
-- `la.transpose` — `Matrix<m,n> → Matrix<n,m>`. Property test: involution `(Aᵀ)ᵀ = A`.
-- `la.add` — element-wise matrix addition, same shape required.
+- `la.transpose` [in progress] — `Matrix<m,n> → Matrix<n,m>`. Property test: involution `(Aᵀ)ᵀ = A`.
+- `la.add` [in progress] — element-wise matrix addition, same shape required.
 - `la.sub` — element-wise matrix subtraction, same shape required.
 - `la.trace` — sum of diagonal; square-matrix only (shape constraint enforced at `compute` time, not by the type system).
 - `la.det` — determinant; square-matrix only. Property tests: `det(I) = 1`, `det(A·B) = det(A)·det(B)`, `det(Aᵀ) = det(A)`.
