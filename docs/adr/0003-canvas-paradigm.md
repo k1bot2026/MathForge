@@ -1,8 +1,9 @@
 # ADR 0003: Canvas paradigm — DAG vs inline-formula document
 
-- **Status**: Proposed (decision deferred to Phase 2 kickoff)
-- **Date**: 2026-05-03
-- **Deciders**: Founder + Claude Code, on Phase 2 planning
+- **Status**: Accepted (option 1 — stay DAG)
+- **Date opened**: 2026-05-03
+- **Date decided**: 2026-05-03
+- **Deciders**: Founder, on Phase 2 kickoff
 
 ## Context
 
@@ -29,14 +30,28 @@ This ADR captures the question while the prototype is fresh. It does
 
 ## Decision
 
-**Defer.** Park the block-kit prototype as exploratory; keep Phase 1
-DAG-canvas as the primary product surface; revisit at Phase 2 kickoff
-with a structured option-A/B/C choice (below).
+**Stay DAG.** Phase 2 (Linear algebra full) builds on today's React Flow
+canvas. The block-kit prototype's inline-formula model is not adopted.
 
-The `--block-{role}-fill` token ramp the prototype introduced **was**
-adopted in 2026-05-03 alongside the explanation-panel handoff, since
-it's useful regardless of the canvas-paradigm outcome. No other code
-from the prototype is implemented.
+Reasoning: Phase 2's block set (`la.eigen`, `la.svd`, `la.qr`,
+`la.kernel`, etc.) carries shape variables (`Matrix<m, n>`, `Matrix<n, n>`)
+that the existing connection unifier in `src/editor/connections.ts`
+already handles. The inline-formula prototype's `relation` role and
+document model don't naturally extend to these operations — eigen
+decomposition isn't a row of `=` and `·`. Rebuilding the canvas now
+would block Phase 2's block set for weeks with no clear pedagogical
+upside for these operations.
+
+The `--block-{role}-fill` token ramp the prototype introduced was
+already adopted (2026-05-03) alongside the explanation-panel handoff —
+useful regardless of this decision. No other code from the prototype
+is implemented in Phase 2.
+
+The inline-formula direction stays available for a future milestone
+(Phase 3+) when the block set is full enough that a "Document view"
+has meaningful content to render. This ADR can be superseded by a
+later one if usability evidence and engineering bandwidth justify
+the hybrid renderer (option 3 below).
 
 ## Options on the table for Phase 2
 
@@ -55,13 +70,17 @@ paradigm bet, and the prototype's chip palette transfers cleanly.
 
 ## Consequences
 
-- **Positive**: prototype isn't lost; the question is documented and
-  visible to anyone reading the repo. The token ramp is harvested.
-- **Trade-offs**: a useful design study sits unimplemented for several
-  weeks. Founder may want a usability test on the prototype before
-  Phase 2 plans, which adds a step to the Phase 2 kickoff.
-- **Re-evaluation trigger**: Phase 2 planning step. This ADR's status
-  flips to Accepted (option 1, 2, or 3) at that point.
+- **Positive**: Phase 2 starts unblocked on a stable canvas surface.
+  Construction Protocol stays live (depends on edges). Templates
+  (Rotation, Shear, Eigen-demo) and the URL-share format need no
+  migration. The block-kit token ramp was already harvested.
+- **Trade-offs**: the inline-formula prototype sits unused at
+  `design-handoff/2026-05-02-block-kit/`. A user who'd benefit from
+  the textbook-style register doesn't get it this milestone.
+- **Re-evaluation trigger**: a future milestone (Phase 3+) where the
+  block surface is wide enough that a Document view has a
+  meaningful corpus to render. At that point, supersede this ADR
+  with one proposing the hybrid renderer.
 
 ## Alternatives considered
 
