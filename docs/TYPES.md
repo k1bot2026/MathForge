@@ -223,12 +223,48 @@ outputs: [
 
 Output swaps `m` and `n`. A `Matrix<3, 5>` input produces a `Matrix<5, 3>` output.
 
-### Square-only blocks (`la.det`, `la.trace`)
+### Square-only blocks (`la.det`, `la.trace`, `la.inverse`, `la.lu`, `la.rank`, `la.rref`)
 
-These operations require square inputs. The constraint is enforced in `compute`
-rather than in the type system (the type system cannot express `m = n` as a
-connection-time rule without a more expressive unifier). Non-square inputs surface
-as an `EvalError` with a clear message: `"det requires a square matrix, got m×n"`.
+These operations require square or at least well-shaped inputs. The constraint is
+enforced in `compute` rather than in the type system (the type system cannot express
+`m = n` as a connection-time rule without a more expressive unifier). Non-square inputs
+surface as an `EvalError` with a clear message: `"det requires a square matrix, got m×n"`.
+
+`la.rref` and `la.rank` accept non-square inputs; they are not constrained.
+
+### Multi-output blocks (`la.lu`, `la.qr`, `la.eigen`, `la.svd`)
+
+`la.lu` is the first block to use the `Tuple` kind in production. No new `MathType`
+variant was needed — `kind: "Tuple"` was already in the discriminated union. The
+`canConnect` handler for `Tuple` performs element-wise checks.
+
+```typescript
+outputs: [
+  {
+    id: "LUP",
+    type: {
+      kind: "Tuple",
+      elements: [
+        { kind: "Matrix", m: { var: "n" }, n: { var: "n" }, field: "real" },  // L
+        { kind: "Matrix", m: { var: "n" }, n: { var: "n" }, field: "real" },  // U
+        { kind: "Matrix", m: { var: "n" }, n: { var: "n" }, field: "real" },  // P
+      ],
+    },
+  },
+],
+```
+
+The payload is a named struct (`LuPayload = { L, U, P }`) cast to `unknown` at the
+`MathValue` boundary — the `Tuple` discriminator in `type` is the canonical signal.
+See `docs/BLOCK_AUTHORING_GUIDE.md §3a` for the full multi-output convention.
+
+### No new `MathType` variants in Phase 2 first-tier operations
+
+`la.transpose`, `la.add`, `la.sub`, `la.trace`, `la.det`, `la.inverse`, `la.rref`,
+`la.rank`, and `la.lu` all work within the existing `Matrix`, `Scalar`, and `Tuple`
+variants. No ADR was required for Phase 2 operation blocks. The next likely addition
+is a `kind: "Permutation"` variant for cleaner typing of `la.lu`'s `P` output in a
+future cleanup, but that is deferred.
 
 ---
 
