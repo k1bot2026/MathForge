@@ -95,7 +95,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - [x] `la.inverse`
 - [x] `la.rank`
 - [x] `la.rref`
-- [ ] `la.lu`
+- [x] `la.lu`
 - [ ] `la.qr`
 - [ ] `la.svd`
 - [ ] `la.eigen`

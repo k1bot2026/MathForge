@@ -9,10 +9,10 @@ Versions map to phase milestones, not calendar releases.
 
 Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
 fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
-old shared links. Eight operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
-`la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`. SymPy fixture infrastructure
-in place with cross-engine tests. React Flow event-handler wiring closes the Phase-1
-gap where user drags/deletions were not captured by the Construction Protocol.
+old shared links. Nine operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
+`la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`. SymPy fixture
+infrastructure in place with cross-engine tests. React Flow event-handler wiring closes
+the Phase-1 gap where user drags/deletions were not captured by the Construction Protocol.
 See `docs/ROADMAP.md` Phase 2 progress tracker.
 
 ### Operations (Phase 2)
@@ -25,6 +25,7 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **`la.inverse`** — matrix inverse with `SingularMatrixError` guard; square + full-rank required. (`eba6346`)
 - **`la.rref`** — reduced row echelon form via partial-pivoting Gauss-Jordan. (`7cdcadc`)
 - **`la.rank`** — matrix rank via non-zero row count of RREF output. (`74a34d0`)
+- **`la.lu`** — LU decomposition with partial pivoting; outputs `L`, `U`, `P`. Property tests: `P·A = L·U`, L lower-triangular with unit diagonal, U upper-triangular. (`9f0fcea`)
 
 ### Bug fixes / Phase-1 gap closures
 

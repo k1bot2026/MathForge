@@ -219,7 +219,7 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.inverse` [shipped] — matrix inverse with singular-matrix guard; square + full-rank. (`eba6346`)
 - `la.rref` [shipped] — reduced row echelon form via partial-pivoting Gauss-Jordan. (`7cdcadc`)
 - `la.rank` [shipped] — matrix rank via non-zero row count of RREF. (`74a34d0`)
-- `la.lu` — LU decomposition; outputs `L`, `U`, optional `P`.
+- `la.lu` [shipped] — LU decomposition with partial pivoting; outputs `L`, `U`, `P`. Property tests: `P·A = L·U`, L lower-triangular with unit diagonal, U upper-triangular. (`9f0fcea`)
 - `la.qr` — QR decomposition; outputs `Q`, `R`.
 - `la.svd` — singular value decomposition; outputs `U`, `Σ`, `Vᵀ`.
 - `la.eigen` — eigenvalues and eigenvectors; outputs `values` (Vector), `vectors` (Matrix, column-ordered).
