@@ -411,6 +411,34 @@ Entries are floating-point; use tolerance-based equality (1e-9), never `===`. Sh
 toward the identity (zero rotations). **Use when** the property requires `QᵀQ = I`
 (`la.qr` output Q, orthogonal projections, condition-number tests).
 
+#### `singularMatrix(n)`
+
+```typescript
+import { singularMatrix } from "../../tests/arbitraries";
+
+test("property: det(singular) = 0", () => {
+  fc.assert(
+    fc.property(singularMatrix(3), (A) => {
+      expect(Math.round(det(A))).toBe(0);
+    }),
+  );
+});
+```
+
+Generates an n×n integer matrix guaranteed to be singular (`det = 0`). Construction:
+build a random (n−1)×n submatrix of integers, then set the last row to a random integer
+linear combination of the other rows. Linear dependence is guaranteed by construction —
+no rejection sampling; generation is O(1). Entries are exact integers; `Math.round` is
+safe for the det check. The special case `n = 1` returns `[[0]]` (the only singular 1×1
+matrix).
+
+Shrinks toward the all-zeros matrix (zero coefficients → zero dependent row → all rows
+zero → all-zeros matrix).
+
+**Use when** the block or property requires a singular input: `la.inverse` error-path
+(expects `SingularMatrixError`), `la.det` zero-result tests, `la.rank` rank-deficiency
+tests.
+
 ### Planned arbitraries (not yet in source)
 
 These are documented in `docs/TESTING.md` as forward-pointers; they land alongside the
