@@ -62,24 +62,24 @@ const edgeSnapshot = (e: Edge) => {
   return snap;
 };
 
-// Phase-1 seed graph: demos the matvec pipeline end-to-end so a
-// first-time visitor can see the type-checked DAG do something visible
-// without dragging anything. Two source nodes (a 2×2 scaling matrix
-// and a 2-vector) feed an la.matvec operation; the operation's output
-// node shows the computed result. A bare core.constant sits to the
-// side as the simplest possible source-block example.
+// Seed graph: demos the matvec pipeline end-to-end so a first-time visitor
+// can see the type-checked DAG do something visible without dragging anything.
+// Migrated from la.vector2/la.matrix2x2 (Phase-1) to la.vector/la.matrix (Phase-2).
 const seedNodes: Node[] = [
   {
     id: "matrix-1",
     type: "block",
     position: { x: 0, y: 0 },
-    data: { blockId: "la.matrix2x2", params: { a: 2, b: 0, c: 0, d: 1 } },
+    data: {
+      blockId: "la.matrix",
+      params: { rows: 2, cols: 2, r0c0: 2, r0c1: 0, r1c0: 0, r1c1: 1 },
+    },
   },
   {
     id: "vector-1",
     type: "block",
     position: { x: 0, y: 220 },
-    data: { blockId: "la.vector2", params: { x: 1, y: 1 } },
+    data: { blockId: "la.vector", params: { dim: 2, c0: 1, c1: 1 } },
   },
   {
     id: "matvec-1",

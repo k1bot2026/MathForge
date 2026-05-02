@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 describe("graph-store", () => {
-  test("seeds with the full Phase-1 demo (matrix + vector → matvec, matrix → unit-grid, plus a constant)", () => {
+  test("seeds with the Phase-2 demo (matrix + vector → matvec, matrix → unit-grid, plus a constant)", () => {
     useGraphStore.setState(initialState, true);
     const { nodes, edges, results, evalStatus } = useGraphStore.getState();
     expect(nodes).toHaveLength(5);
@@ -25,7 +25,7 @@ describe("graph-store", () => {
       .filter(Boolean)
       .sort();
     expect(blockIds).toEqual(
-      ["core.constant", "la.matrix2x2", "la.matvec", "la.vector2", "viz.unit-grid"].sort(),
+      ["core.constant", "la.matrix", "la.matvec", "la.vector", "viz.unit-grid"].sort(),
     );
     expect(edges).toHaveLength(3);
     expect(results).toEqual({});
