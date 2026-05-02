@@ -168,6 +168,86 @@ The unifier will reject a connection if the two inputs carry different concrete 
 
 ---
 
+## 3a. Multi-output blocks (Tuple convention)
+
+Some blocks produce multiple matrices — `la.lu` outputs L, U, and P; `la.qr` will output Q and R; `la.eigen` will output eigenvalues and eigenvectors. The evaluator supports exactly one `MathValue` per output port, so multiple results are packed into a single `Tuple` output.
+
+### The pattern
+
+**In `compute.ts`:** define a named payload type and return it inside a `MathValue` with `kind: "Tuple"`.
+
+```typescript
+// src/blocks/linear-algebra/lu/compute.ts
+
+export type LuPayload = {
+  L: number[][];
+  U: number[][];
+  P: number[][];
+};
+
+export function computeLu(inputs: ResolvedInputs): MathValue {
+  // ... compute L, U, P ...
+  const payload: LuPayload = { L: Larr, U: Uarr, P };
+
+  return {
+    type: {
+      kind: "Tuple",
+      elements: [
+        { kind: "Matrix", m: n, n: n, field: "real" },  // L
+        { kind: "Matrix", m: n, n: n, field: "real" },  // U
+        { kind: "Matrix", m: n, n: n, field: "real" },  // P
+      ],
+    },
+    payload: payload as unknown as number[][],   // cast: Tuple payloads are opaque to the type system
+    provenance: { ... },
+  };
+}
+```
+
+**In `definition.ts`:** declare one output port with `kind: "Tuple"` in the type. The `elements` array documents the shape of each sub-result.
+
+```typescript
+outputs: [
+  {
+    id: "LUP",
+    label: "L, U, P",
+    type: {
+      kind: "Tuple",
+      elements: [
+        { kind: "Matrix", m: { var: "n" }, n: { var: "n" }, field: "real" },
+        { kind: "Matrix", m: { var: "n" }, n: { var: "n" }, field: "real" },
+        { kind: "Matrix", m: { var: "n" }, n: { var: "n" }, field: "real" },
+      ],
+    },
+  },
+],
+```
+
+### Rules
+
+- **One output port.** Do not add separate `L`, `U`, `P` output handles to the block. This would require evaluator changes to fan out results into separate wires; the Tuple approach works today.
+- **Named payload struct.** Export the payload type (`LuPayload`, `QrPayload`, etc.) from `compute.ts`. Tests and downstream extraction blocks import it directly.
+- **Cast the payload.** `payload: payload as unknown as number[][]` is intentional — `MathValue.payload` is typed as `number[][]` for the common case; Tuple payloads are opaque to the static type. The `kind: "Tuple"` discriminator in `type` is the canonical signal to consumers.
+- **Document in `explain.effect`.** Because the output is not a plain matrix, the effect description must tell the user how to access the sub-results: `"Output is a structured {L, U, P} tuple. Access sub-matrices from downstream extraction blocks."`.
+- **Test each component.** In `*.test.ts`, cast the payload back to the named type and assert on each of L, U, and P individually:
+
+```typescript
+const result = computeLu({ A: mvalue(A) });
+const { L, U, P } = result.payload as unknown as LuPayload;
+// assert P·A ≈ L·U, L lower-triangular, U upper-triangular
+```
+
+### Consistent naming across multi-output blocks
+
+| Block | Output port id | Payload type | Elements |
+|---|---|---|---|
+| `la.lu` | `LUP` | `LuPayload` | `L`, `U`, `P` |
+| `la.qr` | `QR` | `QrPayload` | `Q`, `R` |
+| `la.eigen` | `eigen` | `EigenPayload` | `values` (Vector), `vectors` (Matrix) |
+| `la.svd` | `SVD` | `SvdPayload` | `U`, `S`, `Vt` |
+
+---
+
 ## 4. `*.test.ts` — property-based tests
 
 Three test layers in one file, in order of increasing confidence:
