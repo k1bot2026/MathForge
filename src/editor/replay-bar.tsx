@@ -86,7 +86,10 @@ export function ReplayBar() {
         }}
         className="flex-1 accent-[var(--accent)]"
       />
-      <span className="min-w-[18ch] text-right font-mono text-xs text-fg-muted">
+      <span
+        data-testid="replay-step-description"
+        className="min-w-[18ch] text-right font-mono text-xs text-fg-muted"
+      >
         step {step}/{total}: {describeEvent(events, step)}
       </span>
     </div>

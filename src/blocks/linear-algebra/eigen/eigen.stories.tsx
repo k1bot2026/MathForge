@@ -38,8 +38,8 @@ export const TwoByTwo: Story = {
                 payload: {
                   eigenvalues: [-1, 3],
                   eigenvectors: [
-                    [-0.7071067811865476, 0.7071067811865476],
-                    [0.7071067811865476, 0.7071067811865476],
+                    [-Math.SQRT1_2, Math.SQRT1_2],
+                    [Math.SQRT1_2, Math.SQRT1_2],
                   ],
                 } as unknown as number[][],
                 provenance: provenance("la.eigen"),
