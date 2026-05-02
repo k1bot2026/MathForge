@@ -215,10 +215,10 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.add` [shipped] — element-wise matrix addition, same shape required. (`061f40a`)
 - `la.sub` [shipped] — element-wise matrix subtraction, same shape required. (`0ccaae9`)
 - `la.trace` [shipped] — sum of diagonal; square-matrix only (typed error for non-square inputs). (`7704e07`)
-- `la.det` — determinant; square-matrix only. Property tests: `det(I) = 1`, `det(A·B) = det(A)·det(B)`, `det(Aᵀ) = det(A)`.
-- `la.inverse` — matrix inverse; square + full-rank.
-- `la.rank` — matrix rank.
-- `la.rref` — reduced row echelon form.
+- `la.det` [shipped] — determinant via math.js LU; square-matrix only. Property tests: `det(I) = 1`, `det(A·B) = det(A)·det(B)`, `det(Aᵀ) = det(A)`. (`c50ade4`)
+- `la.inverse` [shipped] — matrix inverse with singular-matrix guard; square + full-rank. (`eba6346`)
+- `la.rref` [shipped] — reduced row echelon form via partial-pivoting Gauss-Jordan. (`7cdcadc`)
+- `la.rank` [shipped] — matrix rank via non-zero row count of RREF. (`74a34d0`)
 - `la.lu` — LU decomposition; outputs `L`, `U`, optional `P`.
 - `la.qr` — QR decomposition; outputs `Q`, `R`.
 - `la.svd` — singular value decomposition; outputs `U`, `Σ`, `Vᵀ`.
@@ -228,15 +228,6 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.kernel` — null space of a matrix.
 - `la.image` — column space of a matrix.
 - `la.project` — orthogonal projection of a vector onto a subspace.
-
-### Phase 3 (Statistics)
-`stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`, `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`, `stats.bayes-net`, `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`.
-
-### Phase 4 (Calculus)
-`calc.function`, `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve`, `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`.
-
-### Phase 5 (Composites)
-`core.subgraph`, `core.assert`, `core.benchmark`.
 
 ### Phase 3 (Statistics)
 `stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`, `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`, `stats.bayes-net`, `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`.
