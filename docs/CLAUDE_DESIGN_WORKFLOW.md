@@ -121,3 +121,23 @@ When NOT to skip:
 ## Decision log
 
 When in doubt about which tool to use for a task, log the decision in `docs/adr/` so future sessions don't relitigate.
+
+## Closed handoffs
+
+Record each handoff once it is fully implemented, noting what shipped versus what was deferred. Useful for retrospectives and for understanding what the existing implementation actually covers.
+
+### `2026-05-02-explanation-panel` — closed `e89c740`
+
+**Handoff:** `design-handoff/2026-05-02-explanation-panel/`
+
+**What shipped:**
+- Inspector panel header: block label, role-coloured dot, mono category sub-line, `StateChip` in header (not body banner).
+- Body: 60 ms-delayed fade behind 220 ms cubic-bezier slide-in; neutralised under `prefers-reduced-motion`.
+- Resize handle: 1.5 px left-edge affordance, keyboard a11y (ArrowLeft/Right ±16 px, clamped 320–520 px), pointer drag. Width persisted in `useUiStore` (workspace-scoped).
+- Tab persistence: active tab hoisted to `useUiStore`, survives selection changes within the session; tab underline uses `--fg` (not `--accent`, per brand rule).
+- Value strip: bottom-anchored mono output preview, visible only in value state.
+- Storybook stories: every state (Computing, Value, Error, Unknown), ResizeMin/ResizeMax, TabPersistedToEffect.
+- Tests: 11 cases covering state-chip wiring, tab persistence, resize ARIA, ArrowRight nudge, value-strip visibility.
+
+**What was deferred:**
+- `design-handoff/2026-05-02-block-kit/` (ADR 0003 canvas paradigm prototype) — archived; may be revisited for a read/share mode in a later phase. See `docs/adr/0003-canvas-paradigm.md`.
