@@ -19,6 +19,7 @@ import { describe, expect, test } from "vitest";
 import {
   loadDetMultiplicativityFixture,
   loadMatrixFixture,
+  loadTransposeFixture,
   loadVectorFixture,
 } from "./sympy-reference";
 
@@ -150,6 +151,28 @@ describe("la-det-multiplicativity.json fixture guard", () => {
     for (const c of f.cases) {
       const recomputed = Math.round(det(c.AB) as number);
       expect(recomputed).toBe(c.detAB);
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// la-transpose.json guard
+// ──────────────────────────────────────────────────────────────────────────
+
+describe("la-transpose.json fixture guard", () => {
+  const f = loadTransposeFixture();
+
+  test("At values match math.js recomputation", () => {
+    for (const c of f.cases) {
+      const recomputed = normMatrix(transpose(c.A) as number[][]);
+      expect(recomputed).toEqual(c.At);
+    }
+  });
+
+  test("(Aᵀ)ᵀ = A for all fixture cases (involution via math.js)", () => {
+    for (const c of f.cases) {
+      const Att = normMatrix(transpose(transpose(c.A) as number[][]) as number[][]);
+      expect(Att).toEqual(c.A);
     }
   });
 });

@@ -9,6 +9,7 @@ import {
   loadDetMultiplicativityFixture,
   loadFixtureJson,
   loadMatrixFixture,
+  loadTransposeFixture,
   loadVectorFixture,
 } from "./sympy-reference";
 
@@ -160,19 +161,47 @@ describe("loadFixtureJson error handling", () => {
   });
 });
 
+describe("loadTransposeFixture", () => {
+  test("returns an object with schemaVersion 1", () => {
+    expect(loadTransposeFixture().schemaVersion).toBe(1);
+  });
+
+  test("cases array is non-empty", () => {
+    expect(loadTransposeFixture().cases.length).toBeGreaterThan(0);
+  });
+
+  test("every case has A and At arrays of correct transposed dimensions", () => {
+    for (const c of loadTransposeFixture().cases) {
+      expect(Array.isArray(c.A)).toBe(true);
+      expect(Array.isArray(c.At)).toBe(true);
+      const m = c.A.length;
+      const n = c.A[0]?.length ?? 0;
+      expect(c.At.length).toBe(n);
+      expect(c.At[0]?.length ?? 0).toBe(m);
+    }
+  });
+});
+
 describe("fixture file integrity", () => {
-  test("all three fixture files exist and contain valid JSON (loader returns objects)", () => {
+  test("all four fixture files exist and contain valid JSON (loader returns objects)", () => {
     // If any file is missing or corrupt, these calls will throw.
     const v = loadVectorFixture();
     const m = loadMatrixFixture();
     const d = loadDetMultiplicativityFixture();
+    const t = loadTransposeFixture();
     expect(typeof v).toBe("object");
     expect(typeof m).toBe("object");
     expect(typeof d).toBe("object");
+    expect(typeof t).toBe("object");
   });
 
   test("fixture generated timestamps are valid ISO-8601 strings", () => {
-    const fixtures = [loadVectorFixture(), loadMatrixFixture(), loadDetMultiplicativityFixture()];
+    const fixtures = [
+      loadVectorFixture(),
+      loadMatrixFixture(),
+      loadDetMultiplicativityFixture(),
+      loadTransposeFixture(),
+    ];
     for (const f of fixtures) {
       expect(Number.isNaN(new Date(f.generated).getTime())).toBe(false);
     }

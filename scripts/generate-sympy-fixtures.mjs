@@ -453,6 +453,96 @@ json.dumps({
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.transpose — exact reference values for the involution property
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, Aᵀ) pairs for la.transpose cross-engine tests.
+ * Covers square sizes 2×2, 3×3, 4×4 plus non-square 2×3 and 3×2.
+ * Each case records: A, At (Aᵀ computed by SymPy).
+ * SymPy guarantees exact integer results for integer inputs.
+ */
+async function generateTransposeCases(py) {
+  const matrices = [
+    // 2×2
+    [
+      [1, 2],
+      [3, 4],
+    ],
+    [
+      [0, -1],
+      [1, 0],
+    ],
+    [
+      [5, -3],
+      [2, 7],
+    ],
+    // 3×3
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ],
+    [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    [
+      [2, -1, 3],
+      [0, 4, -2],
+      [1, 1, 5],
+    ],
+    // 4×4
+    [
+      [1, 2, 3, 4],
+      [5, 6, 7, 8],
+      [9, 10, 11, 12],
+      [13, 14, 15, 16],
+    ],
+    // 2×3 non-square
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+    ],
+    // 3×2 non-square
+    [
+      [1, 4],
+      [2, 5],
+      [3, 6],
+    ],
+    // 1×4 row vector (edge: becomes 4×1)
+    [[1, -2, 3, -4]],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+At = A.T
+
+def mat_to_list(m):
+    return [[int(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+json.dumps({"At": mat_to_list(At)})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, At: parsed.At });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference (A, Aᵀ) pairs computed by SymPy 1.13.x with exact integer arithmetic. Covers 2×2, 3×3, 4×4 square matrices plus 2×3, 3×2, 1×4 non-square cases.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -474,6 +564,10 @@ async function main() {
   console.log("\nGenerating la.matrix fixtures…");
   const matrixFixture = await generateMatrixArithmetic(py);
   writeFixture("la-matrix", matrixFixture);
+
+  console.log("\nGenerating la.transpose fixtures…");
+  const transposeFixture = await generateTransposeCases(py);
+  writeFixture("la-transpose", transposeFixture);
 
   console.log("\nGenerating la.det multiplicativity fixtures…");
   const detFixture = await generateDetMultiplicativity(py);

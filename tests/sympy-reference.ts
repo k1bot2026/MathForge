@@ -119,3 +119,23 @@ export type DetMultiplicativityFixture = {
 export function loadDetMultiplicativityFixture(): DetMultiplicativityFixture {
   return loadJson<DetMultiplicativityFixture>("la-det-multiplicativity");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.transpose fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type TransposeCase = {
+  A: number[][];
+  At: number[][];
+};
+
+export type TransposeFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: TransposeCase[];
+};
+
+export function loadTransposeFixture(): TransposeFixture {
+  return loadJson<TransposeFixture>("la-transpose");
+}
