@@ -11,7 +11,8 @@ Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
 fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
 old shared links. Eight operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
 `la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`. SymPy fixture infrastructure
-in place with cross-engine tests.
+in place with cross-engine tests. React Flow event-handler wiring closes the Phase-1
+gap where user drags/deletions were not captured by the Construction Protocol.
 See `docs/ROADMAP.md` Phase 2 progress tracker.
 
 ### Operations (Phase 2)
@@ -24,6 +25,10 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **`la.inverse`** — matrix inverse with `SingularMatrixError` guard; square + full-rank required. (`eba6346`)
 - **`la.rref`** — reduced row echelon form via partial-pivoting Gauss-Jordan. (`7cdcadc`)
 - **`la.rank`** — matrix rank via non-zero row count of RREF output. (`74a34d0`)
+
+### Bug fixes / Phase-1 gap closures
+
+- **React Flow event-handler wiring** — user-driven node drags, deletions, and edge-draws now flow into the Construction Protocol replay log. `useGraphStore` gained `onNodesChange` (emits `node-removed` + `node-moved` on drag-end) and `onEdgesChange` (emits `edge-removed`); all three canvas handlers are no-ops in replay mode to prevent the live log from being corrupted during scrubbing. (`db12d38`)
 
 ### Foundation (Shape polymorphism)
 
