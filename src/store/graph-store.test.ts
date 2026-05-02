@@ -9,19 +9,22 @@ beforeEach(() => {
 });
 
 describe("graph-store", () => {
-  test("seeds with one placeholder node and zero edges", () => {
-    const { nodes, edges } = useGraphStore.getState();
+  test("seeds with one constant block node and zero edges", () => {
+    const { nodes, edges, results, evalStatus } = useGraphStore.getState();
     expect(nodes).toHaveLength(1);
-    expect(nodes[0]?.type).toBe("placeholder");
+    expect(nodes[0]?.type).toBe("block");
+    expect((nodes[0]?.data as { blockId?: string } | undefined)?.blockId).toBe("core.constant");
     expect(edges).toHaveLength(0);
+    expect(results).toEqual({});
+    expect(evalStatus).toBe("idle");
   });
 
   test("addNode appends the new node", () => {
     const node: Node = {
       id: "n2",
-      type: "placeholder",
+      type: "block",
       position: { x: 100, y: 0 },
-      data: {},
+      data: { blockId: "core.constant", params: { value: 5 } },
     };
     useGraphStore.getState().addNode(node);
     const { nodes } = useGraphStore.getState();
@@ -47,8 +50,18 @@ describe("graph-store", () => {
   });
 
   test("removeNode drops the node and any incident edges", () => {
-    const a: Node = { id: "a", type: "placeholder", position: { x: 0, y: 0 }, data: {} };
-    const b: Node = { id: "b", type: "placeholder", position: { x: 200, y: 0 }, data: {} };
+    const a: Node = {
+      id: "a",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: { blockId: "core.constant", params: { value: 1 } },
+    };
+    const b: Node = {
+      id: "b",
+      type: "block",
+      position: { x: 200, y: 0 },
+      data: { blockId: "core.constant", params: { value: 2 } },
+    };
     const edge: Edge = { id: "e-ab", source: "a", target: "b" };
     const store = useGraphStore.getState();
     store.addNode(a);
@@ -60,5 +73,29 @@ describe("graph-store", () => {
     const { nodes, edges } = useGraphStore.getState();
     expect(nodes.find((n) => n.id === "a")).toBeUndefined();
     expect(edges).toHaveLength(0);
+  });
+
+  test("setResults turns the evaluator's Map into a plain record", () => {
+    const map = new Map([
+      [
+        "x",
+        {
+          kind: "value" as const,
+          value: {
+            type: { kind: "Scalar" as const, field: "real" as const, precision: "exact" as const },
+            payload: 7,
+            provenance: {
+              blockId: "core.constant",
+              inputs: [],
+              computedAt: 0,
+              engine: "native" as const,
+            },
+          },
+        },
+      ],
+    ]);
+    useGraphStore.getState().setResults(map);
+    const { results } = useGraphStore.getState();
+    expect(results.x?.kind).toBe("value");
   });
 });
