@@ -5,7 +5,9 @@ import {
   BackgroundVariant,
   type Connection,
   type Edge,
+  type EdgeChange,
   type Node,
+  type NodeChange,
   type NodeTypes,
   ReactFlow,
 } from "@xyflow/react";
@@ -37,6 +39,9 @@ export function EditorCanvas() {
   const mode = useHistoryStore((s) => s.mode);
   const projection = useGraphProjection();
   const setSelected = useGraphStore((s) => s.setSelectedNodeId);
+  const onNodesChange = useGraphStore((s) => s.onNodesChange);
+  const onEdgesChange = useGraphStore((s) => s.onEdgesChange);
+  const connect = useGraphStore((s) => s.connect);
 
   const isReplay = mode === "replay";
 
@@ -54,6 +59,39 @@ export function EditorCanvas() {
   }, [isReplay, liveNodes, projection]);
 
   const edges: Edge[] = isReplay ? projection.edges : liveEdges;
+
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      if (!isReplay) onNodesChange(changes);
+    },
+    [isReplay, onNodesChange],
+  );
+
+  const handleEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      if (!isReplay) onEdgesChange(changes);
+    },
+    [isReplay, onEdgesChange],
+  );
+
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      if (isReplay) return;
+      const edge: Edge = {
+        id: `e-${connection.source}-${connection.sourceHandle ?? "out"}-${connection.target}-${connection.targetHandle ?? "in"}`,
+        source: connection.source,
+        target: connection.target,
+        ...(connection.sourceHandle !== null && connection.sourceHandle !== undefined
+          ? { sourceHandle: connection.sourceHandle }
+          : {}),
+        ...(connection.targetHandle !== null && connection.targetHandle !== undefined
+          ? { targetHandle: connection.targetHandle }
+          : {}),
+      };
+      connect(edge);
+    },
+    [isReplay, connect],
+  );
 
   const onNodeClick = useCallback(
     (_event: unknown, node: Node) => {
@@ -103,6 +141,9 @@ export function EditorCanvas() {
         edges={edges}
         nodeTypes={nodeTypes}
         isValidConnection={isValidConnection}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onConnect={handleConnect}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         fitView

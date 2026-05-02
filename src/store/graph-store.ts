@@ -1,4 +1,11 @@
-import type { Edge, Node } from "@xyflow/react";
+import {
+  applyEdgeChanges,
+  applyNodeChanges,
+  type Edge,
+  type EdgeChange,
+  type Node,
+  type NodeChange,
+} from "@xyflow/react";
 import { create } from "zustand";
 import type { ResolvedParams } from "~/blocks/types";
 import { type ConstructionEvent, synthesizeFromSnapshot } from "~/engine/construction-events";
@@ -18,6 +25,8 @@ export type GraphState = {
   addNode: (node: Node) => void;
   removeNode: (id: string) => void;
   connect: (edge: Edge) => void;
+  onNodesChange: (changes: NodeChange[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
   setResults: (results: ReadonlyMap<string, EvalResult>) => void;
@@ -151,6 +160,24 @@ export const useGraphStore = create<GraphState>((set) => ({
       return { edges: [...state.edges, edge] };
     });
     if (appended) record({ kind: "edge-added", edge: edgeSnapshot(edge) });
+  },
+  onNodesChange: (changes) => {
+    set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) }));
+    for (const change of changes) {
+      if (change.type === "remove") {
+        record({ kind: "node-removed", nodeId: change.id });
+      } else if (change.type === "position" && !change.dragging && change.position !== undefined) {
+        record({ kind: "node-moved", nodeId: change.id, position: change.position });
+      }
+    }
+  },
+  onEdgesChange: (changes) => {
+    set((state) => ({ edges: applyEdgeChanges(changes, state.edges) }));
+    for (const change of changes) {
+      if (change.type === "remove") {
+        record({ kind: "edge-removed", edgeId: change.id });
+      }
+    }
   },
   setNodes: (nodes) => {
     set({ nodes });
