@@ -69,6 +69,17 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 **Goal**: cover the linear algebra portion of IB0602 fully, plus 3D visualization for matrix transformations.
 
+### Phase 2 status snapshot
+
+| Area | Shipped | Pending |
+|---|---|---|
+| **Foundation** | `la.vector`, `la.matrix`, `la.matvec` (updated), `la.matmul` (updated), seed graph migration, 3 template migrations, URL schemaVersion 1→2 migrator, `la.vector2`/`la.matrix2x2` retired | — |
+| **Operations** | `la.transpose`, `la.add`, `la.sub`, `la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu` | `la.qr`, `la.eigen`, `la.solve`, `la.svd`, `la.basis-change`, `la.kernel`, `la.image`, `la.project` |
+| **Visualization** | — | `viz.unit-grid-3d`, eigenvector highlighting, det area/volume animation |
+| **Canvas / infra** | React Flow event-handler wiring (user drags/deletions captured in replay log) | — |
+| **Testing** | SymPy fixture infrastructure, cross-engine tests for 8 ops, `invertibleMatrix` / `orthogonalMatrix` / `singularMatrix` arbitraries | SymPy fixtures for `la.lu` + remaining ops |
+| **Docs** | TYPES.md, BLOCK_TAXONOMY.md, TESTING.md, ARCHITECTURE.md, BLOCK_AUTHORING_GUIDE.md, AGENT_TEAM_WORKFLOW.md, README.md, CHANGELOG.md | Update per-op as remainder ships |
+
 ### Blocks
 `la.add`, `la.sub`, `la.transpose`, `la.inverse`, `la.det`, `la.trace`, `la.rank`, `la.rref`, `la.lu`, `la.qr`, `la.svd`, `la.eigen`, `la.solve`, `la.basis-change`, `la.kernel`, `la.image`, `la.project`. Generalize `la.vector2` and `la.matrix2x2` to `la.vector` and `la.matrix` with `Shape` polymorphism.
 
