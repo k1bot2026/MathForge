@@ -269,23 +269,85 @@ When a block's output is approximate but its input was exact, the test must veri
 
 ## Arbitraries
 
-`tests/arbitraries.ts` exports fast-check generators for:
+Source: `tests/arbitraries.ts`. Import directly — no re-export barrel.
 
 ```typescript
-realScalar({ min, max })
-integerScalar({ min, max })
-realVector({ n })
-integerVector({ n })
-realMatrix({ m, n, range? })
-integerMatrix({ m, n, range? })
-invertibleMatrix({ n })           // shrinks to identity
-positiveDefiniteMatrix({ n })
-diagonalMatrix({ n })
-distribution()                    // any continuous distribution
-expression({ vars })              // symbolic expression with given free vars
+import { invertibleMatrix, orthogonalMatrix } from "../../tests/arbitraries";
 ```
 
-Always shrink to "boring" cases (zeros, identity, small integers) so failures are minimal counterexamples.
+### Type-system arbitraries (Phase 1)
+
+These generate `MathType` values for `canConnect` and shape-unifier tests.
+
+| Arbitrary | Type | Use when |
+|---|---|---|
+| `fieldArb` | `Field` | testing field subtyping / compatibility |
+| `precisionArb` | `Precision` | testing precision propagation rules |
+| `concreteDimArb` | `number` (1–8) | generating concrete matrix/vector dimensions |
+| `shapeVarNameArb` | `string` | generating shape variable names (m, n, k, p, q) |
+| `shapeArb` | `Shape` | generating mixed concrete/any/variable shapes |
+| `scalarTypeArb` | `MathType (Scalar)` | canConnect tests on scalar kinds |
+| `vectorTypeArb` | `MathType (Vector)` | canConnect tests on vector kinds |
+| `matrixTypeArb` | `MathType (Matrix)` | canConnect tests on matrix kinds |
+| `linearAlgebraTypeArb` | `MathType` | any of the three Phase-1 kinds |
+
+### Matrix arbitraries (Phase 2)
+
+#### `invertibleMatrix(n)`
+
+```typescript
+import { invertibleMatrix } from "../../tests/arbitraries";
+
+test("property: A⁻¹ · A ≈ Iₙ", () => {
+  fc.assert(
+    fc.property(invertibleMatrix(3), (A) => {
+      const invA = inv(A);
+      const product = multiply(invA, A) as number[][];
+      expect(matricesClose(product, identity(3), 1e-9)).toBe(true);
+    }),
+  );
+});
+```
+
+Generates an n×n integer matrix guaranteed to be invertible (`det ≠ 0`). Uses rejection
+sampling — accepts only when `Math.abs(det(m)) > 0.5`. Worst-case acceptance rate is ~91%
+at n=4 with entries in [-5, 5]; expected overhead is negligible. Shrinks toward the
+identity matrix. **Use when** the block or property requires an invertible input
+(`la.inverse`, `la.det` non-zero, LU/QR decomposition tests).
+
+#### `orthogonalMatrix(n)`
+
+```typescript
+import { orthogonalMatrix } from "../../tests/arbitraries";
+
+test("property: Qᵀ · Q ≈ Iₙ", () => {
+  fc.assert(
+    fc.property(orthogonalMatrix(3), (Q) => {
+      const Qt = transpose(Q) as number[][];
+      const product = multiply(Qt, Q) as number[][];
+      expect(matricesClose(product, identity(3), 1e-9)).toBe(true);
+    }),
+  );
+});
+```
+
+Generates an n×n orthogonal matrix via Givens (plane) rotations applied to the identity.
+Entries are floating-point; use tolerance-based equality (1e-9), never `===`. Shrinks
+toward the identity (zero rotations). **Use when** the property requires `QᵀQ = I`
+(`la.qr` output Q, orthogonal projections, condition-number tests).
+
+### Planned arbitraries (not yet in source)
+
+These are documented in `docs/TESTING.md` as forward-pointers; they land alongside the
+blocks that need them.
+
+- `positiveDefiniteMatrix(n)` — for `la.cholesky` (Phase 2 later).
+- `diagonalMatrix(n)` — for `la.eigen` diagonal case tests.
+- `distribution()` — for Phase 3 statistics blocks.
+- `expression({ vars })` — for Phase 4 calculus blocks.
+
+All arbitraries shrink toward "boring" cases (identity, small integers, zero) so that
+fast-check counterexamples are minimal and human-readable.
 
 ## Visual regression
 
