@@ -97,14 +97,17 @@ export function isFieldSubtype(out: Field, into: Field): boolean {
 // Shape helpers
 // ──────────────────────────────────────────────────────────────────────
 
+/** Narrows a `Shape` to a shape variable `{ var: string }`. */
 export function isShapeVar(s: Shape): s is { var: string } {
   return typeof s === "object" && s !== null && "var" in s;
 }
 
+/** Narrows a `Shape` to a concrete dimension number. */
 export function isConcreteShape(s: Shape): s is number {
   return typeof s === "number";
 }
 
+/** Returns a human-readable string for a shape: `"3"`, `"any"`, or the variable name. */
 export function shapeToString(s: Shape): string {
   if (s === "any") return "any";
   if (typeof s === "number") return String(s);
