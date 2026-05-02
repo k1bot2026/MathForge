@@ -220,7 +220,7 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.rref` [shipped] — reduced row echelon form via partial-pivoting Gauss-Jordan. (`7cdcadc`)
 - `la.rank` [shipped] — matrix rank via non-zero row count of RREF. (`74a34d0`)
 - `la.lu` [shipped] — LU decomposition with partial pivoting; outputs `L`, `U`, `P`. Property tests: `P·A = L·U`, L lower-triangular with unit diagonal, U upper-triangular. (`9f0fcea`)
-- `la.qr` — QR decomposition; outputs `Q`, `R`.
+- `la.qr` [shipped] — QR decomposition via Householder reflections; outputs `Q`, `R`. Property tests: `A = Q·R`, `Qᵀ·Q = I`, R upper-triangular. (`f654d61`)
 - `la.svd` — singular value decomposition; outputs `U`, `Σ`, `Vᵀ`.
 - `la.eigen` — eigenvalues and eigenvectors; outputs `values` (Vector), `vectors` (Matrix, column-ordered).
 - `la.solve` — solve `Ax = b`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`.
