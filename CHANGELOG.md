@@ -9,9 +9,16 @@ Versions map to phase milestones, not calendar releases.
 
 Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
 fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
-old shared links. SymPy fixture infrastructure in place. Operations (`la.transpose`,
-`la.add`, `la.sub`, `la.trace`, `la.det`, …) in progress.
+old shared links. Four operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
+`la.trace`. SymPy fixture infrastructure in place with cross-engine tests.
 See `docs/ROADMAP.md` Phase 2 progress tracker.
+
+### Operations (Phase 2)
+
+- **`la.transpose`** — `Matrix<m,n> → Matrix<n,m>`. Polymorphic output type. Property tests: involution, shape reversal, `(A·B)ᵀ = BᵀAᵀ`. (`ed24132`)
+- **`la.add`** — element-wise matrix addition; same shape required (typed error for mismatch). (`061f40a`)
+- **`la.sub`** — element-wise matrix subtraction; same shape required. (`0ccaae9`)
+- **`la.trace`** — sum of main diagonal; square-matrix only with typed error for non-square inputs. (`7704e07`)
 
 ### Foundation (Shape polymorphism)
 
@@ -35,7 +42,9 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - `docs/TYPES.md` — Shape polymorphism documented: corrected `ConnectResult` signature, all four `unifyShape` cases, Phase 2 examples for `la.vector`, `la.matvec`, `la.matmul`, `la.transpose`, and square-matrix constraint pattern. (`7c4322a`)
 - `docs/BLOCK_TAXONOMY.md` — `la.vector2`/`la.matrix2x2` marked retired; all Phase 2 blocks listed with type signatures and status markers. (`7cece91`)
 - `docs/ROADMAP.md` — Phase 2 progress tracker added and checkboxes ticked for shipped items. (`e689cda`, `ae748e4`)
-- `docs/TESTING.md` — SymPy fixture workflow documented (when to regenerate, how to add a fixture set, fixture format) and property testing pattern section added with worked example. (`1071c9e`, `999596d`)
+- `docs/TESTING.md` — SymPy fixture workflow, property testing pattern, `@cross-engine` tag convention, and `tests/arbitraries.ts` reference all documented. (`1071c9e`, `999596d`, `449b944`, `7d0eafe`)
+- `docs/ARCHITECTURE.md` — Phase 2 drift fixed: `ConnectResult` type corrected, "zstd" → "deflate (fflate)", migration location corrected to `graph-codec.ts`, v1→v2 schema history added. (`c5c5209`)
+- `docs/BLOCK_AUTHORING_GUIDE.md` — new: canonical pattern for adding a block, with `la.transpose` as the worked example; 8-item pre-commit checklist. (`decef3d`)
 - `CHANGELOG.md` — initialized (this file). (`12f7cf3`)
 
 ---
