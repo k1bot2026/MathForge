@@ -82,7 +82,12 @@ describe("la.matvec compute", () => {
           const left = computeMatVec({ M: mvalue(M), v: vvalue(av_bw) }).payload as number[];
           const Mv = computeMatVec({ M: mvalue(M), v: vvalue(v) }).payload as number[];
           const Mw = computeMatVec({ M: mvalue(M), v: vvalue(w) }).payload as number[];
-          const right = Mv.map((x, i) => a * x + b * (Mw[i] ?? 0));
+          // Normalise -0 → +0 on the test-computed side so it matches what
+          // computeMatVec emits; toEqual uses Object.is and treats -0 as ≠ 0.
+          const right = Mv.map((x, i) => {
+            const r = a * x + b * (Mw[i] ?? 0);
+            return r === 0 ? 0 : r;
+          });
           expect(left).toEqual(right);
         },
       ),

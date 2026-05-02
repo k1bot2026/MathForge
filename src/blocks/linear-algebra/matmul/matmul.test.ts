@@ -26,7 +26,14 @@ function identity(n: number): number[][] {
 }
 
 function matAdd(A: number[][], B: number[][]): number[][] {
-  return A.map((row, i) => row.map((x, j) => x + (B[i]?.[j] ?? 0)));
+  // Normalise -0 → +0 so matAdd output matches what computeMatMul emits;
+  // toEqual treats -0 ≠ 0 and would otherwise make this property test flaky.
+  return A.map((row, i) =>
+    row.map((x, j) => {
+      const r = x + (B[i]?.[j] ?? 0);
+      return r === 0 ? 0 : r;
+    }),
+  );
 }
 
 describe("la.matmul compute", () => {
