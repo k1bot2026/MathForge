@@ -49,3 +49,8 @@ coverage/
 
 # vitest
 .vitest-cache/
+
+# Claude Design handoff zips — extracted into design-handoff/<date-feature>/
+# per docs/CLAUDE_DESIGN_WORKFLOW.md. The zip is the input artefact; only the
+# unpacked bundle is checked in.
+*_DesignHandoff.zip

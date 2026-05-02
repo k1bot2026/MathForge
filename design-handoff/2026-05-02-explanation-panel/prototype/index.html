@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MathForge — Explanation Panel (handoff)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="doc">
+
+    <!-- ============================================================== -->
+    <!-- Header                                                         -->
+    <!-- ============================================================== -->
+    <header class="doc-header">
+      <p class="doc-eyebrow">Design handoff &nbsp;·&nbsp; 2026-05-02 &nbsp;·&nbsp; mathForge</p>
+      <h1 class="doc-title">Explanation panel — right-rail inspector</h1>
+      <p class="doc-sub">
+        Static spec for the four-tab (what / why / effect / impact) explanation
+        panel that slides in from the right when a block is selected. Five
+        result states, both themes, plus tab-persistence and resize affordance.
+        Companion <code>README.md</code> covers intent, decisions, and open
+        token questions.
+      </p>
+    </header>
+
+    <!-- ============================================================== -->
+    <!-- 01 — Anatomy                                                  -->
+    <!-- ============================================================== -->
+    <section class="doc-section">
+      <div class="doc-section-head">
+        <span class="doc-section-num">01</span>
+        <h2 class="doc-section-title">Anatomy</h2>
+        <p class="doc-section-note">
+          One reference frame, light theme, value state. Numbered hotspots map
+          to the legend on the right.
+        </p>
+      </div>
+
+      <div class="anatomy">
+        <div class="frame" data-theme="light" style="position: relative;">
+          <div class="frame-label">
+            <span><span class="swatch" style="background: oklch(99% 0.005 240);"></span><span class="theme-tag">Light</span></span>
+            <span class="state-tag">Value · la.matmul</span>
+          </div>
+          <div class="stage" style="grid-template-columns: 1fr 380px; height: 460px;">
+            <div class="canvas">
+              <div class="node-stub is-selected role-operation" style="top: 60px; left: 48px;">
+                <div class="node-head">
+                  <span class="node-label">Matrix × matrix</span>
+                  <span class="node-symbol">A·B</span>
+                </div>
+                <div class="node-shape">3×4 · 4×5 → 3×5</div>
+                <span class="node-port in-1"></span>
+                <span class="node-port in-2"></span>
+                <span class="node-port out"></span>
+              </div>
+              <div class="edge-stub"></div>
+            </div>
+
+            <aside class="panel" role="complementary" aria-label="Explanation panel">
+              <span class="resize-handle" tabindex="0" role="separator" aria-orientation="vertical" aria-label="Resize panel" title="Drag to resize"></span>
+
+              <header class="panel-header">
+                <span class="role-dot role-operation" aria-hidden="true"></span>
+                <div class="title-block">
+                  <h3 class="panel-title">Matrix × matrix</h3>
+                  <p class="panel-meta">la.matmul · operation</p>
+                </div>
+                <button type="button" class="close-btn" aria-label="Close panel">close</button>
+              </header>
+
+              <div class="tabs" role="tablist" aria-label="Explanation">
+                <button class="tab" role="tab" aria-selected="false" tabindex="-1">What</button>
+                <button class="tab" role="tab" aria-selected="false" tabindex="-1">Why</button>
+                <button class="tab" role="tab" aria-selected="true" tabindex="0">Effect</button>
+                <button class="tab" role="tab" aria-selected="false" tabindex="-1">Impact</button>
+              </div>
+
+              <div class="panel-body" role="tabpanel">
+                <p>
+                  Combined a <span class="shape">3×4</span> matrix with a
+                  <span class="shape">4×5</span> matrix to produce a
+                  <span class="shape">3×5</span> matrix; determinant is
+                  <span class="num">12</span>.
+                </p>
+                <p style="color: var(--fg-muted); font-size: 13px;">
+                  Inner dimension <span class="math-inline">$$k = 4$$</span> matched on both sides; the result inherits A's row count and B's column count.
+                </p>
+              </div>
+
+              <div class="value-strip">
+                <span class="label">Value</span>
+                <span class="body">Matrix(3×5) · ‖·‖<sub>F</sub> = 41.62</span>
+              </div>
+            </aside>
+          </div>
+
+          <!-- Hotspots -->
+          <span class="hotspot" style="top: 76px; right: 350px;">1</span>
+          <span class="hotspot" style="top: 76px; right: 18px;">2</span>
+          <span class="hotspot" style="top: 132px; right: 230px;">3</span>
+          <span class="hotspot" style="top: 184px; right: 18px;">4</span>
+          <span class="hotspot" style="top: 240px; right: 18px;">5</span>
+          <span class="hotspot" style="bottom: 60px; right: 280px;">6</span>
+        </div>
+
+        <div class="legend">
+          <ol>
+            <li>
+              <div>
+                <strong>Header.</strong> Block label (Geist Sans 600, 14px) with role dot in the role-border colour. Sub-line is the block id and category in <span class="meta">Geist Mono 11px</span>. Mirrors the existing inspector header pattern.
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Close.</strong> Lowercase “close” in Geist Mono caps to match the existing inspector button. Keyboard-reachable, accent focus ring.
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Tabs.</strong> what / why / effect / impact, in that fixed order. The active tab is the only one with a 1.5px underbar in <code>--fg</code>; colour is never the only signal — the active tab is also <code>aria-selected="true"</code> and the only tab in the keyboard tab order.
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Body.</strong> Single <span class="meta">14px / 1.5</span> paragraph per the voice rules. <em>effect</em> and <em>impact</em> mix prose with shape callouts (<span class="shape">3×4</span>) and inline math placeholders (<span class="math-inline">$$k = 4$$</span>) — Geist Mono tabular nums for raw numbers.
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Value strip.</strong> Always-on glance at the current output regardless of active tab. Hidden in computing / error / unknown states. Mono, tabular, ellipsised.
+              </div>
+            </li>
+            <li>
+              <div>
+                <strong>Resize handle.</strong> 6px hit area on the left edge, 1.5px visible affordance on hover/focus only. <span class="meta">cursor: col-resize</span>. Width range 320–520px clamped in JS.
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Spec cards -->
+      <div class="spec-grid">
+        <div class="spec-card">
+          <p class="spec-eyebrow">Width</p>
+          <p class="spec-value">380<span style="font-size: 12px; color: var(--page-fg-muted); margin-left: 4px;">px default</span></p>
+          <p class="spec-note">Resizable 320–520. Within the 360–420 range from the brief; persists per workspace, not per block.</p>
+        </div>
+        <div class="spec-card">
+          <p class="spec-eyebrow">Slide-in</p>
+          <p class="spec-value">220<span style="font-size: 12px; color: var(--page-fg-muted); margin-left: 4px;">ms ease-out</span></p>
+          <p class="spec-note">Translate-X 16→0, opacity 0→1. Content fades 60ms behind. Disabled under <code>prefers-reduced-motion</code>.</p>
+        </div>
+        <div class="spec-card">
+          <p class="spec-eyebrow">Tab state</p>
+          <p class="spec-value">Workspace-persistent</p>
+          <p class="spec-note">Active tab survives selection changes (block A's "effect" stays "effect" on block B), unless the new block hides that tab — fall back to the leftmost available, matching <code>explanation-tabs.tsx</code>.</p>
+        </div>
+        <div class="spec-card">
+          <p class="spec-eyebrow">Contrast</p>
+          <p class="spec-value">AA · 4.5:1</p>
+          <p class="spec-note">Body text on <code>--surface</code>, both themes. Status chip text on tinted backgrounds checked separately — see <code>tokens-used.md</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 02 — Five states · light                                       -->
+    <!-- ============================================================== -->
+    <section class="doc-section">
+      <div class="doc-section-head">
+        <span class="doc-section-num">02</span>
+        <h2 class="doc-section-title">Result states · light</h2>
+        <p class="doc-section-note">
+          Five states required by the brief. Each shows panel chrome plus the
+          tab-body content for that state. Frames in pairs so reviewers can
+          scan diagonally.
+        </p>
+      </div>
+
+      <div class="frames" id="states-light"></div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 03 — Five states · dark                                        -->
+    <!-- ============================================================== -->
+    <section class="doc-section">
+      <div class="doc-section-head">
+        <span class="doc-section-num">03</span>
+        <h2 class="doc-section-title">Result states · dark</h2>
+        <p class="doc-section-note">
+          Same five states, dark theme. Tokens come from
+          <code>BRAND.md</code> dark scale verbatim — no per-theme remix.
+        </p>
+      </div>
+
+      <div class="frames" id="states-dark"></div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- 04 — Tab persistence                                          -->
+    <!-- ============================================================== -->
+    <section class="doc-section">
+      <div class="doc-section-head">
+        <span class="doc-section-num">04</span>
+        <h2 class="doc-section-title">Tab persistence across selections</h2>
+        <p class="doc-section-note">
+          The active tab is workspace-scoped, not selection-scoped. If
+          <em>effect</em> is open on block A and the user selects block B,
+          they stay on <em>effect</em>.
+        </p>
+      </div>
+      <div class="frames" id="persistence"></div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- Frame templates rendered via JS to keep the markup short        -->
+  <!-- ============================================================== -->
+  <script>
+    /* Each frame description is a small data record. We render two grids:
+       light (#states-light) and dark (#states-dark) showing the same five
+       states; plus the tab-persistence pair (#persistence). Keeping this in
+       JS rather than hand-duplicating ~10 panels avoids drift between
+       theme variants and lets the implementer focus on the panel itself. */
+
+    /** One row per result state. */
+    const STATES = [
+      {
+        id: "computing",
+        chip: { cls: "is-computing", label: "Computing" },
+        node: { label: "Matrix × matrix", symbol: "A·B", shape: "3×4 · 4×? → ?", role: "operation" },
+        title: "Matrix × matrix",
+        meta: "la.matmul · operation",
+        tab: "effect",
+        body: `
+          <p style="color: var(--fg-muted);">
+            Reading inputs and computing the product. Final shape will be revealed when both upstream matrices are available.
+          </p>
+          <div class="skeleton" aria-hidden="true">
+            <span class="skeleton-line w-95"></span>
+            <span class="skeleton-line w-80"></span>
+            <span class="skeleton-line w-60"></span>
+          </div>
+          <p class="sr-only" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;">Computing.</p>
+        `,
+        valueStrip: null,
+        caption: [
+          ["State", "<code>result.kind = \"computing\"</code>"],
+          ["Behaviour", "Skeleton renders inside the active tab body. Other tabs stay reachable; <em>what</em>/<em>why</em> render their static prose unaffected."],
+          ["Reduced motion", "Shimmer disabled; static neutral fill remains."],
+        ],
+      },
+      {
+        id: "value",
+        chip: { cls: "", label: "Value · ok" },
+        node: { label: "Unit-grid plot", symbol: "▦", shape: "Matrix(2×2) → image", role: "visualizer" },
+        title: "Unit-grid plot",
+        meta: "viz.unit-grid · visualizer",
+        tab: "effect",
+        body: `
+          <p>
+            Mapped the unit grid through a <span class="shape">2×2</span>
+            transformation; basis vectors land at
+            <span class="num">[2, 1]</span> and
+            <span class="num">[−1, 1]</span>. Determinant is
+            <span class="num">3</span>, so areas scale by
+            <span class="num">3×</span>.
+          </p>
+          <p style="color: var(--fg-muted); font-size: 13px;">
+            Orientation preserved (positive det). Inline: the new basis is
+            <span class="math-inline">$$\\{(2,1), (-1,1)\\}$$</span>.
+          </p>
+        `,
+        valueStrip: "Image(canvas, 320×240) · det = 3.000",
+        caption: [
+          ["State", "<code>result.kind = \"value\"</code> on a visualizer block."],
+          ["Voice", "Effect references live shapes and concrete numerics. One sentence; no exclamation."],
+          ["Math", "<code>$$\\{(2,1), (-1,1)\\}$$</code> placeholder renders as KaTeX inline."],
+        ],
+      },
+      {
+        id: "warn",
+        chip: { cls: "is-warn", label: "Precision loss" },
+        node: { label: "Numerical derivative", symbol: "d/dx", shape: "ℝ→ℝ at x=0", role: "function" },
+        title: "Numerical derivative",
+        meta: "calc.derivative · function",
+        tab: "impact",
+        body: `
+          <p>
+            Downstream blocks see the derivative
+            <span class="num">f′(0) ≈ 1.000</span>; finite-difference step
+            <span class="math-inline">$$h = 10^{-8}$$</span> is near the
+            float64 precision floor.
+          </p>
+          <div class="warn-rail" role="note">
+            <svg class="warn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+              <div class="warn-text">
+                Catastrophic cancellation likely below
+                <span class="num">h = 10⁻⁸</span>. Switch to a symbolic
+                derivative (<code style="font-family: inherit;">calc.symbolic-derivative</code>) for a stable result.
+              </div>
+              <div class="warn-meta">ledger: <code style="font-family: inherit;">precision-loss</code> · severity: medium</div>
+            </div>
+          </div>
+        `,
+        valueStrip: "Number · 1.0000000000000004",
+        caption: [
+          ["State", "<code>result.kind = \"value\"</code> with <code>warnings: ['precision-loss']</code> from the ledger."],
+          ["Indicator", "Yellow <code>--warn</code> chip in the header + 2px <code>--warn</code> rail beside the data. Block fill stays in its role (function / amber) — colour mapping isn't broken for state."],
+          ["Voice", "Forward-looking, references the downstream graph (per <em>impact</em> rules)."],
+        ],
+      },
+      {
+        id: "error",
+        chip: { cls: "is-error", label: "Type mismatch" },
+        node: { label: "Matrix × matrix", symbol: "A·B", shape: "3×4 · 5×5", role: "operation", error: true },
+        title: "Matrix × matrix",
+        meta: "la.matmul · operation",
+        tab: "effect",
+        body: `
+          <p style="color: var(--fg-muted);">
+            No effect to describe — inputs failed shape-checking before
+            multiplication ran.
+          </p>
+          <div class="error-block" role="alert" aria-live="polite">
+            <div class="error-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Type mismatch</span>
+            </div>
+            <div>
+              Cannot multiply a <span class="shape">3×4</span> matrix by a
+              <span class="shape">5×5</span> matrix; inner dimensions
+              <code>4</code> and <code>5</code> must agree.
+            </div>
+            <div class="error-action">
+              Suggestion · transpose <code>B</code> to <span class="shape">5×5</span>·<span class="shape">5×?</span>, or supply a different second operand.
+            </div>
+          </div>
+        `,
+        valueStrip: null,
+        caption: [
+          ["State", "<code>result.kind = \"error\"</code> · <code>code: \"shape-mismatch\"</code>."],
+          ["Indicators", "Red <code>--error</code> border on the source node, red chip in the header, error-block in body. Three signals; matches the “colour is never the only signal” rule."],
+          ["Action", "Inline suggestion when the engine can compute a fix; otherwise omitted (no fake placeholders)."],
+        ],
+      },
+      {
+        id: "unknown",
+        chip: { cls: "is-unknown", label: "Unregistered" },
+        node: { label: "ml.attention", symbol: "·", shape: "(unknown shape)", role: "operation", unknown: true },
+        title: "Unknown block",
+        meta: "ml.attention · unregistered",
+        tab: "what",
+        body: `
+          <div class="unknown-pane">
+            <p style="margin: 0 0 8px; color: var(--fg);">
+              No registered definition for this block. The graph still serializes and shares; nothing here renders until the block is loaded.
+            </p>
+            <p style="margin: 0;">
+              This usually means the graph was authored in a workspace with an extension installed that this one doesn't have.
+            </p>
+            <div class="id-row">id: <code>ml.attention</code></div>
+          </div>
+        `,
+        valueStrip: null,
+        caption: [
+          ["State", "Block <code>id</code> exists in the graph spec, but <code>blockRegistry.get(id) === undefined</code>."],
+          ["Tabs", "All four tabs render but only <em>what</em> is enabled — <em>why</em>/<em>effect</em>/<em>impact</em> are <code>aria-disabled</code> and skip the keyboard focus order."],
+          ["Voice", "Neutral, factual. No apologies, no exclamation. No “please install …” patronizing copy."],
+        ],
+      },
+    ];
+
+    function tab(label, active, disabled) {
+      const sel = active ? "true" : "false";
+      const dis = disabled ? ' aria-disabled="true" tabindex="-1"' : (active ? ' tabindex="0"' : ' tabindex="-1"');
+      return `<button class="tab" role="tab" aria-selected="${sel}"${dis}>${label}</button>`;
+    }
+
+    function renderFrame(theme, s, opts = {}) {
+      const tabs = ["What","Why","Effect","Impact"];
+      const tabsHTML = tabs.map(t => {
+        const active = t.toLowerCase() === s.tab;
+        const disabled = (s.id === "unknown") && t !== "What";
+        return tab(t, active, disabled);
+      }).join("");
+
+      const nodeCls = [
+        "node-stub", "is-selected",
+        `role-${s.node.role}`,
+        s.node.error ? "is-error" : "",
+        s.node.unknown ? "role-control" : "",
+      ].filter(Boolean).join(" ");
+
+      const valueStripHTML = s.valueStrip
+        ? `<div class="value-strip"><span class="label">Value</span><span class="body">${s.valueStrip}</span></div>`
+        : "";
+
+      const stateLabel = `${s.chip.label} · ${s.tab}`;
+      const stateLabelCls =
+        s.chip.cls === "is-warn" ? "state-tag is-warn" :
+        s.chip.cls === "is-error" ? "state-tag is-error" :
+        "state-tag";
+
+      const themeLabel = theme === "light" ? "Light" : "Dark";
+
+      const captionHTML = (s.caption || [])
+        .map(([k, v]) => `<div class="row"><span class="key">${k}</span><strong style="font-weight: 400;"><span style="color: var(--page-fg);">${v}</span></strong></div>`)
+        .join("");
+
+      return `
+        <div class="frame" data-theme="${theme}">
+          <div class="frame-label">
+            <span><span class="swatch" style="background: ${theme === 'light' ? 'oklch(99% 0.005 240)' : 'oklch(13% 0.012 240)'};"></span><span class="theme-tag">${themeLabel}</span></span>
+            <span class="${stateLabelCls}">${stateLabel}</span>
+          </div>
+
+          <div class="stage">
+            <div class="canvas">
+              <div class="${nodeCls}">
+                <div class="node-head">
+                  <span class="node-label">${s.node.label}</span>
+                  <span class="node-symbol">${s.node.symbol}</span>
+                </div>
+                <div class="node-shape">${s.node.shape}</div>
+                <span class="node-port in-1"></span>
+                <span class="node-port in-2"></span>
+                <span class="node-port out"></span>
+              </div>
+              <div class="edge-stub"></div>
+            </div>
+
+            <aside class="panel" role="complementary" aria-label="Explanation panel">
+              <span class="resize-handle" tabindex="0" role="separator" aria-orientation="vertical" aria-label="Resize panel"></span>
+
+              <header class="panel-header">
+                <span class="role-dot role-${s.node.role}" aria-hidden="true"></span>
+                <div class="title-block">
+                  <h3 class="panel-title">${s.title}</h3>
+                  <p class="panel-meta">${s.meta}</p>
+                </div>
+                ${s.chip.label
+                  ? `<span class="state-chip ${s.chip.cls}" aria-live="polite"><span class="dot" aria-hidden="true"></span>${s.chip.label}</span>`
+                  : ""}
+                <button type="button" class="close-btn" aria-label="Close panel" style="margin-left: 8px;">close</button>
+              </header>
+
+              <div class="tabs" role="tablist" aria-label="Explanation">${tabsHTML}</div>
+
+              <div class="panel-body" role="tabpanel">${s.body}</div>
+
+              ${valueStripHTML}
+            </aside>
+          </div>
+
+          <div class="frame-caption">${captionHTML}</div>
+        </div>
+      `;
+    }
+
+    function renderGrid(targetId, theme) {
+      const el = document.getElementById(targetId);
+      el.innerHTML = STATES.map(s => renderFrame(theme, s)).join("");
+    }
+    renderGrid("states-light", "light");
+    renderGrid("states-dark", "dark");
+
+    /* Tab-persistence pair: same active tab ("Effect") on two different
+       blocks — a matrix multiplication and a vector source. Demonstrates
+       that selecting a different block does not reset the tab, and that
+       when "Effect" isn't applicable (vector-source block has no effect
+       string in its definition's explain), we fall back to the leftmost
+       available (here the source has an effect, so it stays). */
+    const persistence = [
+      {
+        id: "value-a",
+        chip: { cls: "", label: "Block A · selected" },
+        node: { label: "Normal sample", symbol: "𝒩", shape: "𝒩(0, 1) → ℝ", role: "stochastic" },
+        title: "Normal sample",
+        meta: "rand.normal · stochastic",
+        tab: "effect",
+        body: `
+          <p>
+            Draws a scalar from
+            <span class="math-inline">$$\\mathcal{N}(0, 1)$$</span>; current
+            sample is <span class="num">0.487</span> (seed
+            <span class="num">42</span>, step <span class="num">1{,}204</span>).
+          </p>
+          <p style="color: var(--fg-muted); font-size: 13px;">
+            Re-evaluates on every tick. Downstream blocks receive a fresh draw unless this is wrapped in a <code>freeze</code>.
+          </p>
+        `,
+        valueStrip: "Number · 0.487 (μ̂ = 0.012, σ̂ = 1.003 over 1 204 draws)",
+        caption: [
+          ["State", "Stochastic-role block. <em>Effect</em> tab is the user's current focus."],
+        ],
+      },
+      {
+        id: "value-b",
+        chip: { cls: "", label: "Block B · selected" },
+        node: { label: "Vector (2D)", symbol: "v", shape: "ℝ²", role: "source" },
+        title: "Vector (2D)",
+        meta: "la.vector2 · source",
+        tab: "effect",
+        body: `
+          <p>
+            Holds the column vector <span class="num">[3, −2]</span>
+            <span class="math-inline">$$\\in \\mathbb{R}^2$$</span>; magnitude
+            is <span class="num">3.606</span>.
+          </p>
+          <p style="color: var(--fg-muted); font-size: 13px;">
+            Source blocks read parameters; <em>effect</em> describes the value the block emits at the current step.
+          </p>
+        `,
+        valueStrip: "Vector(2) · [3.000, -2.000]",
+        caption: [
+          ["State", "Same active tab (<em>Effect</em>) preserved when selection moves from Block A to Block B."],
+          ["Fallback", "If Block B's definition omits <code>explain.effect</code>, the panel falls back to the leftmost available tab without resetting the user's intent — matching <code>explanation-tabs.tsx</code>'s <code>tabs.includes(tab) ? tab : tabs[0]</code>."],
+        ],
+      },
+    ];
+    document.getElementById("persistence").innerHTML =
+      persistence.map(s => renderFrame("light", s)).join("");
+  </script>
+</body>
+</html>

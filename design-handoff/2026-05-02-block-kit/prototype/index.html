@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Block Kit · v2 — formula blocks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=STIX+Two+Math&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="ux.css" />
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Block Kit</div>
+    <div class="crumbs">v2 · LaTeX-style formula blocks</div>
+
+    <div class="seg" role="tablist" aria-label="View mode">
+      <button class="is-active" data-view="edit" type="button">Edit</button>
+      <button data-view="read" type="button">Read</button>
+      <button data-view="layered" type="button">2.5D</button>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button id="openEval" class="pill-btn" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 3 19 12 5 21 5 3"/></svg>
+      Evalueer regel
+      <span class="kbd">⌘E</span>
+    </button>
+    <button id="themeToggle" class="iconbtn" type="button" title="Toggle theme" aria-label="Toggle theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ============================================================
+       Palette — drag uit deze rail; klikt vanzelf in de canvas-rij.
+       ============================================================ -->
+  <aside class="palette">
+
+    <div class="palette-search" style="position:sticky;">
+      <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="paletteSearch" type="search" placeholder="Zoek blok…" autocomplete="off" />
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-source-rim);"></span>Variabelen<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["x"]'><span class="glyph">x</span></div>
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["y"]'><span class="glyph">y</span></div>
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["W"]'><span class="glyph">W</span></div>
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["b"]'><span class="glyph">b</span></div>
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["θ"]'><span class="glyph">θ</span></div>
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["η"]'><span class="glyph">η</span></div>
+        <div class="block role-source is-symbol" data-tpl="ident" data-args='["L","θ"]'><span class="glyph">L</span><span class="sub">θ</span></div>
+        <div class="block role-source" data-tpl="number" data-args='["0.01"]'><span class="num">0.01</span></div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-relation-rim);"></span>Relaties<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="block role-relation is-symbol" data-tpl="rel" data-args='["="]'><span class="glyph">=</span></div>
+        <div class="block role-relation is-symbol" data-tpl="rel" data-args='["≔"]'><span class="glyph">≔</span></div>
+        <div class="block role-relation is-symbol" data-tpl="rel" data-args='["&lt;"]'><span class="glyph">&lt;</span></div>
+        <div class="block role-relation is-symbol" data-tpl="rel" data-args='["≤"]'><span class="glyph">≤</span></div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-operator-rim);"></span>Operatoren<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="block role-operator is-symbol" data-tpl="sym" data-args='["+"]'><span class="glyph">+</span></div>
+        <div class="block role-operator is-symbol" data-tpl="sym" data-args='["−"]'><span class="glyph">−</span></div>
+        <div class="block role-operator is-symbol" data-tpl="sym" data-args='["·"]'><span class="glyph">·</span></div>
+        <div class="block role-operator is-symbol" data-tpl="sym" data-args='["⊗"]'><span class="glyph">⊗</span></div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-function-rim);"></span>Functies<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="block role-function is-pill" data-tpl="fnName" data-args='["∇"]'><span class="name">∇</span></div>
+        <div class="block role-function is-pill" data-tpl="fnName" data-args='["ReLU"]'><span class="name">ReLU</span></div>
+        <div class="block role-function is-pill" data-tpl="fnName" data-args='["exp"]'><span class="name">exp</span></div>
+        <div class="block role-function is-pill" data-tpl="fnName" data-args='["log"]'><span class="name">log</span></div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-stochastic-rim);"></span>Stochastiek<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="block role-stochastic is-pill" data-tpl="stoch" data-args='["𝒩(0,1)"]'><span class="glyph">𝒩(0,1)</span></div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-control-rim);"></span>Controle<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="block role-control is-pill" data-tpl="kw" data-args='["if"]'><span class="name">if</span></div>
+        <div class="block role-control is-pill" data-tpl="kw" data-args='["then"]'><span class="name">then</span></div>
+        <div class="block role-control is-pill" data-tpl="kw" data-args='["else"]'><span class="name">else</span></div>
+        <div class="block role-control is-pill" data-tpl="kw" data-args='["while"]'><span class="name">while</span></div>
+        <div class="block role-control is-pill" data-tpl="kw" data-args='["for"]'><span class="name">for</span></div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <h3><span class="role-dot" style="background: var(--b-operator-rim);"></span>Containers<svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></h3>
+      <div class="palette-items">
+        <div class="fn role-operator" data-tpl="paren" data-args='[]'>
+          <span class="fn-glyph">(</span>
+          <span style="font-family:'STIX Two Math',serif;font-style:italic;opacity:0.5;padding:0 4px;">…</span>
+          <span class="fn-glyph">)</span>
+        </div>
+        <div class="fn role-operator" data-tpl="frac" data-args='[]' style="flex-direction:column; padding:4px 8px;">
+          <div style="border-bottom:1.5px solid currentColor; padding:2px 8px; font-style:italic; opacity:0.6;">a</div>
+          <div style="padding:2px 8px; font-style:italic; opacity:0.6;">b</div>
+        </div>
+        <div class="fn role-operator" data-tpl="sum" data-args='[]'>
+          <div class="fn-arg is-stack">
+            <span class="superlabel">n</span>
+            <span class="fn-glyph">∑</span>
+            <span class="sublabel">i=1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       Canvas — een document met meerdere formule-regels.
+       Iedere regel is een .line. Sleep blokken erin om op te bouwen.
+       ============================================================ -->
+  <main class="canvas-wrap">
+    <div class="canvas">
+      <div class="canvas-inner">
+        <div class="doc">
+
+          <section class="doc-section">
+            <h2 class="doc-section-title">Linear layer · y = W · x + b</h2>
+            <div class="line">
+              <div class="line-gutter">1</div>
+              <div class="block role-source is-symbol"><span class="glyph">y</span></div>
+              <div class="block role-relation is-symbol"><span class="glyph">=</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">W</span></div>
+              <div class="block role-operator is-symbol"><span class="glyph">·</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">x</span></div>
+              <div class="block role-operator is-symbol"><span class="glyph">+</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">b</span></div>
+            </div>
+            <div class="line-controls">
+              <button title="Verwijder regel" data-act="remove">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <div class="add-line"><span class="add-line-bar"></span><span class="add-line-btn">+</span><span class="add-line-bar"></span></div>
+
+          <section class="doc-section">
+            <h2 class="doc-section-title">Gradient descent step</h2>
+            <div class="line">
+              <div class="line-gutter">2</div>
+              <div class="block role-source is-symbol"><span class="glyph">θ</span><span class="sub">t+1</span></div>
+              <div class="block role-relation is-symbol"><span class="glyph">≔</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">θ</span><span class="sub">t</span></div>
+              <div class="block role-operator is-symbol"><span class="glyph">−</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">η</span></div>
+              <div class="block role-operator is-symbol"><span class="glyph">·</span></div>
+              <div class="block role-function is-pill"><span class="name">∇</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">L</span><span class="sub">θ</span></div>
+            </div>
+            <div class="line-controls">
+              <button title="Verwijder regel" data-act="remove">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <div class="add-line"><span class="add-line-bar"></span><span class="add-line-btn">+</span><span class="add-line-bar"></span></div>
+
+          <section class="doc-section">
+            <h2 class="doc-section-title">Convergentie · if/else vertakking</h2>
+            <div class="line">
+              <div class="line-gutter">3</div>
+              <div class="block role-control is-pill"><span class="name">if</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">L</span></div>
+              <div class="block role-relation is-symbol"><span class="glyph">&lt;</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">ε</span></div>
+
+              <!-- Branch — true tak boven, false tak onder, op één plek in de regel -->
+              <div class="branch" style="margin-left:8px;">
+                <div class="branch-up">
+                  <span class="branch-tag">true</span>
+                  <div class="block role-control is-pill"><span class="name">stop</span></div>
+                </div>
+                <div class="branch-center">
+                  <div class="block role-control is-pill"><span class="name">then / else</span></div>
+                </div>
+                <div class="branch-down">
+                  <span class="branch-tag">false</span>
+                  <div class="block role-control is-pill"><span class="name">continue</span></div>
+                  <div class="block role-relation is-symbol"><span class="glyph">→</span></div>
+                  <div class="block role-control is-pill"><span class="name">step</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="line-controls">
+              <button title="Verwijder regel" data-act="remove">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <div class="add-line"><span class="add-line-bar"></span><span class="add-line-btn">+</span><span class="add-line-bar"></span></div>
+
+          <section class="doc-section">
+            <h2 class="doc-section-title">Fractie · breuk-container</h2>
+            <div class="line">
+              <div class="line-gutter">4</div>
+              <div class="block role-source is-symbol"><span class="glyph">η</span><span class="sub">t</span></div>
+              <div class="block role-relation is-symbol"><span class="glyph">=</span></div>
+              <div class="fn role-operator" style="flex-direction:column; padding:4px 8px;">
+                <div class="line fn-arg is-numerator" style="margin:0; min-height:28px;">
+                  <div class="block role-source is-symbol"><span class="glyph">η</span><span class="sub">0</span></div>
+                </div>
+                <div class="line fn-arg is-denominator" style="margin:0; min-height:28px;">
+                  <div class="block role-source is-symbol"><span class="glyph">1</span></div>
+                  <div class="block role-operator is-symbol"><span class="glyph">+</span></div>
+                  <div class="block role-source is-symbol"><span class="glyph">α</span></div>
+                  <div class="block role-operator is-symbol"><span class="glyph">·</span></div>
+                  <div class="block role-source is-symbol"><span class="glyph">t</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="line-controls">
+              <button title="Verwijder regel" data-act="remove">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <div class="add-line"><span class="add-line-bar"></span><span class="add-line-btn">+</span><span class="add-line-bar"></span></div>
+
+          <section class="doc-section">
+            <h2 class="doc-section-title">Lege regel — sleep hier blokken in</h2>
+            <div class="line">
+              <div class="line-gutter">5</div>
+            </div>
+            <div class="line-controls">
+              <button title="Verwijder regel" data-act="remove">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      Sleep uit het paneel · drop in een regel · drop op de prullenbak rechts om te verwijderen
+    </div>
+
+    <div class="trash" title="Drop hier om te verwijderen" aria-label="Trash">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </div>
+  </main>
+
+  <!-- ============================================================
+       Status row — fixed footer above the canvas with quick stats.
+       ============================================================ -->
+  <div class="status-row">
+    <span class="status-dot"></span>
+    <span>Doc geldig</span>
+    <span style="opacity:0.5;">·</span>
+    <span><span id="statRegels">5</span> regels · <span id="statBlocks">28</span> blokken</span>
+    <div class="spacer"></div>
+    <span style="opacity:0.7;">Sleep uit het paneel · drop in een regel · drop op de prullenbak om te verwijderen</span>
+  </div>
+
+  <!-- ============================================================
+       Eval-window — opens when the user wants to inspect a whole
+       formula / algorithm at once. Shape, dtype, value, pipeline.
+       ============================================================ -->
+  <div id="evalOverlay" class="eval-overlay" role="dialog" aria-modal="true" aria-labelledby="evalTitle">
+    <div class="eval-window">
+      <div class="eval-head">
+        <div>
+          <div class="eval-title" id="evalTitle">Gradient descent step</div>
+          <div class="eval-sub">θ<sub>t+1</sub> ≔ θ<sub>t</sub> − η · ∇L<sub>θ</sub></div>
+        </div>
+        <div class="spacer"></div>
+        <div class="eval-tabs">
+          <button class="is-active" data-tab="shape" type="button">Shape</button>
+          <button data-tab="value" type="button">Value</button>
+          <button data-tab="trace" type="button">Trace</button>
+        </div>
+        <button id="closeEval" class="eval-close" aria-label="Close" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="eval-body">
+        <div class="eval-main">
+
+          <div data-tab-pane="shape">
+            <h3>Formule</h3>
+            <div class="line eval-line">
+              <div class="block role-source is-symbol"><span class="glyph">θ</span><span class="sub">t+1</span></div>
+              <div class="block role-relation is-symbol"><span class="glyph">≔</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">θ</span><span class="sub">t</span></div>
+              <div class="block role-operator is-symbol"><span class="glyph">−</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">η</span></div>
+              <div class="block role-operator is-symbol"><span class="glyph">·</span></div>
+              <div class="block role-function is-pill"><span class="name">∇</span></div>
+              <div class="block role-source is-symbol"><span class="glyph">L</span><span class="sub">θ</span></div>
+            </div>
+
+            <h3>Per blok</h3>
+            <div class="eval-strip">
+              <div class="strip-row"><span class="strip-key">θ<sub>t</sub></span><span class="strip-val">ℝ¹⁰²⁴ · float32</span></div>
+              <div class="strip-row"><span class="strip-key">η</span><span class="strip-val">ℝ⁺ · scalar · 0.01</span></div>
+              <div class="strip-row"><span class="strip-key">∇L<sub>θ</sub></span><span class="strip-val">ℝ¹⁰²⁴ · float32</span></div>
+              <div class="strip-row is-warn"><span class="strip-key">−</span><span class="strip-val">ok · broadcasts scalar over 1024-vec</span></div>
+              <div class="strip-row"><span class="strip-key">θ<sub>t+1</sub></span><span class="strip-val">ℝ¹⁰²⁴ · float32</span></div>
+            </div>
+          </div>
+
+          <div data-tab-pane="value" style="display:none;">
+            <h3>Sample uitkomst (eerste 6 elementen)</h3>
+            <p style="font-family:'Geist Mono', ui-monospace, monospace; color: var(--fg);">
+              [ 0.0421, −0.1188,  0.7204,  0.0019, −0.4502,  0.3311, … ]
+            </p>
+            <h3 style="margin-top:18px;">Statistieken</h3>
+            <div class="eval-strip">
+              <div class="strip-row"><span class="strip-key">min</span><span class="strip-val">−2.143</span></div>
+              <div class="strip-row"><span class="strip-key">max</span><span class="strip-val">+1.987</span></div>
+              <div class="strip-row"><span class="strip-key">mean</span><span class="strip-val">+0.012</span></div>
+              <div class="strip-row"><span class="strip-key">‖·‖</span><span class="strip-val">14.221</span></div>
+            </div>
+          </div>
+
+          <div data-tab-pane="trace" style="display:none;">
+            <h3>Evaluatievolgorde</h3>
+            <p>Volgorde waarin het systeem deze regel zou afrekenen, van binnenste functie naar buitenste relatie.</p>
+            <ol style="font-family:'Geist Mono', ui-monospace, monospace; font-size: 12px; color: var(--fg-muted); padding-left: 18px;">
+              <li>load θ<sub>t</sub>, η, L</li>
+              <li>∇L<sub>θ</sub>  →  ℝ¹⁰²⁴</li>
+              <li>η · ∇L<sub>θ</sub>  →  ℝ¹⁰²⁴</li>
+              <li>θ<sub>t</sub> − (η · ∇L<sub>θ</sub>)  →  ℝ¹⁰²⁴</li>
+              <li>bind result to θ<sub>t+1</sub></li>
+            </ol>
+          </div>
+
+        </div>
+
+        <aside class="eval-side">
+          <h4>Pipeline</h4>
+          <div class="pipe-step">
+            <div class="pipe-name">Bind inputs</div>
+            <div class="pipe-meta">θ<sub>t</sub>, η, L</div>
+          </div>
+          <div class="pipe-step">
+            <div class="pipe-name">Compute gradient</div>
+            <div class="pipe-meta">∇L<sub>θ</sub> · 1024-vec</div>
+          </div>
+          <div class="pipe-step">
+            <div class="pipe-name">Scale</div>
+            <div class="pipe-meta">η · ∇L<sub>θ</sub></div>
+          </div>
+          <div class="pipe-step">
+            <div class="pipe-name">Subtract</div>
+            <div class="pipe-meta">θ<sub>t</sub> − scaled</div>
+          </div>
+          <div class="pipe-step">
+            <div class="pipe-name">Bind output</div>
+            <div class="pipe-meta">θ<sub>t+1</sub></div>
+          </div>
+
+          <h4 style="margin-top:18px;">Diagnose</h4>
+          <p style="font-size: 11.5px; color: var(--fg-muted); line-height: 1.5;">
+            Geen shape-conflicten. Scalar η broadcast correct. Geen NaN/Inf in laatste 100 stappen.
+          </p>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="blockkit.js"></script>
+<script src="ux.js"></script>
+</body>
+</html>

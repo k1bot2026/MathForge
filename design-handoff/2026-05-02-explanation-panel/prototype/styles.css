@@ -1,0 +1,948 @@
+/* =============================================================================
+   Explanation Panel — handoff prototype styles.
+
+   Tokens are imported VERBATIM from MathForge/src/app/globals.css (the live
+   tokens, generated from docs/BRAND.md). No new tokens are introduced; any
+   gaps are flagged as open questions in README.md instead.
+   ============================================================================= */
+
+/* ---------- Token roots ----------------------------------------------------- */
+/* The page renders both themes side-by-side, so we can't use prefers-color-
+   scheme alone — we expose the same token set under two scope attributes
+   ([data-theme="light"] and [data-theme="dark"]) on a per-frame wrapper.
+   The values here are an exact copy of MathForge/src/app/globals.css :root and
+   the @media (prefers-color-scheme: dark) override block. */
+
+[data-theme="light"] {
+  --bg: oklch(99% 0.005 240);
+  --surface: oklch(98% 0.005 240);
+  --surface-2: oklch(96% 0.006 240);
+  --border: oklch(92% 0.008 240);
+  --fg: oklch(20% 0.015 240);
+  --fg-muted: oklch(45% 0.012 240);
+  --fg-faint: oklch(60% 0.01 240);
+
+  /* ---- PROPOSED additions to BRAND.md — dusty solid block palette ---- */
+  /* Per-role solid fills with low chroma (Notion-callout register). The
+     existing --role-*-fill tokens stay reserved for tinted-card surfaces
+     (the inspector header dot continues to use --role-*-border). These new
+     tokens drive the *block body* in the canvas. See README §4 Q7. */
+  --block-source-fill:     oklch(80% 0.030 235);  /* dusty sky      */
+  --block-operation-fill:  oklch(78% 0.035 285);  /* dusty violet   */
+  --block-function-fill:   oklch(82% 0.040 80);   /* dusty amber    */
+  --block-visualizer-fill: oklch(80% 0.035 155);  /* dusty emerald  */
+  --block-stochastic-fill: oklch(80% 0.035 15);   /* dusty rose     */
+  --block-control-fill:    oklch(82% 0.012 240);  /* dusty slate    */
+  /* Auto-contrast text — dark on every light fill above. */
+  --block-source-fg:     oklch(28% 0.04 235);
+  --block-operation-fg:  oklch(28% 0.05 285);
+  --block-function-fg:   oklch(30% 0.06 80);
+  --block-visualizer-fg: oklch(28% 0.05 155);
+  --block-stochastic-fg: oklch(28% 0.05 15);
+  --block-control-fg:    oklch(30% 0.015 240);
+
+  --role-source-fill: oklch(95% 0.05 235);
+  --role-source-border: oklch(75% 0.10 235);
+  --role-operation-fill: oklch(95% 0.05 285);
+  --role-operation-border: oklch(70% 0.12 285);
+  --role-function-fill: oklch(95% 0.06 80);
+  --role-function-border: oklch(78% 0.14 80);
+  --role-visualizer-fill: oklch(95% 0.05 155);
+  --role-visualizer-border: oklch(72% 0.14 155);
+  --role-stochastic-fill: oklch(95% 0.05 15);
+  --role-stochastic-border: oklch(72% 0.13 15);
+  --role-control-fill: oklch(95% 0.01 240);
+  --role-control-border: oklch(75% 0.02 240);
+
+  --ok: oklch(60% 0.14 150);
+  --warn: oklch(70% 0.16 70);
+  --error: oklch(58% 0.20 25);
+  --info: oklch(60% 0.13 240);
+
+  --accent: oklch(62% 0.20 285);
+
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / 0.04), 0 1px 1px oklch(0% 0 0 / 0.02);
+  --shadow-2: 0 2px 6px oklch(0% 0 0 / 0.06), 0 1px 2px oklch(0% 0 0 / 0.03);
+  --shadow-3: 0 8px 24px oklch(0% 0 0 / 0.08), 0 2px 8px oklch(0% 0 0 / 0.04);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 180ms;
+  --duration-default: 240ms;
+
+  /* Page chrome (the handoff doc itself, not the product) */
+  --page-bg: oklch(96% 0.004 240);
+  --page-fg: oklch(20% 0.015 240);
+  --page-fg-muted: oklch(45% 0.012 240);
+  --page-rule: oklch(88% 0.008 240);
+}
+
+[data-theme="dark"] {
+  --bg: oklch(13% 0.012 240);
+  --surface: oklch(17% 0.012 240);
+  --surface-2: oklch(20% 0.013 240);
+  --border: oklch(28% 0.015 240);
+  --fg: oklch(95% 0.01 240);
+  --fg-muted: oklch(70% 0.012 240);
+  --fg-faint: oklch(55% 0.01 240);
+
+  /* Dark dusty block palette — mid-low lightness, low chroma. Light text. */
+  --block-source-fill:     oklch(38% 0.040 235);
+  --block-operation-fill:  oklch(36% 0.045 285);
+  --block-function-fill:   oklch(40% 0.055 80);
+  --block-visualizer-fill: oklch(38% 0.050 155);
+  --block-stochastic-fill: oklch(38% 0.050 15);
+  --block-control-fill:    oklch(34% 0.012 240);
+  --block-source-fg:     oklch(92% 0.02 235);
+  --block-operation-fg:  oklch(92% 0.03 285);
+  --block-function-fg:   oklch(94% 0.04 80);
+  --block-visualizer-fg: oklch(92% 0.03 155);
+  --block-stochastic-fg: oklch(92% 0.03 15);
+  --block-control-fg:    oklch(92% 0.01 240);
+
+  --role-source-fill: oklch(30% 0.06 235);
+  --role-source-border: oklch(60% 0.10 235);
+  --role-operation-fill: oklch(30% 0.07 285);
+  --role-operation-border: oklch(60% 0.12 285);
+  --role-function-fill: oklch(30% 0.07 80);
+  --role-function-border: oklch(70% 0.14 80);
+  --role-visualizer-fill: oklch(30% 0.07 155);
+  --role-visualizer-border: oklch(60% 0.14 155);
+  --role-stochastic-fill: oklch(30% 0.07 15);
+  --role-stochastic-border: oklch(62% 0.13 15);
+  --role-control-fill: oklch(30% 0.015 240);
+  --role-control-border: oklch(60% 0.02 240);
+
+  --ok: oklch(70% 0.14 150);
+  --warn: oklch(78% 0.16 70);
+  --error: oklch(70% 0.18 25);
+  --info: oklch(72% 0.13 240);
+
+  --accent: oklch(72% 0.18 285);
+
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / 0.30), 0 1px 1px oklch(0% 0 0 / 0.20);
+  --shadow-2: 0 2px 6px oklch(0% 0 0 / 0.35), 0 1px 2px oklch(0% 0 0 / 0.20);
+  --shadow-3: 0 8px 24px oklch(0% 0 0 / 0.45), 0 2px 8px oklch(0% 0 0 / 0.25);
+}
+
+/* ---------- Page (handoff document chrome) --------------------------------- */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--page-bg, #f3f3f1);
+  color: var(--page-fg, #222);
+  font-family: "Geist", "Geist Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.doc {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 56px 40px 96px;
+}
+
+.doc-header { margin-bottom: 40px; }
+.doc-eyebrow {
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--page-fg-muted, #666);
+  margin: 0 0 12px;
+}
+.doc-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+.doc-sub {
+  font-size: 15px;
+  color: var(--page-fg-muted, #666);
+  margin: 0;
+  max-width: 720px;
+}
+
+.doc-section { margin-top: 56px; }
+.doc-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  border-top: 1px solid var(--page-rule, #e3e3e0);
+  padding-top: 24px;
+  margin-bottom: 24px;
+}
+.doc-section-num {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--page-fg-muted);
+  letter-spacing: 0.04em;
+}
+.doc-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.doc-section-note {
+  font-size: 13px;
+  color: var(--page-fg-muted);
+  margin-left: auto;
+  max-width: 480px;
+  text-align: right;
+}
+
+/* ---------- Frames --------------------------------------------------------- */
+/* A frame is one preview of the panel in a particular theme. Each frame
+   carries data-theme so token vars resolve correctly; it then sets background
+   to --bg so it looks like a real editor surface. */
+
+.frames {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 1400px) {
+  .frames {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
+
+.frame {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--page-rule);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 0 oklch(0% 0 0 / 0.02);
+}
+
+.frame-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--page-fg-muted);
+  background: var(--page-bg);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--page-rule);
+}
+.frame-label .swatch {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 1px solid var(--page-rule);
+}
+.frame-label .theme-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--page-fg-muted);
+}
+.frame-label .state-tag {
+  font-weight: 500;
+  color: var(--page-fg);
+  letter-spacing: 0.02em;
+}
+.frame-label .state-tag.is-warn { color: oklch(50% 0.16 70); }
+.frame-label .state-tag.is-error { color: oklch(50% 0.20 25); }
+
+/* The "stage" — shows a slice of the editor (canvas + selected node) on the
+   left and the explanation panel docked to the right. Fixed height keeps
+   frames visually aligned and gives the reviewer a stable layout to compare. */
+
+.stage {
+  position: relative;
+  height: 520px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+.canvas {
+  position: relative;
+  background-color: var(--bg);
+  /* Dotted-grid per BRAND.md: 24px grid, 1px dot. */
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklch, var(--fg) 12%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 24px 24px;
+  overflow: hidden;
+}
+
+/* A small, low-fidelity stand-in for the selected node. Solid-fill, no
+   border — dusty role tokens drive the colour. Default is operation. */
+.node-stub {
+  position: absolute;
+  top: 76px;
+  left: 64px;
+  width: 220px;
+  background: var(--block-operation-fill);
+  color: var(--block-operation-fg);
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: var(--shadow-2);
+  font-size: 13px;
+}
+.node-stub.is-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.node-stub .node-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.node-stub .node-label {
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  color: inherit;
+}
+.node-stub .node-symbol {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: inherit;
+}
+.node-stub .node-shape {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  opacity: 0.72;
+}
+/* Per-role variants — solid dusty fills, auto-contrast text. */
+.node-stub.role-source     { background: var(--block-source-fill);     color: var(--block-source-fg); }
+.node-stub.role-operation  { background: var(--block-operation-fill);  color: var(--block-operation-fg); }
+.node-stub.role-function   { background: var(--block-function-fill);   color: var(--block-function-fg); }
+.node-stub.role-visualizer { background: var(--block-visualizer-fill); color: var(--block-visualizer-fg); }
+.node-stub.role-stochastic { background: var(--block-stochastic-fill); color: var(--block-stochastic-fg); }
+.node-stub.role-control    { background: var(--block-control-fill);   color: var(--block-control-fg); }
+
+.node-stub.is-error {
+  /* Error state replaces fill with a soft tinted red; same dusty register. */
+  background: oklch(78% 0.06 25);
+  color: oklch(28% 0.10 25);
+}
+[data-theme="dark"] .node-stub.is-error {
+  background: oklch(38% 0.07 25);
+  color: oklch(94% 0.04 25);
+}
+
+.node-stub .node-port {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  /* Port border picks up the block fg colour, so it visually belongs to the block. */
+  border: 1.5px solid currentColor;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.6;
+}
+.node-stub .node-port.in-1  { left: -6px; top: 32%; }
+.node-stub .node-port.in-2  { left: -6px; top: 70%; }
+.node-stub .node-port.out   { right: -6px; }
+
+/* A faint edge stub leaving the node toward the panel. Sells the "the panel
+   describes this node" relationship without needing real React Flow. */
+.edge-stub {
+  position: absolute;
+  top: 108px;
+  left: 290px;
+  height: 1.5px;
+  width: calc(100% - 290px - 360px);
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--fg-muted) 50%, transparent),
+    color-mix(in oklch, var(--fg-muted) 0%, transparent)
+  );
+}
+
+/* ---------- Explanation panel --------------------------------------------- */
+/* This is the actual artifact. Everything below is the spec for src/editor/
+   inspector/ to mirror in production. */
+
+.panel {
+  width: 380px;            /* Default width. Within the 360–420px range from brief. */
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* Slide-in: production triggers this on selection; the static handoff
+     renders the end-state. The keyframes are documented below for the
+     implementation but are not auto-applied here. */
+  opacity: 1;
+  transform: translateX(0);
+}
+.panel.is-animating-in {
+  animation: panel-in var(--duration-default, 240ms) var(--ease-out-soft, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+@keyframes panel-in {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes panel-content-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panel-body { animation: none !important; }
+}
+
+/* Resize handle on the LEFT edge of the panel (per brief). 6px hit area,
+   2px visible affordance only on hover/focus. */
+.resize-handle {
+  position: absolute;
+  top: 0; left: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.resize-handle::before {
+  content: "";
+  width: 1.5px;
+  height: 32px;
+  background: transparent;
+  border-radius: 1px;
+  transition: background var(--duration-fast) var(--ease-out-soft);
+}
+.resize-handle:hover::before,
+.resize-handle:focus-visible::before {
+  background: var(--fg-faint);
+}
+.resize-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Header — block label + close. Mirrors inspector-panel.tsx but adds a
+   subtle "shape" line so the panel anchors to the live block context. */
+.panel-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.panel-header .role-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--role-operation-border);
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+.panel-header .role-dot.role-source     { background: var(--role-source-border); }
+.panel-header .role-dot.role-operation  { background: var(--role-operation-border); }
+.panel-header .role-dot.role-function   { background: var(--role-function-border); }
+.panel-header .role-dot.role-visualizer { background: var(--role-visualizer-border); }
+.panel-header .role-dot.role-stochastic { background: var(--role-stochastic-border); }
+.panel-header .role-dot.role-control    { background: var(--role-control-border); }
+
+.panel-header .title-block {
+  flex: 1;
+  min-width: 0;
+}
+.panel-header .panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 0;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+.panel-header .panel-meta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+  margin-top: 2px;
+}
+
+.panel-header .close-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out-soft),
+              background var(--duration-fast) var(--ease-out-soft);
+}
+.panel-header .close-btn:hover { color: var(--fg); background: var(--surface-2); }
+.panel-header .close-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Tabs — what / why / effect / impact. Persistent active state across
+   selections lives in app state (graph-store); here we just style each
+   tab. AA contrast verified for both themes (see tokens-used.md). */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 10px 10px 11px;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  color: var(--fg-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color var(--duration-fast) var(--ease-out-soft);
+}
+.tab:hover { color: var(--fg); }
+.tab[aria-selected="true"] {
+  color: var(--fg);
+  font-weight: 500;
+}
+.tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 8px; right: 8px; bottom: -1px;
+  height: 1.5px;
+  background: var(--fg);
+  border-radius: 1px;
+}
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.tab[aria-disabled="true"] {
+  color: var(--fg-faint);
+  cursor: not-allowed;
+}
+
+/* Tab keyboard hint — only rendered next to the active tab on focus.
+   Reuses Geist Mono so it doesn't compete with the label. */
+.tab .kbd {
+  display: none;
+}
+
+/* Body — content area. Each tab panel fades in 60ms behind the slide-in
+   per brief. */
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.panel.is-animating-in .panel-body {
+  animation: panel-content-in var(--duration-fast, 180ms) var(--ease-out-soft) 60ms both;
+}
+
+.panel-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+.panel-body p + p { margin-top: 12px; }
+
+/* Inline math placeholder — KaTeX in production. Reads as italic, with the
+   role colour borrowed from --info for the "this is computed" affordance,
+   though kept neutral here so it doesn't compete with the prose. */
+.math-inline {
+  font-family: "Geist Mono", "KaTeX_Math", ui-monospace, monospace;
+  font-style: italic;
+  font-feature-settings: "tnum" on, "ss01" on;
+  color: var(--fg);
+  padding: 0 2px;
+}
+.math-inline::before { content: ""; }
+
+/* Raw numeric values — Geist Mono tabular numerals per BRAND.md typography
+   table. Slightly tighter than prose to read as data. */
+.num {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+/* Shape callouts (3×4, 3×5). Same family as numbers but with the multiplication
+   sign rendered as the proper U+00D7. */
+.shape {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+/* ---------- State chips & inline indicators ------------------------------- */
+/* These appear above the prose to set context before reading. Voice still
+   carries the meaning; chips are the secondary, glanceable signal so colour
+   alone is never the only cue (DESIGN_PRINCIPLES.md §Accessibility). */
+
+.state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px 3px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--fg-muted);
+}
+.state-chip .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--fg-muted);
+  flex-shrink: 0;
+}
+.state-chip.is-computing { color: var(--info); border-color: color-mix(in oklch, var(--info) 30%, var(--border)); }
+.state-chip.is-computing .dot { background: var(--info); animation: pulse 1.4s var(--ease-out-soft) infinite; }
+.state-chip.is-warn      { color: var(--warn); border-color: color-mix(in oklch, var(--warn) 30%, var(--border)); background: color-mix(in oklch, var(--warn) 6%, var(--surface)); }
+.state-chip.is-warn .dot { background: var(--warn); }
+.state-chip.is-error     { color: var(--error); border-color: color-mix(in oklch, var(--error) 30%, var(--border)); background: color-mix(in oklch, var(--error) 6%, var(--surface)); }
+.state-chip.is-error .dot { background: var(--error); }
+.state-chip.is-unknown   { color: var(--fg-muted); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .state-chip.is-computing .dot { animation: none; opacity: 1; }
+}
+
+/* ---------- Skeleton (computing state) ------------------------------------ */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.skeleton-line {
+  height: 10px;
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    color-mix(in oklch, var(--fg) 6%, var(--surface-2)) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 3px;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+.skeleton-line.w-95 { width: 95%; }
+.skeleton-line.w-80 { width: 80%; }
+.skeleton-line.w-60 { width: 60%; }
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line { animation: none; }
+}
+
+/* ---------- Error state --------------------------------------------------- */
+
+.error-block {
+  margin-top: 12px;
+  border: 1px solid color-mix(in oklch, var(--error) 30%, var(--border));
+  background: color-mix(in oklch, var(--error) 5%, var(--surface));
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg);
+}
+.error-block .error-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--error);
+  margin-bottom: 6px;
+}
+.error-block .error-head svg { flex-shrink: 0; }
+.error-block code {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface-2);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--fg);
+}
+.error-block .error-action {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* ---------- Warning state ------------------------------------------------- */
+
+.warn-rail {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-left: 2px solid var(--warn);
+  padding: 4px 0 4px 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.warn-rail .warn-icon {
+  color: var(--warn);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.warn-rail .warn-text { color: var(--fg); }
+.warn-rail .warn-text .num { color: var(--fg); }
+.warn-rail .warn-meta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Unknown-block fallback --------------------------------------- */
+
+.unknown-pane {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  line-height: 1.5;
+}
+.unknown-pane code {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--fg);
+}
+.unknown-pane .id-row {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--fg-faint);
+  margin-top: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Footer (panel) — value summary -------------------------------- */
+/* Always-rendered when a value is available, regardless of active tab.
+   Gives a glanceable "what came out of this block" without forcing the user
+   to switch tabs. Hidden in computing/error/unknown states. */
+
+.value-strip {
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.value-strip .label {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.value-strip .body {
+  flex: 1;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Caption rows under each frame --------------------------------- */
+
+.frame-caption {
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--page-rule);
+  font-size: 12px;
+  color: var(--page-fg-muted);
+  background: var(--page-bg);
+}
+.frame-caption strong {
+  color: var(--page-fg);
+  font-weight: 500;
+}
+.frame-caption .row + .row { margin-top: 4px; }
+.frame-caption .key {
+  display: inline-block;
+  min-width: 88px;
+  color: var(--page-fg-muted);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Spec callouts (between sections) ------------------------------ */
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+.spec-card {
+  border: 1px solid var(--page-rule);
+  border-radius: 8px;
+  padding: 14px;
+  background: white;
+}
+.spec-card .spec-eyebrow {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--page-fg-muted);
+  margin: 0 0 6px;
+}
+.spec-card .spec-value {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--page-fg);
+}
+.spec-card .spec-note {
+  font-size: 12px;
+  color: var(--page-fg-muted);
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
+/* ---------- Anatomy diagram ----------------------------------------------- */
+
+.anatomy {
+  border: 1px solid var(--page-rule);
+  border-radius: 12px;
+  background: white;
+  padding: 24px;
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 32px;
+  align-items: stretch;
+}
+.anatomy .frame { box-shadow: none; border-radius: 10px; }
+.anatomy .legend {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.anatomy .legend ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: anatomy;
+}
+.anatomy .legend li {
+  counter-increment: anatomy;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--page-rule);
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+.anatomy .legend li:last-child { border-bottom: 0; }
+.anatomy .legend li::before {
+  content: counter(anatomy);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--page-fg-muted);
+  letter-spacing: 0.04em;
+  background: var(--page-bg);
+  border: 1px solid var(--page-rule);
+  border-radius: 999px;
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.anatomy .legend strong { font-weight: 600; }
+.anatomy .legend .meta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--page-fg-muted);
+  letter-spacing: 0.02em;
+}
+
+/* Numbered hotspots overlaid on the anatomy panel */
+.hotspot {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  background: var(--page-bg);
+  border: 1px solid var(--page-rule);
+  color: var(--page-fg-muted);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  box-shadow: var(--shadow-1);
+}

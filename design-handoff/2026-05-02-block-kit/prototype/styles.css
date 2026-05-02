@@ -1,0 +1,485 @@
+/* =============================================================
+   Block Kit v2 — LaTeX-achtige formule blokken
+   Horizontaal als hoofdrichting; verticaal voor vertakkingen.
+   ============================================================= */
+
+:root {
+  --bg: oklch(99% 0.005 240);
+  --surface: oklch(98% 0.005 240);
+  --surface-2: oklch(96% 0.006 240);
+  --surface-3: oklch(94% 0.008 240);
+  --border: oklch(92% 0.008 240);
+  --border-strong: oklch(85% 0.010 240);
+  --fg: oklch(20% 0.015 240);
+  --fg-muted: oklch(45% 0.012 240);
+  --fg-faint: oklch(60% 0.010 240);
+  --accent: oklch(58% 0.16 250);
+
+  /* Dusty role palette (zelfde als handoff §Q7). */
+  --b-source-fill:     oklch(80% 0.030 235);
+  --b-operator-fill:   oklch(78% 0.035 285);
+  --b-function-fill:   oklch(82% 0.040 80);
+  --b-relation-fill:   oklch(82% 0.012 240);
+  --b-control-fill:    oklch(80% 0.035 155);
+  --b-stochastic-fill: oklch(80% 0.035 15);
+
+  --b-source-fg:       oklch(28% 0.04 235);
+  --b-operator-fg:     oklch(28% 0.05 285);
+  --b-function-fg:     oklch(30% 0.06 80);
+  --b-relation-fg:     oklch(30% 0.015 240);
+  --b-control-fg:      oklch(28% 0.05 155);
+  --b-stochastic-fg:   oklch(28% 0.05 15);
+
+  --b-source-rim:      oklch(60% 0.06 235);
+  --b-operator-rim:    oklch(58% 0.08 285);
+  --b-function-rim:    oklch(62% 0.10 80);
+  --b-relation-rim:    oklch(60% 0.020 240);
+  --b-control-rim:     oklch(58% 0.08 155);
+  --b-stochastic-rim:  oklch(58% 0.08 15);
+
+  --shadow-1: 0 1px 2px oklch(20% 0.02 240 / 0.08);
+  --shadow-2: 0 2px 6px oklch(20% 0.02 240 / 0.10), 0 1px 2px oklch(20% 0.02 240 / 0.06);
+  --shadow-lift: 0 10px 26px oklch(20% 0.02 240 / 0.20), 0 2px 6px oklch(20% 0.02 240 / 0.10);
+
+  --r-block: 7px;
+  --r-pill:  999px;
+}
+
+[data-theme="dark"] {
+  --bg: oklch(13% 0.012 240);
+  --surface: oklch(17% 0.012 240);
+  --surface-2: oklch(20% 0.013 240);
+  --surface-3: oklch(23% 0.014 240);
+  --border: oklch(28% 0.015 240);
+  --border-strong: oklch(36% 0.018 240);
+  --fg: oklch(95% 0.010 240);
+  --fg-muted: oklch(70% 0.012 240);
+  --fg-faint: oklch(55% 0.010 240);
+
+  --b-source-fill:     oklch(38% 0.040 235);
+  --b-operator-fill:   oklch(36% 0.045 285);
+  --b-function-fill:   oklch(40% 0.055 80);
+  --b-relation-fill:   oklch(34% 0.012 240);
+  --b-control-fill:    oklch(38% 0.050 155);
+  --b-stochastic-fill: oklch(38% 0.050 15);
+
+  --b-source-fg:       oklch(92% 0.02 235);
+  --b-operator-fg:     oklch(92% 0.03 285);
+  --b-function-fg:     oklch(94% 0.04 80);
+  --b-relation-fg:     oklch(92% 0.01 240);
+  --b-control-fg:      oklch(92% 0.03 155);
+  --b-stochastic-fg:   oklch(92% 0.03 15);
+
+  --b-source-rim:      oklch(58% 0.07 235);
+  --b-operator-rim:    oklch(56% 0.09 285);
+  --b-function-rim:    oklch(60% 0.10 80);
+  --b-relation-rim:    oklch(50% 0.020 240);
+  --b-control-rim:     oklch(56% 0.09 155);
+  --b-stochastic-rim:  oklch(56% 0.09 15);
+
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / 0.4);
+  --shadow-2: 0 2px 6px oklch(0% 0 0 / 0.4), 0 1px 2px oklch(0% 0 0 / 0.3);
+  --shadow-lift: 0 14px 32px oklch(0% 0 0 / 0.55), 0 2px 6px oklch(0% 0 0 / 0.35);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--fg);
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================ App shell */
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 52px 1fr;
+  grid-template-areas: "topbar topbar" "palette canvas";
+  height: 100vh; width: 100vw;
+}
+
+.topbar {
+  grid-area: topbar;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.brand { font-weight: 600; letter-spacing: -0.01em; font-size: 14px; }
+.brand .dot { display:inline-block; width:8px; height:8px; border-radius:4px; background: var(--b-operator-rim); margin-right:8px; vertical-align:1px; }
+.crumbs { color: var(--fg-muted); font-size: 13px; }
+.spacer { flex: 1; }
+
+.iconbtn {
+  appearance: none; border: 1px solid var(--border);
+  background: var(--surface); color: var(--fg-muted);
+  border-radius: 7px; width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.iconbtn:hover { color: var(--fg); border-color: var(--border-strong); }
+
+/* ============================================================ Palette */
+
+.palette {
+  grid-area: palette;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+  padding: 12px 0 60px;
+}
+.palette-group { padding: 10px 14px 14px; }
+.palette-group + .palette-group { border-top: 1px solid var(--border); }
+.palette-group h3 {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.palette-group h3 .role-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 4px;
+}
+.palette-items { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ============================================================ Canvas */
+
+.canvas-wrap {
+  grid-area: canvas;
+  position: relative; overflow: hidden;
+  background: var(--bg);
+  background-image: radial-gradient(circle at 1px 1px,
+    color-mix(in oklch, var(--fg) 12%, transparent) 1px,
+    transparent 0);
+  background-size: 24px 24px;
+}
+.canvas {
+  position: absolute; inset: 0;
+  overflow: auto;
+}
+.canvas-inner {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 60px 80px;
+}
+
+/* ============================================================
+   Document — verzameling formule-regels.
+   Iedere regel is een .line (horizontale flex-rij). Boven/onder
+   regels kunnen 'lift'-zones zitten voor vertakkingen.
+   ============================================================ */
+
+.doc {
+  display: flex; flex-direction: column;
+  gap: 28px;
+  max-width: 980px;
+}
+
+.doc-section {
+  position: relative;
+}
+.doc-section-title {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0 0 14px;
+}
+
+/* A line is the canonical horizontal formula row.
+   It accepts blocks dropped at any insertion point between siblings. */
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: nowrap;
+  padding: 4px 0;
+  position: relative;
+  min-height: 44px;
+}
+.line .line-gutter {
+  width: 36px;
+  flex-shrink: 0;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--fg-faint);
+  text-align: right;
+  padding-right: 12px;
+  user-select: none;
+}
+
+/* Insertion slot — invisible by default, glows when a drag hovers. */
+.slot {
+  flex: 0 0 6px;
+  align-self: stretch;
+  min-height: 28px;
+  border-radius: 3px;
+  position: relative;
+  transition: flex-basis 160ms ease, background-color 160ms ease;
+}
+.slot.is-active {
+  flex-basis: 28px;
+  background: color-mix(in oklch, var(--accent) 22%, transparent);
+}
+.slot.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 4px 6px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+/* ============================================================
+   Block — atomair bouwsteen. Default is "inline" — rij van blokken.
+   Subscript / superscript / annotation worden bovenliggend op een
+   block geplakt via .block-stack (zie verder).
+   ============================================================ */
+
+.block {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--r-block);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  background: var(--block-fill, var(--surface-2));
+  color: var(--block-fg, var(--fg));
+  box-shadow: var(--shadow-1);
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    transform 220ms cubic-bezier(.2, .9, .25, 1.2),
+    box-shadow 220ms ease;
+  --rim: var(--block-rim, var(--border-strong));
+}
+.block:active { cursor: grabbing; }
+.block.is-dragging {
+  cursor: grabbing;
+  box-shadow: var(--shadow-lift);
+  transform: scale(1.04);
+  z-index: 1000;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+/* Snap-in: klein 'klik' bouncetje na drop. */
+@keyframes snapIn {
+  0%   { transform: scale(1.10); }
+  55%  { transform: scale(0.94); }
+  100% { transform: scale(1.00); }
+}
+.block.just-snapped { animation: snapIn 280ms cubic-bezier(.3, 1.4, .4, 1); }
+
+/* Roles */
+.block.role-source     { --block-fill: var(--b-source-fill);     --block-fg: var(--b-source-fg);     --block-rim: var(--b-source-rim); }
+.block.role-operator   { --block-fill: var(--b-operator-fill);   --block-fg: var(--b-operator-fg);   --block-rim: var(--b-operator-rim); }
+.block.role-function   { --block-fill: var(--b-function-fill);   --block-fg: var(--b-function-fg);   --block-rim: var(--b-function-rim); }
+.block.role-relation   { --block-fill: var(--b-relation-fill);   --block-fg: var(--b-relation-fg);   --block-rim: var(--b-relation-rim); }
+.block.role-control    { --block-fill: var(--b-control-fill);    --block-fg: var(--b-control-fg);    --block-rim: var(--b-control-rim); }
+.block.role-stochastic { --block-fill: var(--b-stochastic-fill); --block-fg: var(--b-stochastic-fg); --block-rim: var(--b-stochastic-rim); }
+
+/* Visual variants */
+.block.is-symbol {
+  /* enkel een symbool (= , + , ·) — minder visueel gewicht */
+  padding: 0 8px;
+  font-family: "STIX Two Math", "Latin Modern Math", "Cambria Math", "Geist Mono", ui-monospace, serif;
+  font-style: italic;
+  font-size: 16px;
+}
+.block.is-pill { border-radius: var(--r-pill); padding: 0 12px; }
+
+.block .glyph {
+  font-family: "STIX Two Math", "Latin Modern Math", "Cambria Math", "Geist Mono", ui-monospace, serif;
+  font-style: italic;
+  font-size: 15px;
+  font-weight: 500;
+}
+.block .name {
+  font-weight: 500;
+}
+.block .num {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-style: normal;
+  font-size: 13px;
+}
+
+/* Block-stack — een blok plus zijn sub/super/annot decoratoren.
+   De decorators zitten visueel boven/onder de baseline maar tellen
+   in de horizontale flow als één eenheid. */
+.block-stack {
+  display: inline-flex; flex-direction: column; align-items: stretch;
+  position: relative;
+  vertical-align: middle;
+}
+.block-stack > .annot-above,
+.block-stack > .annot-below {
+  align-self: center;
+  font-size: 10.5px; font-weight: 500;
+  color: var(--fg-faint);
+  letter-spacing: 0.04em;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  margin: 0;
+  padding: 0 4px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.block-stack > .annot-above { margin-bottom: 2px; }
+.block-stack > .annot-below { margin-top: 2px; }
+
+/* Sub / super script — kleine pillen die aan het eind van de naam plakken. */
+.block .sub, .block .sup {
+  font-size: 10px;
+  font-family: "STIX Two Math", "Geist Mono", ui-monospace, serif;
+  font-style: italic;
+  opacity: 0.85;
+  margin-left: 1px;
+}
+.block .sub { vertical-align: -3px; }
+.block .sup { vertical-align: 5px; }
+
+/* ============================================================
+   Branch — een if/else of where-clause die boven/onder een regel
+   uitsteekt. Het centrale vertakkingsblok blijft op de regel; de
+   takken zijn vertical lifts boven (true) en onder (false).
+   ============================================================ */
+
+.branch {
+  display: inline-flex; flex-direction: column; align-items: stretch;
+  position: relative;
+  margin: 0 4px;
+  vertical-align: middle;
+}
+.branch .branch-up,
+.branch .branch-down {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 4px;
+  height: 28px;
+  font-size: 12.5px;
+}
+.branch .branch-up   { margin-bottom: 6px; align-self: flex-start; }
+.branch .branch-down { margin-top: 6px;    align-self: flex-start; }
+.branch .branch-tag {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+  text-transform: uppercase;
+  padding: 0 4px;
+}
+/* connector lijntjes naar het center */
+.branch .branch-up::before,
+.branch .branch-down::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  width: 1.5px;
+  background: color-mix(in oklch, var(--b-control-rim) 80%, transparent);
+}
+.branch .branch-up::before   { top: 14px; height: 16px; }
+.branch .branch-down::before { bottom: 14px; height: 16px; }
+.branch .branch-center { align-self: flex-start; position: relative; }
+
+/* ============================================================
+   Function-container — een blok met een geneste expressie.
+   E.g. \frac{ }{ }, \sqrt{ }, ∑_{i}^{n}, parentheses.
+   ============================================================ */
+
+.fn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--block-fill, color-mix(in oklch, var(--b-function-fill) 30%, var(--surface)));
+  color: var(--block-fg, var(--b-function-fg));
+  border-radius: var(--r-block);
+  height: auto;
+  min-height: 36px;
+  box-shadow: var(--shadow-1);
+  font-family: "STIX Two Math", "Latin Modern Math", serif;
+}
+.fn .fn-glyph {
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1;
+  padding: 0 2px;
+  color: var(--b-function-rim);
+}
+.fn.role-control .fn-glyph { color: var(--b-control-rim); }
+.fn.role-operator .fn-glyph { color: var(--b-operator-rim); }
+.fn .fn-arg {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  min-height: 28px;
+  min-width: 28px;
+  padding: 0 4px;
+}
+.fn .fn-arg.is-numerator   { border-bottom: 1.5px solid currentColor; }
+.fn .fn-arg.is-denominator { /* geen border, pure stack */ }
+.fn .fn-arg.is-stack {
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.fn .fn-arg .superlabel,
+.fn .fn-arg .sublabel {
+  font-size: 10.5px; opacity: 0.65;
+  font-family: "STIX Two Math", "Geist Mono", monospace;
+  font-style: italic;
+}
+
+/* ============================================================
+   Notes
+   ============================================================ */
+
+.notes {
+  position: fixed;
+  left: 256px;
+  bottom: 14px;
+  font-size: 11px;
+  color: var(--fg-faint);
+  z-index: 10;
+  background: color-mix(in oklch, var(--surface) 80%, transparent);
+  padding: 6px 10px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+.notes kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  background: var(--surface);
+  color: var(--fg-muted);
+}
+
+/* Trash — drop here to remove. */
+.trash {
+  position: fixed;
+  right: 16px; bottom: 16px;
+  width: 44px; height: 44px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  color: var(--fg-faint);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  transition: transform 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+.trash.is-active {
+  background: color-mix(in oklch, oklch(60% 0.20 25) 25%, var(--surface));
+  color: oklch(50% 0.20 25);
+  transform: scale(1.12);
+  border-style: solid;
+  border-color: oklch(50% 0.20 25);
+}
