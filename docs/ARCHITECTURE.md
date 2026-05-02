@@ -127,6 +127,36 @@ Each domain exposes a `register(registry: PluginRegistry)` function. The registr
 
 Adding a new domain = new folder + register call in `src/blocks/index.ts`. **No core changes required.**
 
+## Graph State / UI State
+
+The project uses three Zustand stores. They are distinct in lifecycle, persistence, and responsibility.
+
+### `useGraphStore` (`src/store/graph-store.ts`)
+
+The source of truth for the graph itself: `nodes`, `edges`, the selected node id, and all graph-mutation actions (`addNode`, `removeNode`, `connect`, `updateNodeParams`, `replaceGraph`). Persisted to IndexedDB; survives reloads. Mutations emit side-effects into `useHistoryStore`.
+
+### `useHistoryStore` (`src/store/history-store.ts`)
+
+Append-only log of `ConstructionEvent` values. Used exclusively by the Construction Protocol (replay timeline). In-memory only — it does not survive a reload. See "Construction Protocol (replay timeline)" below.
+
+### `useUiStore` (`src/store/ui-store.ts`)
+
+Workspace-scoped UI state: the active explanation-panel tab and the inspector panel width. **In-memory only** — it is intentionally not persisted to IndexedDB or localStorage. Tab choice and panel width survive node selection changes within a session (workspace-scoped), but reset to defaults on reload.
+
+```typescript
+type UiState = {
+  activeExplanationTab: "what" | "why" | "effect" | "impact";
+  inspectorWidth: number;           // clamped to [320, 520], default 380
+  setActiveExplanationTab: (tab: ExplanationTabId) => void;
+  setInspectorWidth: (px: number) => void;
+  reset: () => void;
+};
+```
+
+This is distinct from `useGraphStore` (which owns the graph and its nodes) and `useHistoryStore` (which owns the event log). `useUiStore` owns nothing that affects computation — it is purely presentational state that the explanation panel and inspector rail subscribe to.
+
+**Why workspace-scoped, not selection-scoped:** switching from node A to node B keeps the same active tab open. A user exploring the "Effect" tab on one block should not lose their place when they click a different block. The design-handoff document (`design-handoff/2026-05-02-explanation-panel/README.md §3`) established this lifecycle.
+
 ## Type-checking on connect
 
 `src/editor/connections.ts` exports `canConnect(out: MathType, into: MathType): ConnectResult`.
