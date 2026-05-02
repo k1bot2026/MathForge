@@ -4,14 +4,19 @@
 // per docs/DESIGN_PRINCIPLES.md voice rules. effect/impact are
 // inputs+output dependent — they're hidden when no result is available
 // yet so the panel doesn't render half-empty text.
+//
+// Active tab is workspace-scoped via useUiStore (per the
+// explanation-panel handoff README §3 "Tab persistence is workspace-
+// scoped, not selection-scoped"). If the active tab vanishes for the
+// current block (no `effect`/`impact`), we fall back to the first
+// available tab without mutating the persisted preference — so when
+// the user re-selects a block that does have it, they're back on it.
 
-import { useState } from "react";
 import type { BlockDefinition, ResolvedInputs } from "~/blocks/types";
 import type { EvalResult } from "~/engine/types";
+import { type ExplanationTabId, useUiStore } from "~/store/ui-store";
 
-type TabId = "what" | "why" | "effect" | "impact";
-
-const TAB_LABELS: Readonly<Record<TabId, string>> = {
+const TAB_LABELS: Readonly<Record<ExplanationTabId, string>> = {
   what: "What",
   why: "Why",
   effect: "Effect",
@@ -25,16 +30,20 @@ export type ExplanationTabsProps = {
 };
 
 export function ExplanationTabs({ def, inputs, result }: ExplanationTabsProps) {
-  const [tab, setTab] = useState<TabId>("what");
+  const persistedTab = useUiStore((s) => s.activeExplanationTab);
+  const setTab = useUiStore((s) => s.setActiveExplanationTab);
 
   const haveValue = result?.kind === "value";
-  const tabs: ReadonlyArray<TabId> = (["what", "why", "effect", "impact"] satisfies TabId[]).filter(
-    (t) => availableForTab(def, t, haveValue),
-  );
+  const tabs: ReadonlyArray<ExplanationTabId> = (
+    ["what", "why", "effect", "impact"] satisfies ExplanationTabId[]
+  ).filter((t) => availableForTab(def, t, haveValue));
 
-  // If the active tab vanished (no value yet for effect/impact), fall
-  // back to the first available one without burning a useEffect.
-  const activeTab = tabs.includes(tab) ? tab : (tabs[0] ?? "what");
+  // If the persisted tab isn't available for this block, fall back to
+  // the leftmost without mutating the store — the user gets back to
+  // their preferred tab when they select a block that supports it.
+  const activeTab: ExplanationTabId = tabs.includes(persistedTab)
+    ? persistedTab
+    : (tabs[0] ?? "what");
 
   const text = renderTab(def, activeTab, inputs, result);
 
@@ -55,7 +64,7 @@ export function ExplanationTabs({ def, inputs, result }: ExplanationTabsProps) {
               data-testid={`explanation-tab-${t}`}
               className={`px-2 py-1.5 transition-colors ${
                 isActive
-                  ? "border-b-2 border-accent text-fg"
+                  ? "border-b-2 border-fg text-fg"
                   : "border-b-2 border-transparent text-fg-muted hover:text-fg"
               }`}
             >
@@ -71,7 +80,7 @@ export function ExplanationTabs({ def, inputs, result }: ExplanationTabsProps) {
   );
 }
 
-function availableForTab(def: BlockDefinition, tab: TabId, haveValue: boolean): boolean {
+function availableForTab(def: BlockDefinition, tab: ExplanationTabId, haveValue: boolean): boolean {
   if (tab === "what" || tab === "why") return true;
   if (tab === "effect") return def.explain.effect !== undefined && haveValue;
   if (tab === "impact") return def.explain.impact !== undefined && haveValue;
@@ -80,7 +89,7 @@ function availableForTab(def: BlockDefinition, tab: TabId, haveValue: boolean): 
 
 function renderTab(
   def: BlockDefinition,
-  tab: TabId,
+  tab: ExplanationTabId,
   inputs: ResolvedInputs,
   result: EvalResult | undefined,
 ): string {

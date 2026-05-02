@@ -2,19 +2,25 @@
 
 // Right-rail inspector. Mounts only when a node is selected (per
 // docs/DESIGN_PRINCIPLES.md "Default is canvas-only. Rails open with
-// intent."). Edits to ParamControl flow through useGraphStore's
-// updateNodeParams, which mutates node.data.params and triggers the
-// auto-evaluate subscription.
+// intent."). Implements the Claude Design explanation-panel handoff
+// (design-handoff/2026-05-02-explanation-panel/): state chip in the
+// header, value strip at the bottom for value-state nodes, resize
+// handle on the left edge, slide-in animation, and workspace-scoped
+// active tab persistence (delegated to useUiStore).
 
 import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
-import type { ResolvedInputs, ResolvedParams } from "~/blocks/types";
+import type { BlockDefinition, ResolvedInputs, ResolvedParams } from "~/blocks/types";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import type { EvalResult } from "~/engine/types";
+import { useResizable } from "~/lib/use-resizable";
 import type { MathValue } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
+import { INSPECTOR_WIDTH_LIMITS, useUiStore } from "~/store/ui-store";
 import { ExplanationTabs } from "./explanation-tabs";
+import { derivePanelState } from "./panel-state";
 import { ParamControl } from "./param-control";
+import { StateChip } from "./state-chip";
 
 export function InspectorPanel() {
   const selectedId = useGraphStore((s) => s.selectedNodeId);
@@ -26,48 +32,92 @@ export function InspectorPanel() {
   const setSelected = useGraphStore((s) => s.setSelectedNodeId);
   const inputs = useSelectedInputs(selectedId);
 
+  const width = useUiStore((s) => s.inspectorWidth);
+  const setWidth = useUiStore((s) => s.setInspectorWidth);
+  const { separatorProps } = useResizable({
+    value: width,
+    onChange: setWidth,
+    min: INSPECTOR_WIDTH_LIMITS.min,
+    max: INSPECTOR_WIDTH_LIMITS.max,
+  });
+
   if (selectedId === null || node === undefined) return null;
 
   const data = (node.data ?? {}) as Partial<BlockNodeData>;
   const def = blockRegistry.get(data.blockId ?? "");
+  const state = derivePanelState({ def, result });
+
+  const dotClass = def !== undefined ? roleDotClass[def.color] : "bg-border";
 
   return (
     <aside
       data-testid="inspector-panel"
-      className="absolute right-0 top-0 z-10 flex h-full w-80 flex-col gap-4 border-l border-border bg-surface p-4 shadow-block-3"
+      className="inspector-panel absolute right-0 top-0 z-10 flex h-full flex-col gap-4 border-l border-border bg-surface p-4 shadow-block-3"
+      style={{ width: `${width}px` }}
     >
-      <header className="flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold text-fg">{def?.label ?? "Unknown block"}</h2>
-        <button
-          type="button"
-          onClick={() => {
-            setSelected(null);
-          }}
-          className="text-xs text-fg-muted hover:text-fg"
-          data-testid="inspector-close"
-          aria-label="Close inspector"
-        >
-          close
-        </button>
+      <div
+        {...separatorProps}
+        data-testid="inspector-resize"
+        className="absolute left-0 top-0 h-full w-1.5 cursor-ew-resize hover:bg-fg-faint focus-visible:bg-fg-faint focus-visible:outline-none"
+      />
+
+      <header className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${dotClass}`} />
+            <h2 className="text-sm font-semibold text-fg">{def?.label ?? "Unknown block"}</h2>
+          </div>
+          <span className="font-mono text-[11px] text-fg-muted">
+            {data.blockId ?? "—"}
+            {def !== undefined ? ` · ${def.category}` : null}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <StateChip state={state} />
+          <button
+            type="button"
+            onClick={() => {
+              setSelected(null);
+            }}
+            className="font-mono text-[10px] uppercase tracking-wider text-fg-muted hover:text-fg"
+            data-testid="inspector-close"
+            aria-label="Close inspector"
+          >
+            close
+          </button>
+        </div>
       </header>
 
-      {def === undefined ? (
-        <p className="text-sm text-error">Block not registered: {data.blockId}</p>
-      ) : (
-        <>
-          <ParamForm
-            params={data.params ?? {}}
-            specs={def.params ?? {}}
-            onUpdate={(next) => {
-              updateNodeParams(selectedId, next);
-            }}
-          />
-          <ExplanationTabs def={def} inputs={inputs} result={result} />
-        </>
-      )}
+      <div className="inspector-body flex flex-1 flex-col gap-4">
+        {def === undefined ? (
+          <p className="text-sm text-fg-muted">Block not registered: {data.blockId}</p>
+        ) : (
+          <>
+            <ParamForm
+              params={data.params ?? {}}
+              specs={def.params ?? {}}
+              onUpdate={(next) => {
+                updateNodeParams(selectedId, next);
+              }}
+            />
+            <ExplanationTabs def={def} inputs={inputs} result={result} />
+          </>
+        )}
+      </div>
+
+      {state === "value" ? <ValueStrip result={result} /> : null}
     </aside>
   );
 }
+
+const roleDotClass: Readonly<Record<BlockDefinition["color"], string>> = {
+  source: "bg-role-source-border",
+  operation: "bg-role-operation-border",
+  function: "bg-role-function-border",
+  visualizer: "bg-role-visualizer-border",
+  stochastic: "bg-role-stochastic-border",
+  control: "bg-role-control-border",
+};
 
 function ParamForm({
   params,
@@ -75,7 +125,7 @@ function ParamForm({
   onUpdate,
 }: {
   params: ResolvedParams;
-  specs: NonNullable<import("~/blocks/types").BlockDefinition["params"]>;
+  specs: NonNullable<BlockDefinition["params"]>;
   onUpdate: (next: ResolvedParams) => void;
 }) {
   const entries = Object.entries(specs);
@@ -103,6 +153,39 @@ function ParamForm({
       ))}
     </form>
   );
+}
+
+function ValueStrip({ result }: { result: EvalResult | undefined }) {
+  if (result === undefined || result.kind !== "value") return null;
+  return (
+    <div
+      data-testid="inspector-value-strip"
+      className="-mx-4 -mb-4 mt-auto border-t border-border bg-surface-2 px-4 py-2"
+    >
+      <span className="font-mono text-[10px] uppercase tracking-wider text-fg-muted">value</span>
+      <p className="mt-0.5 truncate font-mono text-xs text-fg">
+        {formatPayload(result.value.payload)}
+      </p>
+    </div>
+  );
+}
+
+function formatPayload(payload: unknown): string {
+  if (typeof payload === "number") {
+    if (Number.isInteger(payload)) return String(payload);
+    return payload.toPrecision(6).replace(/0+$/, "").replace(/\.$/, "");
+  }
+  if (Array.isArray(payload)) {
+    if (Array.isArray(payload[0])) {
+      return `[${(payload as unknown[][])
+        .map((row) => `[${row.map(String).join(", ")}]`)
+        .join(", ")}]`;
+    }
+    return `[${(payload as unknown[]).map(String).join(", ")}]`;
+  }
+  if (typeof payload === "boolean") return String(payload);
+  if (payload === null || payload === undefined) return "—";
+  return String(payload);
 }
 
 /**
