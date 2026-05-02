@@ -1,5 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 import { create } from "zustand";
+import type { ResolvedParams } from "~/blocks/types";
 import type { EvalResult } from "~/engine/types";
 
 export type GraphState = {
@@ -8,6 +9,8 @@ export type GraphState = {
   /** Per-node-id evaluator output. Populated by the auto-evaluate hook. */
   results: Readonly<Record<string, EvalResult>>;
   evalStatus: "idle" | "running";
+  /** Currently-selected graph-node id; drives the inspector + explanation rail. */
+  selectedNodeId: string | null;
   addNode: (node: Node) => void;
   removeNode: (id: string) => void;
   connect: (edge: Edge) => void;
@@ -15,6 +18,8 @@ export type GraphState = {
   setEdges: (edges: Edge[]) => void;
   setResults: (results: ReadonlyMap<string, EvalResult>) => void;
   setEvalStatus: (status: "idle" | "running") => void;
+  setSelectedNodeId: (id: string | null) => void;
+  updateNodeParams: (id: string, params: ResolvedParams) => void;
 };
 
 // Phase-1 seed graph: demos the matvec pipeline end-to-end so a
@@ -72,6 +77,7 @@ export const useGraphStore = create<GraphState>((set) => ({
   edges: seedEdges,
   results: {},
   evalStatus: "idle",
+  selectedNodeId: null,
   addNode: (node) => {
     set((state) => ({ nodes: [...state.nodes, node] }));
   },
@@ -79,6 +85,7 @@ export const useGraphStore = create<GraphState>((set) => ({
     set((state) => ({
       nodes: state.nodes.filter((n) => n.id !== id),
       edges: state.edges.filter((e) => e.source !== id && e.target !== id),
+      selectedNodeId: state.selectedNodeId === id ? null : state.selectedNodeId,
     }));
   },
   connect: (edge) => {
@@ -100,5 +107,17 @@ export const useGraphStore = create<GraphState>((set) => ({
   },
   setEvalStatus: (status) => {
     set({ evalStatus: status });
+  },
+  setSelectedNodeId: (id) => {
+    set({ selectedNodeId: id });
+  },
+  updateNodeParams: (id, params) => {
+    set((state) => ({
+      nodes: state.nodes.map((n) => {
+        if (n.id !== id) return n;
+        const data = (n.data ?? {}) as { blockId?: string; params?: ResolvedParams };
+        return { ...n, data: { ...data, params } };
+      }),
+    }));
   },
 }));

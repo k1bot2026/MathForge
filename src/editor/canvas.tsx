@@ -5,6 +5,7 @@ import {
   BackgroundVariant,
   type Connection,
   type Edge,
+  type Node,
   type NodeTypes,
   ReactFlow,
 } from "@xyflow/react";
@@ -16,6 +17,7 @@ import { useAutoEvaluate } from "~/engine/use-auto-evaluate";
 import type { MathType } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 import { canConnect } from "./connections";
+import { InspectorPanel } from "./inspector/inspector-panel";
 import { BlockNode } from "./nodes/block-node";
 
 const nodeTypes: NodeTypes = {
@@ -26,6 +28,18 @@ export function EditorCanvas() {
   useAutoEvaluate();
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
+  const setSelected = useGraphStore((s) => s.setSelectedNodeId);
+
+  const onNodeClick = useCallback(
+    (_event: unknown, node: Node) => {
+      setSelected(node.id);
+    },
+    [setSelected],
+  );
+
+  const onPaneClick = useCallback(() => {
+    setSelected(null);
+  }, [setSelected]);
 
   const isValidConnection = useCallback((connection: Connection | Edge): boolean => {
     const { nodes: current } = useGraphStore.getState();
@@ -57,16 +71,19 @@ export function EditorCanvas() {
   }, []);
 
   return (
-    <div className="h-dvh w-full">
+    <div className="relative h-dvh w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         isValidConnection={isValidConnection}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
         fitView
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
       </ReactFlow>
+      <InspectorPanel />
     </div>
   );
 }
