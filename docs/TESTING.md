@@ -12,6 +12,7 @@ Mathematical correctness is the project's first non-negotiable. This file specif
 | Cross-engine differential tests | fast-check + Pyodide/SymPy | CI nightly + PR for math blocks | absolute correctness against gold standard |
 | Visual regression | Storybook + Vitest browser mode | CI on UI changes | catch unintended UI shifts |
 | E2E | Playwright | CI gate on PR | full flows work |
+| Performance guards | Vitest (wallclock) | CI gate | evaluator does not regress on N=25, N=50 nodes |
 
 ## Property-based tests for math blocks
 
@@ -470,6 +471,47 @@ Playwright tests cover:
 - Replay: open a templated graph, scrub timeline.
 
 Keep E2E count low (≤ 10 tests). They're slow; rely on unit + visual + property for breadth.
+
+## Performance guards
+
+**File:** `src/engine/evaluator-perf.test.ts`
+
+These are wallclock regression guards, not benchmarks. They run in `pnpm test` on every CI pass.
+
+### What they assert
+
+Four tests, each measuring wall-clock elapsed time against a threshold:
+
+| Test | Topology | Nodes | Threshold |
+|---|---|---|---|
+| Linear chain ~25 | alternating constant/add nodes, sequential dependency | 25 | 200 ms |
+| Linear chain ~50 | same pattern, longer chain | 51 | 400 ms |
+| Wide fanout 25 | one root constant feeds 25 independent add nodes | 51 | 200 ms |
+| Cached re-evaluation | chain of 25, second evaluate() call on warm cache | 25 | 200 ms |
+
+Each test also asserts a correctness result (the final adder's sum), so a silent wrong-answer regression does not pass.
+
+### What triggers a regression vs. a flake
+
+Thresholds are set at ~100× the actual expected runtime on an M4 Mac Mini. A test that exceeds the threshold has almost certainly regressed algorithmically — not flaked from GC pressure. If a test fails once in CI but passes on retry, it is a flake; investigate the test environment, not the evaluator.
+
+A test that suddenly takes 2–3× longer than before (but still under threshold) is a yellow flag — not a CI failure, but worth noting in the PR description.
+
+### Updating thresholds when hardware changes
+
+The Mac Mini M4 (16 GB) baseline is documented in `CLAUDE.md`. If the primary dev machine changes, re-run the full suite and adjust the three constants in `evaluator-perf.test.ts`:
+
+```typescript
+const CHAIN_25_THRESHOLD_MS = 200;   // adjust if hardware changes
+const CHAIN_50_THRESHOLD_MS = 400;
+const FANOUT_25_THRESHOLD_MS = 200;
+```
+
+Commit the threshold change with a note in the commit message naming the hardware and the new measured baseline (e.g., "measured 1.8 ms typical on M4; threshold left at 200 ms").
+
+### Adding new perf cases
+
+When a new evaluator topology is introduced (e.g., a diamond DAG, a re-entrant subgraph, or a block with async SymPy compute), add a matching test to `evaluator-perf.test.ts`. Use the same `buildXxx` helper pattern and keep thresholds at ≥100× the expected runtime.
 
 ## What we explicitly do NOT test
 
