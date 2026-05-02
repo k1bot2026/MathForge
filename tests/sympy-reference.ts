@@ -82,3 +82,27 @@ export type MatrixFixture = {
 export function loadMatrixFixture(): MatrixFixture {
   return loadJson<MatrixFixture>("la-matrix");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.det multiplicativity fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type DetMultiplicativityCase = {
+  A: number[][];
+  B: number[][];
+  detA: number;
+  detB: number;
+  AB: number[][];
+  detAB: number;
+};
+
+export type DetMultiplicativityFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: DetMultiplicativityCase[];
+};
+
+export function loadDetMultiplicativityFixture(): DetMultiplicativityFixture {
+  return loadJson<DetMultiplicativityFixture>("la-det-multiplicativity");
+}

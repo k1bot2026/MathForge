@@ -301,6 +301,158 @@ json.dumps({"AB": [[int(AB[r, c]) for c in range(AB.cols)] for r in range(AB.row
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.det multiplicativity — det(A·B) === det(A) · det(B)
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference values verifying the multiplicativity of det:
+ *   det(A · B) = det(A) · det(B)
+ *
+ * Covers square matrix sizes 2×2 through 4×4 with integer entries.
+ * Uses invertible pairs so det values are interesting (non-zero).
+ * Each case records: A, B, det(A), det(B), A·B, det(A·B).
+ */
+async function generateDetMultiplicativity(py) {
+  const matrixPairs = [
+    // 2×2 — various non-singular cases
+    {
+      A: [
+        [1, 2],
+        [3, 5],
+      ],
+      B: [
+        [2, 1],
+        [1, 3],
+      ],
+    },
+    {
+      A: [
+        [2, -1],
+        [1, 3],
+      ],
+      B: [
+        [3, 2],
+        [-1, 1],
+      ],
+    },
+    {
+      A: [
+        [1, 0],
+        [0, -1],
+      ],
+      B: [
+        [4, 3],
+        [2, 1],
+      ],
+    },
+    {
+      A: [
+        [5, 2],
+        [3, 1],
+      ],
+      B: [
+        [1, -2],
+        [-3, 5],
+      ],
+    },
+    // 3×3
+    {
+      A: [
+        [1, 0, 1],
+        [0, 2, 0],
+        [1, 0, 3],
+      ],
+      B: [
+        [2, 1, 0],
+        [1, 3, 1],
+        [0, 1, 2],
+      ],
+    },
+    {
+      A: [
+        [1, 2, 3],
+        [0, 1, 4],
+        [5, 6, 0],
+      ],
+      B: [
+        [1, 0, 0],
+        [0, 2, 0],
+        [0, 0, 3],
+      ],
+    },
+    // 4×4
+    {
+      A: [
+        [1, 0, 0, 1],
+        [0, 2, 0, 0],
+        [0, 0, 3, 0],
+        [1, 0, 0, 4],
+      ],
+      B: [
+        [2, 1, 0, 0],
+        [1, 3, 1, 0],
+        [0, 1, 2, 1],
+        [0, 0, 1, 3],
+      ],
+    },
+    // singular pair — det should be 0 on both sides
+    {
+      A: [
+        [1, 2],
+        [2, 4],
+      ],
+      B: [
+        [3, 1],
+        [1, 2],
+      ],
+    },
+  ];
+
+  const cases = [];
+  for (const { A, B } of matrixPairs) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+B = Matrix(${JSON.stringify(B)})
+AB = A * B
+
+det_A = int(A.det())
+det_B = int(B.det())
+det_AB = int(AB.det())
+
+def mat_to_list(m):
+    return [[int(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+json.dumps({
+  "detA": det_A,
+  "detB": det_B,
+  "AB": mat_to_list(AB),
+  "detAB": det_AB
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      A,
+      B,
+      detA: parsed.detA,
+      detB: parsed.detB,
+      AB: parsed.AB,
+      detAB: parsed.detAB,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference values for det(A·B) = det(A)·det(B) computed by SymPy 1.13.x. Covers 2×2 through 4×4 integer matrices including a singular pair.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -322,6 +474,10 @@ async function main() {
   console.log("\nGenerating la.matrix fixtures…");
   const matrixFixture = await generateMatrixArithmetic(py);
   writeFixture("la-matrix", matrixFixture);
+
+  console.log("\nGenerating la.det multiplicativity fixtures…");
+  const detFixture = await generateDetMultiplicativity(py);
+  writeFixture("la-det-multiplicativity", detFixture);
 
   console.log("\nDone.");
 }
