@@ -22,8 +22,21 @@ import { resolve } from "node:path";
 
 const FIXTURES = resolve(import.meta.dirname ?? __dirname, "fixtures/sympy");
 
+/** @internal exported for testing the error-path only. */
+export function loadFixtureJson<T>(name: string): T {
+  return loadJson<T>(name);
+}
+
 function loadJson<T>(name: string): T {
-  const raw = readFileSync(resolve(FIXTURES, `${name}.json`), "utf8");
+  const path = resolve(FIXTURES, `${name}.json`);
+  let raw: string;
+  try {
+    raw = readFileSync(path, "utf8");
+  } catch {
+    throw new Error(
+      `SymPy fixture "${name}" not found at ${path}. Run \`pnpm generate:fixtures\` to regenerate.`,
+    );
+  }
   return JSON.parse(raw) as T;
 }
 
