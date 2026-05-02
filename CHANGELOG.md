@@ -9,8 +9,9 @@ Versions map to phase milestones, not calendar releases.
 
 Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
 fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
-old shared links. Four operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
-`la.trace`. SymPy fixture infrastructure in place with cross-engine tests.
+old shared links. Eight operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
+`la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`. SymPy fixture infrastructure
+in place with cross-engine tests.
 See `docs/ROADMAP.md` Phase 2 progress tracker.
 
 ### Operations (Phase 2)
@@ -19,6 +20,10 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **`la.add`** — element-wise matrix addition; same shape required (typed error for mismatch). (`061f40a`)
 - **`la.sub`** — element-wise matrix subtraction; same shape required. (`0ccaae9`)
 - **`la.trace`** — sum of main diagonal; square-matrix only with typed error for non-square inputs. (`7704e07`)
+- **`la.det`** — matrix determinant via math.js LU; square-matrix only. SymPy cross-engine fixture: `det(A·B) = det(A)·det(B)`. (`c50ade4`)
+- **`la.inverse`** — matrix inverse with `SingularMatrixError` guard; square + full-rank required. (`eba6346`)
+- **`la.rref`** — reduced row echelon form via partial-pivoting Gauss-Jordan. (`7cdcadc`)
+- **`la.rank`** — matrix rank via non-zero row count of RREF output. (`74a34d0`)
 
 ### Foundation (Shape polymorphism)
 
@@ -45,6 +50,9 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - `docs/TESTING.md` — SymPy fixture workflow, property testing pattern, `@cross-engine` tag convention, and `tests/arbitraries.ts` reference all documented. (`1071c9e`, `999596d`, `449b944`, `7d0eafe`)
 - `docs/ARCHITECTURE.md` — Phase 2 drift fixed: `ConnectResult` type corrected, "zstd" → "deflate (fflate)", migration location corrected to `graph-codec.ts`, v1→v2 schema history added. (`c5c5209`)
 - `docs/BLOCK_AUTHORING_GUIDE.md` — new: canonical pattern for adding a block, with `la.transpose` as the worked example; 8-item pre-commit checklist. (`decef3d`)
+- `docs/TESTING.md` — `pnpm check:fixtures` guard documented: regenerate-and-diff workflow, when to run, what non-zero exit means. (`f9de82a`)
+- `docs/ARCHITECTURE.md` — `useUiStore` workspace-scoped UI state pattern documented: UiState type, lifecycle distinction from graph/history stores, why workspace-scoped. (`199fc14`)
+- `README.md` — updated to Phase 2 status with shipped block table and links to new docs. (`9e0c892`)
 - `CHANGELOG.md` — initialized (this file). (`12f7cf3`)
 
 ---
