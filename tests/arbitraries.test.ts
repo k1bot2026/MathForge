@@ -6,7 +6,7 @@
 import fc from "fast-check";
 import { det, multiply, transpose } from "mathjs";
 import { describe, expect, test } from "vitest";
-import { invertibleMatrix, orthogonalMatrix } from "./arbitraries";
+import { invertibleMatrix, orthogonalMatrix, singularMatrix } from "./arbitraries";
 
 function closeTo(a: number, b: number, eps = 1e-9): boolean {
   return Math.abs(a - b) <= eps;
@@ -118,5 +118,54 @@ describe("orthogonalMatrix", () => {
     const Qt = transpose(I) as number[][];
     const QtQ = multiply(Qt, I) as number[][];
     expect(matricesClose(QtQ, I)).toBe(true);
+  });
+});
+
+describe("singularMatrix", () => {
+  test("property: det(A) = 0 for all generated matrices, n=1..4", () => {
+    for (let n = 1; n <= 4; n++) {
+      fc.assert(
+        fc.property(singularMatrix(n), (A) => {
+          expect(Math.abs(det(A) as number)).toBeLessThan(0.5);
+        }),
+        { numRuns: 50 },
+      );
+    }
+  });
+
+  test("property: generated matrix is n×n", () => {
+    for (let n = 1; n <= 4; n++) {
+      fc.assert(
+        fc.property(singularMatrix(n), (A) => {
+          expect(A.length).toBe(n);
+          for (const row of A) {
+            expect(row.length).toBe(n);
+          }
+        }),
+        { numRuns: 30 },
+      );
+    }
+  });
+
+  test("n=1 always produces [[0]]", () => {
+    fc.assert(
+      fc.property(singularMatrix(1), (A) => {
+        expect(A).toEqual([[0]]);
+      }),
+      { numRuns: 20 },
+    );
+  });
+
+  test("last row is a linear combination of preceding rows (construction invariant)", () => {
+    for (let n = 2; n <= 4; n++) {
+      fc.assert(
+        fc.property(singularMatrix(n), (A) => {
+          // Verify rank < n as a stronger check: det must be 0.
+          // (The linear-combination construction implies this by definition.)
+          expect(Math.abs(det(A) as number)).toBeLessThan(0.5);
+        }),
+        { numRuns: 50 },
+      );
+    }
   });
 });

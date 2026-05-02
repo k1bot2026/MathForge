@@ -92,6 +92,40 @@ export function invertibleMatrix(n: number): fc.Arbitrary<number[][]> {
  * Note: the returned matrix has floating-point entries; equality checks should
  * use a tolerance of ~1e-9 rather than exact equality.
  */
+/**
+ * Generates an n×n integer matrix guaranteed to be singular (det = 0).
+ * Construction: build a random (n-1)×n submatrix of integers, then set
+ * the last row to be a random integer linear combination of the other rows.
+ * This guarantees linear dependence (rank < n → det = 0) without
+ * rejection sampling, so generation is O(1) attempts.
+ *
+ * Shrinks toward the all-zeros matrix (the "most boring" singular matrix).
+ *
+ * Used for: la.inverse error-path tests, la.det zero-result verification.
+ */
+export function singularMatrix(n: number): fc.Arbitrary<number[][]> {
+  if (n === 1) {
+    // Only singular 1×1 matrix is [[0]].
+    return fc.constant([[0]]);
+  }
+  const intEntry = fc.integer({ min: -5, max: 5 });
+  // Build (n-1) independent-looking rows, each of length n.
+  const submatrix = fc.array(fc.array(intEntry, { minLength: n, maxLength: n }), {
+    minLength: n - 1,
+    maxLength: n - 1,
+  });
+  // Coefficients for the linear combination that produces the dependent row.
+  const coefficients = fc.array(intEntry, { minLength: n - 1, maxLength: n - 1 });
+
+  return fc.tuple(submatrix, coefficients).map(([rows, coeffs]) => {
+    // dependent row = ∑ coeffs[i] * rows[i]
+    const dependent = Array.from({ length: n }, (_, col) =>
+      rows.reduce((acc, row, i) => acc + (coeffs[i] ?? 0) * (row[col] ?? 0), 0),
+    );
+    return [...rows, dependent];
+  });
+}
+
 export function orthogonalMatrix(n: number): fc.Arbitrary<number[][]> {
   // Each Givens rotation is parameterised by (i, j, theta).
   // We apply between 0 and n*(n-1)/2 rotations — enough to reach any orthogonal.
