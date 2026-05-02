@@ -129,20 +129,30 @@ Adding a new domain = new folder + register call in `src/blocks/index.ts`. **No 
 
 ## Type-checking on connect
 
-`src/editor/connections.ts` exports `canConnect(out: MathType, in: MathType): ConnectResult`.
+`src/editor/connections.ts` exports `canConnect(out: MathType, into: MathType): ConnectResult`.
 
-`ConnectResult = { ok: true } | { ok: false, reason: string }`.
+```typescript
+type ConnectResult =
+  | { ok: true; bindings?: Record<string, number>; warning?: string }
+  | { ok: false; reason: string };
+```
 
-React Flow's `<Handle isValidConnection={…}>` calls this. On failure, the UI shakes the target handle, shows a tooltip with `reason`, and refuses the edge.
+React Flow's `<Handle isValidConnection={…}>` calls this at edit time. On failure the UI shakes the target handle, shows a tooltip with `reason`, and refuses the edge.
 
-Shape variables (e.g. `Matrix<m, k> · Matrix<k, n>`) resolve at connect time using a small unifier in `connections.ts`.
+`bindings` carries any shape-variable assignments resolved during the check (e.g. connecting a concrete `Vector<3>` to a `Vector<{ var: "n" }>` slot returns `{ bindings: { n: 3 } }`). The evaluator uses these bindings when computing a block's polymorphic output type.
+
+`warning` surfaces soft diagnostics that allow the connection but flag a concern — currently only "approximate value flowing into exact slot" (precision downgrade). The node shows a yellow indicator rather than refusing the edge.
+
+The file also exports `unifyShape(out, into, dim)` for callers that need to check a single dimension — used by block manifests when resolving polymorphic output types at evaluator time.
+
+For full detail on the unifier rules and Phase 2 examples (`la.matvec`, `la.matmul`, `la.transpose`), see `docs/TYPES.md` "Shape polymorphism in Phase 2".
 
 ## Persistence and sharing
 
 - **Local-first.** Graph is autosaved to IndexedDB every 5 s.
-- **URL serialization.** A graph encodes to JSON, then zstd-compressed and base64url-encoded into the URL hash for small graphs (≤ ~5 KB compressed).
+- **URL serialization.** A graph encodes to JSON, deflate-compressed (fflate 0.8.2, see `docs/adr/0002-fflate-for-url-sharing.md`), then base64url-encoded into the URL hash. Handles graphs up to ~5 KB compressed.
 - **Cloud (Phase 3+).** Larger graphs sync to Supabase with a slug; URL `/g/<slug>`. Read-only by default; auth-gated edit access.
-- **Schema versioning.** Every saved graph carries a `schemaVersion`. Migrations live in `src/lib/migrations/`.
+- **Schema versioning.** Every encoded payload carries a `schemaVersion` integer. Migration functions live in `src/lib/graph-codec.ts` alongside the codec. Current version: 2. Version history: v1 (Phase 1, `la.vector2`/`la.matrix2x2`); v2 (Phase 2, `la.vector`/`la.matrix`). The v1→v2 migrator (`migrateV1toV2`) runs automatically in `decodeGraph` when it detects a v1 payload, so old shared URLs continue to open.
 
 ## Construction Protocol (replay timeline)
 
