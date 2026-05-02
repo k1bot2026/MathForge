@@ -195,6 +195,24 @@ effect of applying the mutation; intent is captured losslessly so the
 replay UI can distinguish a param edit from a remove-then-re-add at
 the same id.
 
+**User-driven edits are fully captured.** `useGraphStore` exposes
+`onNodesChange(changes: NodeChange[])` and `onEdgesChange(changes: EdgeChange[])`,
+which are wired to React Flow's `onNodesChange` and `onEdgesChange` props in
+`EditorCanvas`. These handlers call `applyNodeChanges` / `applyEdgeChanges` to
+keep the React Flow internal state in sync, then walk the change list and emit
+the corresponding `ConstructionEvent` values:
+
+- `NodeChange { type: "remove" }` → `node-removed`
+- `NodeChange { type: "position", dragging: false }` → `node-moved` (fires once on drag-end, not on every frame)
+- `EdgeChange { type: "remove" }` → `edge-removed`
+
+Connection draws go through `connect(edge)`, which emits `edge-added` as before.
+
+**Replay mode guard.** All three handlers (`handleNodesChange`, `handleEdgesChange`,
+`handleConnect`) are no-ops when `mode === "replay"`. This prevents user interaction
+from writing events into the history log while the `<ReplayBar />` is scrubbing the
+projection — the live graph is untouched during replay.
+
 `projectGraph(events, step)` is a pure reducer that returns the graph
 state at any step plus the ids touched by the last applied event (drives
 the canvas glow). The `<ReplayBar />` in the bottom bar drives play /
