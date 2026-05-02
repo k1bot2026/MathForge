@@ -11,6 +11,7 @@ import { LuBlock } from "./lu/definition";
 import { MatMulBlock } from "./matmul/definition";
 import { MatrixBlock } from "./matrix/definition";
 import { MatVecBlock } from "./matvec/definition";
+import { QrBlock } from "./qr/definition";
 import { RankBlock } from "./rank/definition";
 import { RrefBlock } from "./rref/definition";
 import { SubBlock } from "./sub/definition";
@@ -31,6 +32,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(DetBlock);
   registry.register(InverseBlock);
   registry.register(LuBlock);
+  registry.register(QrBlock);
   registry.register(RrefBlock);
   registry.register(RankBlock);
   registry.register(UnitGridBlock);
