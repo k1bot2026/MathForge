@@ -19,5 +19,10 @@ test.describe("home canvas / Phase-1 seed graph", () => {
 
     // The standalone constant still computes to its seed value of 42.
     await expect(constantNode.getByTestId("block-value")).toHaveText("42");
+
+    // The viz.unit-grid renders an SVG (we don't pixel-compare in Phase 1).
+    const unitGrid = page.getByTestId("block-viz.unit-grid");
+    await expect(unitGrid).toBeVisible();
+    await expect(unitGrid.getByTestId("unit-grid-svg")).toBeVisible();
   });
 });

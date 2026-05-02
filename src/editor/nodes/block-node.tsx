@@ -10,9 +10,12 @@
 // the React Flow stylesheet); block min-w 180px, padding 12px (px-3 py-2).
 
 import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
-import type { BlockDefinition, ColorToken } from "~/blocks/types";
+import type { BlockDefinition, ColorToken, ResolvedInputs } from "~/blocks/types";
 import type { BlockNodeData } from "~/engine/graph-spec";
+import type { EvalResult } from "~/engine/types";
+import type { MathValue } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 
 const fillByRole: Readonly<Record<ColorToken, string>> = {
@@ -29,6 +32,7 @@ export function BlockNode({ id, data }: NodeProps) {
   const blockId = blockData.blockId ?? "unknown";
   const def = blockRegistry.get(blockId);
   const result = useGraphStore((s) => s.results[id]);
+  const inputs = useNodeInputs(id);
 
   if (def === undefined) {
     return (
@@ -52,9 +56,28 @@ export function BlockNode({ id, data }: NodeProps) {
       className={`min-w-[180px] rounded-[10px] border ${baseClasses} ${errorClasses} px-3 py-2 shadow-block-1 transition-shadow hover:shadow-block-2`}
     >
       <BlockHeader def={def} />
-      <BlockBody result={result} />
+      <BlockBody def={def} result={result} inputs={inputs} />
       <BlockHandles def={def} />
     </div>
+  );
+}
+
+/** Walks edges from this node and collects upstream MathValues. Wrapped in
+ *  useShallow so the freshly-built object reference doesn't trip Zustand v5's
+ *  infinite-loop guard. */
+function useNodeInputs(nodeId: string): ResolvedInputs {
+  return useGraphStore(
+    useShallow((s) => {
+      const inputs: Record<string, MathValue> = {};
+      for (const e of s.edges) {
+        if (e.target !== nodeId) continue;
+        const upstream: EvalResult | undefined = s.results[e.source];
+        if (upstream === undefined || upstream.kind !== "value") continue;
+        const port = e.targetHandle ?? "";
+        inputs[port] = upstream.value;
+      }
+      return inputs;
+    }),
   );
 }
 
@@ -69,11 +92,19 @@ function BlockHeader({ def }: { def: BlockDefinition }) {
   );
 }
 
-function BlockBody({ result }: { result: import("~/engine/types").EvalResult | undefined }) {
-  if (result === undefined) {
+function BlockBody({
+  def,
+  result,
+  inputs,
+}: {
+  def: BlockDefinition;
+  result: EvalResult | undefined;
+  inputs: ResolvedInputs;
+}) {
+  if (result === undefined && def.visualization === undefined) {
     return <div className="mt-1 text-xs text-fg-faint">…computing</div>;
   }
-  if (result.kind === "error") {
+  if (result?.kind === "error") {
     return (
       <div
         className="mt-1 text-xs text-error"
@@ -84,11 +115,23 @@ function BlockBody({ result }: { result: import("~/engine/types").EvalResult | u
       </div>
     );
   }
-  return (
-    <div className="mt-1" data-testid="block-value">
-      <ValuePreview value={result.value} />
-    </div>
-  );
+  if (def.visualization !== undefined) {
+    const Viz = def.visualization;
+    const output = result?.kind === "value" ? result.value : undefined;
+    return (
+      <div className="mt-2" data-testid="block-visualization">
+        <Viz inputs={inputs} output={output} />
+      </div>
+    );
+  }
+  if (result?.kind === "value") {
+    return (
+      <div className="mt-1" data-testid="block-value">
+        <ValuePreview value={result.value} />
+      </div>
+    );
+  }
+  return null;
 }
 
 function ValuePreview({ value }: { value: import("~/math/types").MathValue }) {

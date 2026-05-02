@@ -53,6 +53,12 @@ const seedNodes: Node[] = [
     position: { x: 720, y: 0 },
     data: { blockId: "core.constant", params: { value: 42 } },
   },
+  {
+    id: "unit-grid-1",
+    type: "block",
+    position: { x: 720, y: 220 },
+    data: { blockId: "viz.unit-grid", params: {} },
+  },
 ];
 
 const seedEdges: Edge[] = [
@@ -69,6 +75,13 @@ const seedEdges: Edge[] = [
     target: "matvec-1",
     sourceHandle: "v",
     targetHandle: "v",
+  },
+  {
+    id: "e-matrix-unit-grid",
+    source: "matrix-1",
+    target: "unit-grid-1",
+    sourceHandle: "M",
+    targetHandle: "M",
   },
 ];
 

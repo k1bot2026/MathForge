@@ -7,6 +7,7 @@
 // side-effect-free `register(registry)` pattern (the user's Phase-1
 // decision).
 
+import type { ComponentType } from "react";
 import type { MathType, MathValue } from "~/math/types";
 
 export type BlockRole = "source" | "operation" | "visualizer" | "sink" | "control" | "composite";
@@ -110,4 +111,13 @@ export type BlockDefinition = {
     effect?: ExplainEffect;
     impact?: ExplainEffect;
   };
+  /**
+   * Optional in-node visualization. When set, BlockNode renders this
+   * component instead of the textual value preview. Used for visualizer
+   * blocks (viz.unit-grid, viz.histogram, …).
+   */
+  visualization?: ComponentType<{
+    inputs: ResolvedInputs;
+    output: MathValue | undefined;
+  }>;
 };

@@ -15,16 +15,18 @@ beforeEach(() => {
 });
 
 describe("graph-store", () => {
-  test("seeds with the matvec demo graph (matrix + vector → matvec) plus a stand-alone constant", () => {
+  test("seeds with the full Phase-1 demo (matrix + vector → matvec, matrix → unit-grid, plus a constant)", () => {
     useGraphStore.setState(initialState, true);
     const { nodes, edges, results, evalStatus } = useGraphStore.getState();
-    expect(nodes).toHaveLength(4);
+    expect(nodes).toHaveLength(5);
     const blockIds = nodes
       .map((n) => (n.data as { blockId?: string } | undefined)?.blockId)
       .filter(Boolean)
       .sort();
-    expect(blockIds).toEqual(["core.constant", "la.matrix2x2", "la.matvec", "la.vector2"].sort());
-    expect(edges).toHaveLength(2);
+    expect(blockIds).toEqual(
+      ["core.constant", "la.matrix2x2", "la.matvec", "la.vector2", "viz.unit-grid"].sort(),
+    );
+    expect(edges).toHaveLength(3);
     expect(results).toEqual({});
     expect(evalStatus).toBe("idle");
   });
