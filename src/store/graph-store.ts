@@ -20,6 +20,8 @@ export type GraphState = {
   setEvalStatus: (status: "idle" | "running") => void;
   setSelectedNodeId: (id: string | null) => void;
   updateNodeParams: (id: string, params: ResolvedParams) => void;
+  /** Atomically replace the entire graph (used by the URL-hash loader). */
+  replaceGraph: (nodes: Node[], edges: Edge[]) => void;
 };
 
 // Phase-1 seed graph: demos the matvec pipeline end-to-end so a
@@ -132,5 +134,14 @@ export const useGraphStore = create<GraphState>((set) => ({
         return { ...n, data: { ...data, params } };
       }),
     }));
+  },
+  replaceGraph: (nodes, edges) => {
+    set({
+      nodes,
+      edges,
+      results: {},
+      evalStatus: "idle",
+      selectedNodeId: null,
+    });
   },
 }));

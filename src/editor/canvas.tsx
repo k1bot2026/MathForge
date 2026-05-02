@@ -14,6 +14,7 @@ import { useCallback } from "react";
 import { blockRegistry } from "~/blocks";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import { useAutoEvaluate } from "~/engine/use-auto-evaluate";
+import { useUrlSync } from "~/engine/use-url-sync";
 import type { MathType } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 import { canConnect } from "./connections";
@@ -25,6 +26,7 @@ const nodeTypes: NodeTypes = {
 };
 
 export function EditorCanvas() {
+  useUrlSync();
   useAutoEvaluate();
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
