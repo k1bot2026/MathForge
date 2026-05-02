@@ -193,12 +193,50 @@ export const MatMulBlock: BlockDefinition = {
 ## Block library taxonomy reference
 
 A non-exhaustive list of intended blocks per phase. Cross-reference `docs/ROADMAP.md` for sequencing.
+Status markers: `[shipped]` = in main; `[in progress]` = implementation underway; no marker = planned.
 
-### Phase 1 (PoC slice)
-`core.constant`, `core.scalar-input`, `la.vector2`, `la.matrix2x2`, `la.matvec`, `la.matmul`, `viz.unit-grid`.
+### Phase 1 (PoC slice — shipped)
+- `core.constant` [shipped]
+- `core.scalar-input` [shipped]
+- `la.vector2` [**retired** in Phase 2 — see `la.vector`; URL migrator maps old `la.vector2` nodes in `schemaVersion: 1` graphs]
+- `la.matrix2x2` [**retired** in Phase 2 — see `la.matrix`; URL migrator maps old `la.matrix2x2` nodes in `schemaVersion: 1` graphs]
+- `la.matvec` [shipped — updated in Phase 2 to `Matrix<m,n> × Vector<n> → Vector<m>`]
+- `la.matmul` [shipped — updated in Phase 2 to `Matrix<m,k> × Matrix<k,n> → Matrix<m,n>`]
+- `viz.unit-grid` [shipped]
 
 ### Phase 2 (Linear algebra full)
-`la.add`, `la.sub`, `la.transpose`, `la.inverse`, `la.det`, `la.trace`, `la.rank`, `la.rref`, `la.lu`, `la.qr`, `la.svd`, `la.eigen`, `la.solve`, `la.basis-change`, `la.kernel`, `la.image`, `la.project`.
+
+**Generalized sources (replacing Phase 1 fixed-size blocks)**
+- `la.vector` [in progress] — N-D real vector, `dim` parameter controls length. Output type `Vector<"any">` at static registration; concrete `n` resolved at runtime. Folder: `src/blocks/linear-algebra/vector/`.
+- `la.matrix` [in progress] — m×n real matrix, `rows`/`cols` parameters. Output type `Matrix<"any","any">` statically. Folder: `src/blocks/linear-algebra/matrix/`.
+
+**Operations**
+- `la.transpose` — `Matrix<m,n> → Matrix<n,m>`. Property test: involution `(Aᵀ)ᵀ = A`.
+- `la.add` — element-wise matrix addition, same shape required.
+- `la.sub` — element-wise matrix subtraction, same shape required.
+- `la.trace` — sum of diagonal; square-matrix only (shape constraint enforced at `compute` time, not by the type system).
+- `la.det` — determinant; square-matrix only. Property tests: `det(I) = 1`, `det(A·B) = det(A)·det(B)`, `det(Aᵀ) = det(A)`.
+- `la.inverse` — matrix inverse; square + full-rank.
+- `la.rank` — matrix rank.
+- `la.rref` — reduced row echelon form.
+- `la.lu` — LU decomposition; outputs `L`, `U`, optional `P`.
+- `la.qr` — QR decomposition; outputs `Q`, `R`.
+- `la.svd` — singular value decomposition; outputs `U`, `Σ`, `Vᵀ`.
+- `la.eigen` — eigenvalues and eigenvectors; outputs `values` (Vector), `vectors` (Matrix, column-ordered).
+- `la.solve` — solve `Ax = b`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`.
+- `la.basis-change` — express a vector in a new basis.
+- `la.kernel` — null space of a matrix.
+- `la.image` — column space of a matrix.
+- `la.project` — orthogonal projection of a vector onto a subspace.
+
+### Phase 3 (Statistics)
+`stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`, `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`, `stats.bayes-net`, `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`.
+
+### Phase 4 (Calculus)
+`calc.function`, `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve`, `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`.
+
+### Phase 5 (Composites)
+`core.subgraph`, `core.assert`, `core.benchmark`.
 
 ### Phase 3 (Statistics)
 `stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`, `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`, `stats.bayes-net`, `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`.
