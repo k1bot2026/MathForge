@@ -34,6 +34,7 @@ For adult learners, problem-solvers, and creators of new mathematical methods. N
 | `la.inverse` | Matrix inverse with singular-matrix guard |
 | `la.rref` | Reduced row echelon form (Gauss-Jordan) |
 | `la.rank` | Matrix rank via non-zero rows of RREF |
+| `la.lu` | LU decomposition with partial pivoting (outputs L, U, P as a Tuple) |
 | `viz.unit-grid` | Mafs-rendered unit grid with live transformation overlay |
 
 Shape polymorphism: `la.vector` and `la.matrix` accept arbitrary dimensions — type constraints are checked at connection time using shape variables, not hard-coded sizes.
@@ -70,6 +71,8 @@ All design and architecture docs live in `docs/`. Start with:
 If you're contributing UI: `docs/DESIGN_PRINCIPLES.md` and `docs/BRAND.md`.
 
 If you're working with Claude Code or Claude Design: `CLAUDE.md` and `docs/CLAUDE_DESIGN_WORKFLOW.md`.
+
+If you're operating a multi-agent keep-working session: `docs/AGENT_TEAM_WORKFLOW.md`.
 
 ## License
 

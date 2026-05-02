@@ -136,6 +136,7 @@ Primary dev machine: Mac Mini M4 (16 GB).
 | Know what to build next | `docs/ROADMAP.md` |
 | Test mathematical correctness | `docs/TESTING.md` |
 | Hand off to/from Claude Design | `docs/CLAUDE_DESIGN_WORKFLOW.md` |
+| Run or understand the agent-team keep-working pattern | `docs/AGENT_TEAM_WORKFLOW.md` |
 
 ## When in doubt
 
