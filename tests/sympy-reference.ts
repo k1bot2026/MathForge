@@ -139,3 +139,31 @@ export type TransposeFixture = {
 export function loadTransposeFixture(): TransposeFixture {
   return loadJson<TransposeFixture>("la-transpose");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.add / la.sub / la.trace fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type AddSubTraceCase = {
+  A: number[][];
+  B: number[][];
+  ApB: number[][];
+  AmB: number[][];
+  /** Present only for square matrices. */
+  trA?: number;
+  /** Present only for square matrices. */
+  trB?: number;
+  /** Present only for square matrices. tr(A+B) = tr(A) + tr(B). */
+  trApB?: number;
+};
+
+export type AddSubTraceFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: AddSubTraceCase[];
+};
+
+export function loadAddSubTraceFixture(): AddSubTraceFixture {
+  return loadJson<AddSubTraceFixture>("la-add-sub-trace");
+}

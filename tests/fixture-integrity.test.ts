@@ -14,9 +14,10 @@
  * These Vitest tests run in `pnpm test` (fast, no Pyodide, no network).
  */
 
-import { det, dot, multiply, trace, transpose } from "mathjs";
+import { add, det, dot, multiply, subtract, trace, transpose } from "mathjs";
 import { describe, expect, test } from "vitest";
 import {
+  loadAddSubTraceFixture,
   loadDetMultiplicativityFixture,
   loadMatrixFixture,
   loadTransposeFixture,
@@ -173,6 +174,43 @@ describe("la-transpose.json fixture guard", () => {
     for (const c of f.cases) {
       const Att = normMatrix(transpose(transpose(c.A) as number[][]) as number[][]);
       expect(Att).toEqual(c.A);
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
+// la-add-sub-trace.json guard
+// ──────────────────────────────────────────────────────────────────────────
+
+describe("la-add-sub-trace.json fixture guard", () => {
+  const f = loadAddSubTraceFixture();
+
+  test("ApB values match math.js recomputation", () => {
+    for (const c of f.cases) {
+      const recomputed = normMatrix(add(c.A, c.B) as number[][]);
+      expect(recomputed).toEqual(c.ApB);
+    }
+  });
+
+  test("AmB values match math.js recomputation", () => {
+    for (const c of f.cases) {
+      const recomputed = normMatrix(subtract(c.A, c.B) as number[][]);
+      expect(recomputed).toEqual(c.AmB);
+    }
+  });
+
+  test("trA values match math.js recomputation (square cases)", () => {
+    const squareCases = f.cases.filter((c) => c.trA !== undefined);
+    for (const c of squareCases) {
+      const recomputed = n0(trace(c.A) as number);
+      expect(recomputed).toBe(c.trA);
+    }
+  });
+
+  test("trApB === trA + trB (linearity of trace, square cases)", () => {
+    const squareCases = f.cases.filter((c) => c.trApB !== undefined);
+    for (const c of squareCases) {
+      expect(c.trApB).toBe((c.trA ?? 0) + (c.trB ?? 0));
     }
   });
 });

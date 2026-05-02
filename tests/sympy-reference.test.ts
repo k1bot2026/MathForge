@@ -6,6 +6,7 @@
 
 import { describe, expect, test } from "vitest";
 import {
+  loadAddSubTraceFixture,
   loadDetMultiplicativityFixture,
   loadFixtureJson,
   loadMatrixFixture,
@@ -182,17 +183,66 @@ describe("loadTransposeFixture", () => {
   });
 });
 
+describe("loadAddSubTraceFixture", () => {
+  test("returns an object with schemaVersion 1", () => {
+    expect(loadAddSubTraceFixture().schemaVersion).toBe(1);
+  });
+
+  test("cases array is non-empty", () => {
+    expect(loadAddSubTraceFixture().cases.length).toBeGreaterThan(0);
+  });
+
+  test("every case has A, B, ApB, AmB arrays of matching dimensions", () => {
+    for (const c of loadAddSubTraceFixture().cases) {
+      expect(Array.isArray(c.A)).toBe(true);
+      expect(Array.isArray(c.B)).toBe(true);
+      expect(Array.isArray(c.ApB)).toBe(true);
+      expect(Array.isArray(c.AmB)).toBe(true);
+      const m = c.A.length;
+      const n = c.A[0]?.length ?? 0;
+      expect(c.B.length).toBe(m);
+      expect(c.ApB.length).toBe(m);
+      expect(c.AmB.length).toBe(m);
+      expect(c.B[0]?.length ?? 0).toBe(n);
+      expect(c.ApB[0]?.length ?? 0).toBe(n);
+      expect(c.AmB[0]?.length ?? 0).toBe(n);
+    }
+  });
+
+  test("square cases have trA, trB, trApB numeric fields", () => {
+    const squareCases = loadAddSubTraceFixture().cases.filter((c) => c.trA !== undefined);
+    expect(squareCases.length).toBeGreaterThan(0);
+    for (const c of squareCases) {
+      expect(typeof c.trA).toBe("number");
+      expect(typeof c.trB).toBe("number");
+      expect(typeof c.trApB).toBe("number");
+    }
+  });
+
+  test("non-square cases have no trace fields", () => {
+    for (const c of loadAddSubTraceFixture().cases) {
+      const m = c.A.length;
+      const n = c.A[0]?.length ?? 0;
+      if (m !== n) {
+        expect(c.trA).toBeUndefined();
+      }
+    }
+  });
+});
+
 describe("fixture file integrity", () => {
-  test("all four fixture files exist and contain valid JSON (loader returns objects)", () => {
+  test("all five fixture files exist and contain valid JSON (loader returns objects)", () => {
     // If any file is missing or corrupt, these calls will throw.
     const v = loadVectorFixture();
     const m = loadMatrixFixture();
     const d = loadDetMultiplicativityFixture();
     const t = loadTransposeFixture();
+    const ast = loadAddSubTraceFixture();
     expect(typeof v).toBe("object");
     expect(typeof m).toBe("object");
     expect(typeof d).toBe("object");
     expect(typeof t).toBe("object");
+    expect(typeof ast).toBe("object");
   });
 
   test("fixture generated timestamps are valid ISO-8601 strings", () => {
@@ -201,6 +251,7 @@ describe("fixture file integrity", () => {
       loadMatrixFixture(),
       loadDetMultiplicativityFixture(),
       loadTransposeFixture(),
+      loadAddSubTraceFixture(),
     ];
     for (const f of fixtures) {
       expect(Number.isNaN(new Date(f.generated).getTime())).toBe(false);

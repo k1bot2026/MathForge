@@ -453,6 +453,168 @@ json.dumps({
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.add / la.sub / la.trace — element-wise and diagonal fixtures
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference values for:
+ *   - element-wise addition:    A + B
+ *   - element-wise subtraction: A - B
+ *   - trace:                    tr(A) (square matrices only)
+ *
+ * All inputs are integer matrices so SymPy returns exact integers.
+ * Shapes covered: 1×1, 2×2, 2×3 (non-square), 3×3, 4×4.
+ */
+async function generateAddSubTrace(py) {
+  const pairs = [
+    // 1×1
+    { A: [[3]], B: [[7]] },
+    { A: [[-2]], B: [[2]] },
+    // 2×2
+    {
+      A: [
+        [1, 2],
+        [3, 4],
+      ],
+      B: [
+        [5, 6],
+        [7, 8],
+      ],
+    },
+    {
+      A: [
+        [0, -1],
+        [1, 0],
+      ],
+      B: [
+        [0, 1],
+        [-1, 0],
+      ],
+    },
+    {
+      A: [
+        [3, -2],
+        [1, 5],
+      ],
+      B: [
+        [-3, 2],
+        [-1, -5],
+      ],
+    },
+    // 2×3 (non-square — no trace)
+    {
+      A: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ],
+      B: [
+        [7, 8, 9],
+        [1, 2, 3],
+      ],
+    },
+    {
+      A: [
+        [0, -1, 2],
+        [-3, 4, -5],
+      ],
+      B: [
+        [1, 0, -1],
+        [2, -3, 4],
+      ],
+    },
+    // 3×3
+    {
+      A: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      B: [
+        [9, 8, 7],
+        [6, 5, 4],
+        [3, 2, 1],
+      ],
+    },
+    {
+      A: [
+        [2, 0, 0],
+        [0, 3, 0],
+        [0, 0, 5],
+      ],
+      B: [
+        [-1, 1, 0],
+        [0, -1, 1],
+        [1, 0, -1],
+      ],
+    },
+    // 4×4
+    {
+      A: [
+        [1, 0, 0, 1],
+        [0, 2, 0, 0],
+        [0, 0, 3, 0],
+        [1, 0, 0, 4],
+      ],
+      B: [
+        [0, 1, 0, 0],
+        [1, 0, 1, 0],
+        [0, 1, 0, 1],
+        [0, 0, 1, 0],
+      ],
+    },
+  ];
+
+  const cases = [];
+  for (const { A, B } of pairs) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+B = Matrix(${JSON.stringify(B)})
+
+ApB = A + B
+AmB = A - B
+
+def mat_to_list(m):
+    return [[int(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+payload = {
+  "ApB": mat_to_list(ApB),
+  "AmB": mat_to_list(AmB),
+}
+
+# trace is only defined for square matrices
+is_square = A.rows == A.cols
+if is_square:
+    payload["trA"] = int(A.trace())
+    payload["trB"] = int(B.trace())
+    payload["trApB"] = int(ApB.trace())
+
+json.dumps(payload)
+`);
+    const parsed = JSON.parse(result);
+    const entry = { A, B, ApB: parsed.ApB, AmB: parsed.AmB };
+    if (parsed.trA !== undefined) {
+      Object.assign(entry, {
+        trA: parsed.trA,
+        trB: parsed.trB,
+        trApB: parsed.trApB,
+      });
+    }
+    cases.push(entry);
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference values for A+B, A-B, and tr(A) computed by SymPy 1.13.x with exact integer arithmetic. Covers 1×1, 2×2, 2×3, 3×3, 4×4 integer matrices.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // la.transpose — exact reference values for the involution property
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -572,6 +734,10 @@ async function main() {
   console.log("\nGenerating la.det multiplicativity fixtures…");
   const detFixture = await generateDetMultiplicativity(py);
   writeFixture("la-det-multiplicativity", detFixture);
+
+  console.log("\nGenerating la.add / la.sub / la.trace fixtures…");
+  const addSubTraceFixture = await generateAddSubTrace(py);
+  writeFixture("la-add-sub-trace", addSubTraceFixture);
 
   console.log("\nDone.");
 }
