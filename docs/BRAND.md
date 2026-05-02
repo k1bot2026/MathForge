@@ -63,6 +63,27 @@ Each role has a base hue. Within a role, vary chroma/lightness for sub-types.
 | Stochastic source | rose / `0.12 / 15` | `oklch(95% 0.05 15)` | `oklch(30% 0.07 15)` | `oklch(72% 0.13 15)` / `oklch(62% 0.13 15)` |
 | Control | slate (neutral chroma) | `oklch(95% 0.01 240)` | `oklch(30% 0.015 240)` | `oklch(75% 0.02 240)` / `oklch(60% 0.02 240)` |
 
+### Block-body palette (canvas)
+
+Parallel to the role colours above. The `--role-{role}-fill` tokens are tuned
+for *tinted-card surfaces* in the inspector — high lightness, very low chroma,
+no contrast guarantee against block bodies. Canvas blocks live as the
+foreground and need a separate, slightly punchier-but-still-dusty register:
+solid fills (no border) with auto-contrast text. Two ramps so canvas and
+inspector evolve independently.
+
+| Token | Light fill | Dark fill | Light fg | Dark fg |
+|---|---|---|---|---|
+| `--block-source-{fill,fg}` | `oklch(80% 0.030 235)` | `oklch(38% 0.040 235)` | `oklch(28% 0.04 235)` | `oklch(92% 0.02 235)` |
+| `--block-operation-{fill,fg}` | `oklch(78% 0.035 285)` | `oklch(36% 0.045 285)` | `oklch(28% 0.05 285)` | `oklch(92% 0.03 285)` |
+| `--block-function-{fill,fg}` | `oklch(82% 0.040 80)` | `oklch(40% 0.055 80)` | `oklch(30% 0.06 80)` | `oklch(94% 0.04 80)` |
+| `--block-visualizer-{fill,fg}` | `oklch(80% 0.035 155)` | `oklch(38% 0.050 155)` | `oklch(28% 0.05 155)` | `oklch(92% 0.03 155)` |
+| `--block-stochastic-{fill,fg}` | `oklch(80% 0.035 15)` | `oklch(38% 0.050 15)` | `oklch(28% 0.05 15)` | `oklch(92% 0.03 15)` |
+| `--block-control-{fill,fg}` | `oklch(82% 0.012 240)` | `oklch(34% 0.012 240)` | `oklch(30% 0.015 240)` | `oklch(92% 0.01 240)` |
+
+Contrast (light): all pairs ≥ 6.6:1, well above AA at 13–14px body weight.
+Dark mirrors the relationship at ~54 ΔL.
+
 ### Status colours
 
 | Token | Light | Dark | Use |
@@ -72,9 +93,32 @@ Each role has a base hue. Within a role, vary chroma/lightness for sub-types.
 | `--error` | `oklch(58% 0.20 25)` | `oklch(70% 0.18 25)` | type mismatch, eval error |
 | `--info` | `oklch(60% 0.13 240)` | `oklch(72% 0.13 240)` | hints |
 
+### Status soft-tints
+
+Background and border tints used for status chips and surfaces (e.g. the
+explanation-panel state chip, the canvas type-mismatch tooltip). Static OKLCH
+per theme rather than runtime `color-mix` — Safari has lingering quirks with
+`color-mix(in oklch, …)`, and these values land on the AA side of contrast
+when paired with the matching status token as text.
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--warn-soft` | `oklch(96% 0.025 70)` | `oklch(28% 0.040 70)` | warn chip / surface bg |
+| `--warn-border-soft` | `oklch(82% 0.080 70)` | `oklch(50% 0.090 70)` | warn chip / surface border |
+| `--error-soft` | `oklch(95% 0.040 25)` | `oklch(28% 0.050 25)` | error chip / surface bg |
+| `--error-border-soft` | `oklch(78% 0.110 25)` | `oklch(50% 0.110 25)` | error chip / surface border |
+| `--info-soft` | `oklch(96% 0.025 240)` | `oklch(28% 0.040 240)` | info / computing chip bg |
+| `--info-border-soft` | `oklch(82% 0.070 240)` | `oklch(50% 0.080 240)` | info / computing chip border |
+
 ### Accent (marketing / hero)
 
 `--accent: oklch(62% 0.20 285)` (violet) for marketing pages; never used as a chrome accent inside the app to avoid competing with role colours.
+
+### Focus ring
+
+`--focus-ring: var(--info)` plus `--focus-ring-offset: 2px`. Decoupled from
+`--accent` so the marketing-only rule above stays inviolate. Used by every
+keyboard-focusable chrome element (close buttons, tabs, resize handles).
 
 ## Spacing scale
 

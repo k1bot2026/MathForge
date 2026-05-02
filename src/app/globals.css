@@ -43,8 +43,34 @@
   --error: oklch(58% 0.2 25);
   --info: oklch(60% 0.13 240);
 
+  /* ----- Status soft-tints (light) — chip + surface bg/border ----- */
+  --warn-soft: oklch(96% 0.025 70);
+  --warn-border-soft: oklch(82% 0.08 70);
+  --error-soft: oklch(95% 0.04 25);
+  --error-border-soft: oklch(78% 0.11 25);
+  --info-soft: oklch(96% 0.025 240);
+  --info-border-soft: oklch(82% 0.07 240);
+
+  /* ----- Block-body palette (light) — solid canvas fills, parallel to --role-*-fill ----- */
+  --block-source-fill: oklch(80% 0.03 235);
+  --block-operation-fill: oklch(78% 0.035 285);
+  --block-function-fill: oklch(82% 0.04 80);
+  --block-visualizer-fill: oklch(80% 0.035 155);
+  --block-stochastic-fill: oklch(80% 0.035 15);
+  --block-control-fill: oklch(82% 0.012 240);
+  --block-source-fg: oklch(28% 0.04 235);
+  --block-operation-fg: oklch(28% 0.05 285);
+  --block-function-fg: oklch(30% 0.06 80);
+  --block-visualizer-fg: oklch(28% 0.05 155);
+  --block-stochastic-fg: oklch(28% 0.05 15);
+  --block-control-fg: oklch(30% 0.015 240);
+
   /* ----- Accent (marketing only) ----- */
   --accent: oklch(62% 0.2 285);
+
+  /* ----- Focus ring — decoupled from --accent so marketing-only stays inviolate ----- */
+  --focus-ring: var(--info);
+  --focus-ring-offset: 2px;
 
   /* ----- Elevation ----- */
   --shadow-1: 0 1px 2px oklch(0% 0 0 / 0.04), 0 1px 1px oklch(0% 0 0 / 0.02);
@@ -90,6 +116,28 @@
     --warn: oklch(78% 0.16 70);
     --error: oklch(70% 0.18 25);
     --info: oklch(72% 0.13 240);
+
+    /* ----- Status soft-tints (dark) ----- */
+    --warn-soft: oklch(28% 0.04 70);
+    --warn-border-soft: oklch(50% 0.09 70);
+    --error-soft: oklch(28% 0.05 25);
+    --error-border-soft: oklch(50% 0.11 25);
+    --info-soft: oklch(28% 0.04 240);
+    --info-border-soft: oklch(50% 0.08 240);
+
+    /* ----- Block-body palette (dark) ----- */
+    --block-source-fill: oklch(38% 0.04 235);
+    --block-operation-fill: oklch(36% 0.045 285);
+    --block-function-fill: oklch(40% 0.055 80);
+    --block-visualizer-fill: oklch(38% 0.05 155);
+    --block-stochastic-fill: oklch(38% 0.05 15);
+    --block-control-fill: oklch(34% 0.012 240);
+    --block-source-fg: oklch(92% 0.02 235);
+    --block-operation-fg: oklch(92% 0.03 285);
+    --block-function-fg: oklch(94% 0.04 80);
+    --block-visualizer-fg: oklch(92% 0.03 155);
+    --block-stochastic-fg: oklch(92% 0.03 15);
+    --block-control-fg: oklch(92% 0.01 240);
   }
 }
 
@@ -127,6 +175,31 @@
   --color-error: var(--error);
   --color-info: var(--info);
   --color-accent: var(--accent);
+
+  /* Status soft-tints */
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-border-soft: var(--warn-border-soft);
+  --color-error-soft: var(--error-soft);
+  --color-error-border-soft: var(--error-border-soft);
+  --color-info-soft: var(--info-soft);
+  --color-info-border-soft: var(--info-border-soft);
+
+  /* Block-body palette (canvas) */
+  --color-block-source-fill: var(--block-source-fill);
+  --color-block-source-fg: var(--block-source-fg);
+  --color-block-operation-fill: var(--block-operation-fill);
+  --color-block-operation-fg: var(--block-operation-fg);
+  --color-block-function-fill: var(--block-function-fill);
+  --color-block-function-fg: var(--block-function-fg);
+  --color-block-visualizer-fill: var(--block-visualizer-fill);
+  --color-block-visualizer-fg: var(--block-visualizer-fg);
+  --color-block-stochastic-fill: var(--block-stochastic-fill);
+  --color-block-stochastic-fg: var(--block-stochastic-fg);
+  --color-block-control-fill: var(--block-control-fill);
+  --color-block-control-fg: var(--block-control-fg);
+
+  /* Focus ring */
+  --color-focus-ring: var(--focus-ring);
 
   /* Elevation */
   --shadow-block-1: var(--shadow-1);
