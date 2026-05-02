@@ -8,6 +8,11 @@ out/
 build/
 dist/
 
+# Auto-managed by Next.js. Flips between dev (./.next/dev/types/...) and
+# prod (./.next/types/...) on every build, creating commit churn even
+# though the file says "do not edit". Treat as build output.
+next-env.d.ts
+
 # production
 *.tsbuildinfo
 
