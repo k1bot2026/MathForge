@@ -256,6 +256,66 @@ Cross-engine tests go in `*-sympy.test.ts`; fast-check structural tests (associa
 - **Cheap to extend** — add a case to the generator, re-run `pnpm generate:fixtures`, commit the JSON. The test loop picks it up automatically.
 - **Auditable** — the JSON fixtures are human-readable and diff cleanly in PRs. A reviewer can verify the expected values without running SymPy.
 
+## `@cross-engine` tag convention
+
+### What it marks
+
+Any test file that validates our engine's output against a pre-computed SymPy reference
+carries a `@cross-engine` JSDoc tag at the top:
+
+```typescript
+/**
+ * Cross-engine tests for la.vector — compares our math.js implementation
+ * against pre-computed SymPy reference values from
+ * tests/fixtures/sympy/la-vector.json.
+ *
+ * @cross-engine
+ */
+```
+
+Currently applied to: `vector-sympy.test.ts`, `matrix-sympy.test.ts`. Any new
+`*-sympy.test.ts` file should carry the tag.
+
+### What the tag signals to readers
+
+A `@cross-engine` test is not just checking internal math.js consistency — it is
+asserting that our result matches an independent computer algebra system (SymPy). This
+is a stronger claim:
+
+- The expected values were computed by a separate implementation (SymPy 1.13.x) using
+  exact integer arithmetic.
+- If this test fails, the bug is in **our compute logic**, not a test oversight.
+- Passing this test means we agree with a gold standard on the covered inputs.
+
+A test without `@cross-engine` that uses fast-check is checking mathematical invariants
+(associativity, involution, etc.) using only our engine. That's valuable but doesn't
+catch systematic bias in our implementation.
+
+### The implicit promise
+
+A `@cross-engine` file makes three promises:
+
+1. **Deterministic** — it loads a committed fixture file; it does not call Pyodide at
+   test time. The same fixture runs on every machine in CI.
+2. **Always runs in CI** — it is not gated behind `pnpm test:property`. It runs in the
+   standard `pnpm test` suite.
+3. **No Pyodide in CI** — the SymPy values were computed once offline and are already in
+   the JSON. CI does not fetch or initialise Pyodide. If you need to update the reference
+   values, run `pnpm generate:fixtures` locally and commit the JSON.
+
+### Filtering in development
+
+```bash
+pnpm test vector-sympy        # run only la.vector cross-engine tests
+pnpm test -- --reporter=verbose  # see all test names including @cross-engine files
+```
+
+### When to add a new @cross-engine file
+
+See `docs/BLOCK_AUTHORING_GUIDE.md` §7 for the full decision guide. Short version: add
+one when the operation has a SymPy equivalent, inputs can be exact integers, and you
+want a third-party reference beyond math.js.
+
 ---
 
 ## Precision rules
