@@ -7,10 +7,36 @@ Versions map to phase milestones, not calendar releases.
 
 ## [Unreleased] — Phase 2: Linear algebra full
 
-Shape polymorphism foundation in progress. `la.vector` and `la.matrix` replace
-the fixed-size Phase 1 blocks; URL schema bumps to version 2 with a v1→v2
-migrator. New operations: `la.transpose`, `la.add`, `la.sub`, `la.trace`,
-`la.det`, and more to follow. See `docs/ROADMAP.md` Phase 2 progress tracker.
+Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
+fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
+old shared links. SymPy fixture infrastructure in place. Operations (`la.transpose`,
+`la.add`, `la.sub`, `la.trace`, `la.det`, …) in progress.
+See `docs/ROADMAP.md` Phase 2 progress tracker.
+
+### Foundation (Shape polymorphism)
+
+- **`la.vector`** — N-D real vector block (0–16 dimensions via `dim` parameter). Replaces `la.vector2`. Output type `Vector<"any">` at static registration; concrete `n` resolved at runtime from `dim`. (`be81b5d`)
+- **`la.matrix`** — m×n real matrix block (up to 8×8 via `rows`/`cols` parameters). Replaces `la.matrix2x2`. (`934febd`)
+- **`la.matvec` updated** — now polymorphic: `Matrix<m,n> × Vector<n> → Vector<m>` for arbitrary dimensions. Existing 2×2 tests continue to pass. (`31ca46b`)
+- **`la.matmul` updated** — polymorphic `Matrix<m,k> × Matrix<k,n> → Matrix<m,n>` (was already polymorphic; tests extended for Phase 2 coverage). (`c2d841a`)
+- **Seed graph migration** — `src/store/graph-store.ts` default graph updated from `la.vector2`/`la.matrix2x2` to `la.vector`/`la.matrix`. (`53efe0c`)
+- **Template migration** — all three Phase 1 templates (rotation, shear, eigen-demo) rebuilt with `la.vector`/`la.matrix`. (`37ea8ea`)
+- **URL `schemaVersion` 1 → 2** — `src/lib/graph-codec.ts` bumped. `migrateV1toV2` maps `la.vector2 {x,y}` → `la.vector {dim:2, c0, c1}` and `la.matrix2x2 {a,b,c,d}` → `la.matrix {rows:2, cols:2, r0c0…r1c1}`. Old shared URLs continue to open. (`9b92c6b`)
+- **`la.vector2` / `la.matrix2x2` retired** — source files deleted, removed from block registry. Only knowledge of old IDs is in `graph-codec.ts` migrator. (`45d1ee0`)
+
+### Testing infrastructure
+
+- **SymPy fixture infrastructure** — `scripts/generate-sympy-fixtures.mjs` drives Pyodide offline and writes JSON to `tests/fixtures/sympy/`. `tests/sympy-reference.ts` provides typed loaders. `pnpm generate:fixtures` regenerates on demand. (`31ca46b`)
+- **`la.vector` cross-engine tests** — `vector-sympy.test.ts` (46 cases): dot product and squared norm against `la-vector.json` SymPy fixtures; Cauchy-Schwarz property; perpendicular-pair check. (`31ca46b`)
+- **`la.matrix` cross-engine tests** — `matrix-sympy.test.ts` (41 cases): A·B, A·v, Aᵀ, tr(A), det(A) for 1×1 through 4×4 square inputs and 2×3·3×2 non-square inputs. Involution, det(I)=1, trace linearity. (`31ca46b`)
+
+### Documentation
+
+- `docs/TYPES.md` — Shape polymorphism documented: corrected `ConnectResult` signature, all four `unifyShape` cases, Phase 2 examples for `la.vector`, `la.matvec`, `la.matmul`, `la.transpose`, and square-matrix constraint pattern. (`7c4322a`)
+- `docs/BLOCK_TAXONOMY.md` — `la.vector2`/`la.matrix2x2` marked retired; all Phase 2 blocks listed with type signatures and status markers. (`7cece91`)
+- `docs/ROADMAP.md` — Phase 2 progress tracker added and checkboxes ticked for shipped items. (`e689cda`, `ae748e4`)
+- `docs/TESTING.md` — SymPy fixture workflow documented (when to regenerate, how to add a fixture set, fixture format) and property testing pattern section added with worked example. (`1071c9e`, `999596d`)
+- `CHANGELOG.md` — initialized (this file). (`12f7cf3`)
 
 ---
 
