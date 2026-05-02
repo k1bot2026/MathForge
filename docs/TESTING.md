@@ -118,6 +118,21 @@ This calls `node scripts/generate-sympy-fixtures.mjs`, which:
 
 Commit the updated JSON files alongside any script or test changes.
 
+### Guarding against hand-edits: `pnpm check:fixtures`
+
+```bash
+pnpm check:fixtures
+```
+
+This runs `pnpm generate:fixtures` then immediately runs `git diff --exit-code tests/fixtures/sympy/`. It exits non-zero if the freshly-regenerated fixtures differ from what is committed — meaning either:
+
+- The committed JSON was edited by hand, or
+- The generator script changed its output without the JSON being recommitted.
+
+**When to run it:** before committing any changes to `scripts/generate-sympy-fixtures.mjs`. If the diff is clean, your generator change is idempotent against the committed fixtures. If it is not clean, regenerate and commit the updated JSON alongside the script change.
+
+`pnpm check:fixtures` is the CI guard for fixture integrity. Do not edit fixture JSON directly — the generator is the single source of truth.
+
 ### How to add a new fixture set
 
 **Step 1 — Add a generator function in `scripts/generate-sympy-fixtures.mjs`:**
