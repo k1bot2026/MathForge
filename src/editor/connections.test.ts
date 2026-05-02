@@ -172,3 +172,97 @@ describe("unifyShape unit checks", () => {
     expect(unifyShape(3, "any", "n").ok).toBe(true);
   });
 });
+
+describe("canConnect — shape-variable unification edge cases", () => {
+  // Matrix<m,m>: same variable in both row and column dimensions.
+  // Connecting to a concrete square matrix binds m once consistently.
+  test("Matrix<{m},{m}> → Matrix<3,3> binds m=3 from both axes", () => {
+    const result = canConnect(matrix({ var: "m" }, { var: "m" }), matrix(3, 3));
+    expect(result).toEqual({ ok: true, bindings: { m: 3 } });
+  });
+
+  // A single canConnect call unifies axes independently, so conflicting
+  // bindings for the same variable (m=3 vs m=4) are not detected.
+  // This is a known limitation: cross-axis consistency is the block
+  // manifest's responsibility at evaluator time, not canConnect's.
+  test("Matrix<{m},{m}> → Matrix<3,4>: per-axis bindings last-write-wins (m=4)", () => {
+    const result = canConnect(matrix({ var: "m" }, { var: "m" }), matrix(3, 4));
+    // m is bound independently per axis; mergeOk spreads both maps, so the
+    // column binding (m=4) overwrites the row binding (m=3).
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.bindings?.m).toBe(4);
+    }
+  });
+
+  // Same variable on both sides of an axis — no concrete value to bind.
+  test("Matrix<{m},{k}> → Matrix<{m},{n}>: both axes have matching-side vars, no binding", () => {
+    const result = canConnect(
+      matrix({ var: "m" }, { var: "k" }),
+      matrix({ var: "m" }, { var: "n" }),
+    );
+    expect(result).toEqual({ ok: true });
+  });
+
+  // Concrete output flows into a fully polymorphic matrix: both dims bound.
+  test("Matrix<3,4> → Matrix<{m},{n}>: row and column both bound", () => {
+    const result = canConnect(matrix(3, 4), matrix({ var: "m" }, { var: "n" }));
+    expect(result).toEqual({ ok: true, bindings: { m: 3, n: 4 } });
+  });
+
+  // Non-square concrete mismatch on the m-axis, n-axis check never reached.
+  test("Matrix<3,4> → Matrix<5,4> rejected on m mismatch", () => {
+    const result = canConnect(matrix(3, 4), matrix(5, 4));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toMatch(/m mismatch/);
+  });
+
+  // Non-square concrete mismatch only on the n-axis.
+  test("Matrix<3,4> → Matrix<3,5> rejected on n mismatch", () => {
+    const result = canConnect(matrix(3, 4), matrix(3, 5));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toMatch(/n mismatch/);
+  });
+
+  // Chained bindings: a concrete block feeds a polymorphic slot, and then
+  // the same slot's output feeds a second polymorphic slot. Each canConnect
+  // call in the chain should independently yield the correct bindings.
+  test("chained: Matrix<3,4> → Matrix<{m},{n}> then same Matrix<3,4> → Matrix<{p},{q}>", () => {
+    const first = canConnect(matrix(3, 4), matrix({ var: "m" }, { var: "n" }));
+    const second = canConnect(matrix(3, 4), matrix({ var: "p" }, { var: "q" }));
+    expect(first).toEqual({ ok: true, bindings: { m: 3, n: 4 } });
+    expect(second).toEqual({ ok: true, bindings: { p: 3, q: 4 } });
+  });
+
+  // Two distinct inner variables never produce a shape mismatch on their own.
+  test("Matrix<{m},{k}> → Matrix<{j},{n}>: distinct vars on both sides, no binding, no rejection", () => {
+    const result = canConnect(
+      matrix({ var: "m" }, { var: "k" }),
+      matrix({ var: "j" }, { var: "n" }),
+    );
+    expect(result).toEqual({ ok: true });
+  });
+
+  // Concrete inner dim mismatch (k ≠ j): connecting m×k output to j×n input
+  // where k and j are concrete and different should be rejected.
+  test("Matrix<2,3> → Matrix<4,5> rejected on m axis before n axis is checked", () => {
+    const result = canConnect(matrix(2, 3), matrix(4, 5));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toMatch(/m mismatch/);
+  });
+
+  // Wildcard on one axis, concrete on the other — partial wildcard.
+  test('Matrix<"any",3> → Matrix<5,3>: any-row accepted, col matched', () => {
+    expect(canConnect(matrix("any", 3), matrix(5, 3)).ok).toBe(true);
+  });
+
+  test('Matrix<3,"any"> → Matrix<3,7>: row matched, any-col accepted', () => {
+    expect(canConnect(matrix(3, "any"), matrix(3, 7)).ok).toBe(true);
+  });
+
+  test('Matrix<3,"any"> → Matrix<4,7>: row mismatch despite any-col', () => {
+    const result = canConnect(matrix(3, "any"), matrix(4, 7));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toMatch(/m mismatch/);
+  });
+});
