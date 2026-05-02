@@ -66,35 +66,57 @@ Use `mathjs.Fraction` or `mathjs.BigNumber` as the underlying representation for
 // src/editor/connections.ts
 
 export type ConnectResult =
-  | { ok: true; bindings?: Record<string, number> }
+  | { ok: true; bindings?: Record<string, number>; warning?: string }
   | { ok: false; reason: string };
 
-export function canConnect(out: MathType, into: MathType): ConnectResult {
-  if (out.kind !== into.kind) {
-    return { ok: false, reason: `Cannot connect ${out.kind} to ${into.kind}` };
-  }
-  switch (out.kind) {
-    case "Scalar":
-      return fieldCompatible(out.field, into.field as Field)
-        ? { ok: true }
-        : { ok: false, reason: `Field mismatch: ${out.field} → ${into.field}` };
-    case "Vector":
-      return shapeCompatible({ n: out.n }, { n: into.n });
-    case "Matrix":
-      return shapeCompatible({ m: out.m, n: out.n }, { m: into.m, n: into.n });
-    // ...
-  }
-}
+export function canConnect(out: MathType, into: MathType): ConnectResult
 ```
 
-### Shape compatibility
+Called at edit time by React Flow's `<Handle isValidConnection={…}>` and at evaluator
+time when resolving polymorphic output types against downstream input slots.
+
+The function checks structural compatibility — `out.kind` must equal `into.kind` — then
+delegates to a per-kind check:
+
+- `Scalar`: field subtyping + precision check.
+- `Vector`: field check + `unifyShape(out.n, into.n)`.
+- `Matrix`: field check + `unifyShape(out.m, into.m)` + `unifyShape(out.n, into.n)`.
+- `Function`: arity equality + contravariant domain check + covariant codomain check.
+- `Tuple`: element-wise `canConnect`.
+- `Set`: element `canConnect`.
+- `Expression`, `RandomVariable`, `Distribution`: same-kind accepted (structural rules
+  land alongside Phase 3 blocks).
+
+### Shape unification — `unifyShape`
+
+```typescript
+// src/editor/connections.ts (exported)
+export function unifyShape(out: Shape, into: Shape, dim: string): ConnectResult
+```
+
+Four cases:
+
+| out      | into     | Result |
+|---|---|---|
+| concrete | concrete | `ok: true` if equal; rejected with `"${dim} mismatch: A ≠ B"` otherwise |
+| concrete | `{ var }` | `ok: true, bindings: { [var]: concrete }` |
+| `{ var }` | concrete | `ok: true, bindings: { [var]: concrete }` |
+| `{ var }` | `{ var }` | `ok: true` (no bindings; cross-port unification is the block manifest's responsibility) |
+| either   | `"any"`  | `ok: true` unconditionally (wildcard short-circuit) |
+
+Bindings from multiple `unifyShape` calls within one `canConnect` are merged by `mergeOk`.
+If two calls bind the same variable to different values the second wins — blocks should use
+distinct variable names to avoid ambiguity (`m`, `k`, `n` for `matmul`; `m`, `n` for `matvec`).
+
+### Shape compatibility (summary)
 
 A concrete shape (e.g. `n: 3`) is compatible with:
 - the same concrete shape,
 - `"any"` (wildcard),
 - a shape variable (e.g. `{ var: "k" }`) — which **binds** `k = 3` for downstream resolution.
 
-Two shape variables in the same connection unify: `{ var: "k" } ~ { var: "k" }` succeeds; `{ var: "k" } ~ { var: "m" }` succeeds and ties them.
+Two shape variables in the same connection unify without binding (`{ var: "k" } ~ { var: "m" }`
+succeeds; the block's polymorphic output function resolves them at evaluator time).
 
 ### Field compatibility (subtyping)
 
@@ -133,7 +155,82 @@ const MatMul: BlockDefinition = {
 
 When `A` is a concrete `Matrix<3, 4>` and `B` is a concrete `Matrix<4, 5>`, the unifier resolves `m=3, k=4, n=5` and the output is `Matrix<3, 5>`. If `B` is `Matrix<2, 5>`, the connection is rejected with `"Inner dimensions don't match: 4 vs 2"`.
 
-## Validation at engine boundaries
+## Shape polymorphism in Phase 2
+
+Phase 2 replaces the fixed-size `la.vector2` / `la.matrix2x2` blocks with
+`la.vector` (N-D) and `la.matrix` (m×n). All downstream operation blocks are
+updated to carry shape variables so the unifier can enforce dimensional
+consistency without hardcoding sizes.
+
+### Vector block (`la.vector`)
+
+The block is a **source**: no inputs, one output. Because the dimension is set
+via the `dim` parameter rather than an upstream wire, the static output type
+uses `"any"` as a wildcard:
+
+```typescript
+outputs: [
+  { id: "v", type: { kind: "Vector", n: "any", field: "real" } }
+]
+```
+
+`canConnect` allows `"any"` to flow into any `Vector<n>` slot, including
+a concrete `Vector<3>` or a shape-variable `Vector<{ var: "n" }>`. The actual
+runtime dimension is carried in the `MathValue` payload at evaluator time.
+
+### Matrix-vector product (`la.matvec`)
+
+```typescript
+inputs: [
+  { id: "A", type: { kind: "Matrix", m: { var: "m" }, n: { var: "n" }, field: "real" } },
+  { id: "x", type: { kind: "Vector", n: { var: "n" }, field: "real" } },
+]
+outputs: [
+  { id: "Ax", type: ({ A }) => ({ kind: "Vector", n: A.type.m, field: "real" }) }
+]
+```
+
+When the user connects a `Vector<3>` to the `x` slot, `unifyShape` binds `n = 3`.
+If `A` is already connected with shape `Matrix<4, 3>`, `n = 3` is consistent and
+`m = 4` is also known — the output resolves to `Vector<4>`. If `A` is `Matrix<4, 2>`,
+the connection to `x` is rejected: `"n mismatch: 3 ≠ 2"`.
+
+### Matrix multiplication (`la.matmul`)
+
+```typescript
+inputs: [
+  { id: "A", type: { kind: "Matrix", m: { var: "m" }, n: { var: "k" }, field: "real" } },
+  { id: "B", type: { kind: "Matrix", m: { var: "k" }, n: { var: "n" }, field: "real" } },
+]
+outputs: [
+  { id: "AB", type: ({ A, B }) => ({ kind: "Matrix", m: A.type.m, n: B.type.n, field: "real" }) }
+]
+```
+
+The shared variable `k` ties the inner dimensions. Connecting `Matrix<3, 4>` to `A`
+and `Matrix<2, 5>` to `B` fails with `"k mismatch: 4 ≠ 2"`.
+
+### Transpose (`la.transpose`)
+
+```typescript
+inputs: [
+  { id: "A", type: { kind: "Matrix", m: { var: "m" }, n: { var: "n" }, field: "real" } },
+]
+outputs: [
+  { id: "At", type: ({ A }) => ({ kind: "Matrix", m: A.type.n, n: A.type.m, field: "real" }) }
+]
+```
+
+Output swaps `m` and `n`. A `Matrix<3, 5>` input produces a `Matrix<5, 3>` output.
+
+### Square-only blocks (`la.det`, `la.trace`)
+
+These operations require square inputs. The constraint is enforced in `compute`
+rather than in the type system (the type system cannot express `m = n` as a
+connection-time rule without a more expressive unifier). Non-square inputs surface
+as an `EvalError` with a clear message: `"det requires a square matrix, got m×n"`.
+
+---
 
 At every call into `compute(inputs, ctx)`, validate inputs with Zod (or hand-written guards):
 
