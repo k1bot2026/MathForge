@@ -144,6 +144,35 @@ Shape variables (e.g. `Matrix<m, k> · Matrix<k, n>`) resolve at connect time us
 - **Cloud (Phase 3+).** Larger graphs sync to Supabase with a slug; URL `/g/<slug>`. Read-only by default; auth-gated edit access.
 - **Schema versioning.** Every saved graph carries a `schemaVersion`. Migrations live in `src/lib/migrations/`.
 
+## Construction Protocol (replay timeline)
+
+A separate `useHistoryStore` records every graph mutation as an explicit
+`ConstructionEvent` discriminated union (`node-added`, `node-removed`,
+`node-moved`, `params-updated`, `edge-added`, `edge-removed`,
+`graph-reset`). The graph-store mutators (`addNode`, `removeNode`,
+`connect`, `updateNodeParams`, `replaceGraph`) emit events as a side
+effect of applying the mutation; intent is captured losslessly so the
+replay UI can distinguish a param edit from a remove-then-re-add at
+the same id.
+
+`projectGraph(events, step)` is a pure reducer that returns the graph
+state at any step plus the ids touched by the last applied event (drives
+the canvas glow). The `<ReplayBar />` in the bottom bar drives play /
+pause / scrub at 400 ms per step (centre of the 300–600 ms band in
+`docs/DESIGN_PRINCIPLES.md`).
+
+When `replaceGraph` is called (URL-hash hydration, future template
+loads, programmatic resets), the history store is replaced with a
+synthesized `graph-reset` followed by `node-added` and `edge-added`
+events in array order, so loading a template gives a meaningful
+"watch it construct itself" replay even though the user didn't build
+it interactively. The seed graph is treated identically at module
+load.
+
+Replay state is in-memory only; the URL hash continues to encode only
+the current snapshot, not the construction history. Persistent
+shareable replays are deferred to Phase 3+ alongside Supabase.
+
 ## Performance budgets
 
 - Initial JS bundle: < 250 KB gzip (without Pyodide).

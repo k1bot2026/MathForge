@@ -2,7 +2,7 @@
 
 Vertical slices over horizontal completeness. Each phase ends with a working, demonstrable artifact. Active phase is marked at the top; advance only after exit criteria are met.
 
-> **Active phase: Phase 0 — Bootstrap.**
+> **Active phase: Phase 2 — Linear algebra full.** (Phase 1 shipped.)
 
 ---
 
@@ -48,7 +48,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - Reactive evaluator with topo-sort and memoization.
 - Inspector panel with parameter editing.
 - Explanation panel with all four tabs.
-- Construction Protocol (replay timeline) for the current graph.
+- Construction Protocol (replay timeline) for the current graph. ✓
 - Three example templates: "Rotation", "Shear", "Eigenvector demonstration".
 - URL-encoded graph sharing for graphs ≤ ~5 KB compressed.
 - Storybook coverage for every block.
