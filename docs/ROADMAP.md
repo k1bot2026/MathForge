@@ -76,14 +76,14 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 **Foundation (Shape polymorphism)**
 
-- [ ] `la.vector` — N-D vector, replaces `la.vector2`
-- [ ] `la.matrix` — m×n matrix, replaces `la.matrix2x2`
-- [ ] `la.matvec` (updated) — polymorphic `Matrix<m,n> × Vector<n> → Vector<m>`
+- [x] `la.vector` — N-D vector, replaces `la.vector2`
+- [x] `la.matrix` — m×n matrix, replaces `la.matrix2x2`
+- [x] `la.matvec` (updated) — polymorphic `Matrix<m,n> × Vector<n> → Vector<m>`
 - [ ] `la.matmul` (updated) — polymorphic `Matrix<m,k> × Matrix<k,n> → Matrix<m,n>`
-- [ ] Graph store seed graph migrated to `la.vector` / `la.matrix`
-- [ ] Templates (rotation, shear, eigen-demo) migrated to `la.vector` / `la.matrix`
-- [ ] URL `schemaVersion` bumped to 2 with v1→v2 migrator
-- [ ] `la.vector2` / `la.matrix2x2` retired
+- [x] Graph store seed graph migrated to `la.vector` / `la.matrix`
+- [x] Templates (rotation, shear, eigen-demo) migrated to `la.vector` / `la.matrix`
+- [x] URL `schemaVersion` bumped to 2 with v1→v2 migrator
+- [x] `la.vector2` / `la.matrix2x2` retired
 
 **Operations**
 
@@ -113,9 +113,9 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 **Testing infrastructure**
 
-- [ ] SymPy fixture infrastructure (Node script + `tests/fixtures/sympy/*.json`)
-- [ ] Property tests for `la.vector` (arithmetic identities)
-- [ ] Property tests for `la.matrix`
+- [x] SymPy fixture infrastructure (Node script + `tests/fixtures/sympy/*.json`)
+- [x] Property tests for `la.vector` (arithmetic identities)
+- [x] Property tests for `la.matrix`
 - [ ] Property test for `la.transpose` (involution)
 - [ ] Property test for `la.add` (associativity, commutativity, identity)
 - [ ] Property test for `la.det` (multiplicative, transpose-invariant)
