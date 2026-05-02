@@ -12,7 +12,7 @@ For adult learners, problem-solvers, and creators of new mathematical methods. N
 
 ## Status
 
-[![ci](https://github.com/OWNER/mathforge/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/mathforge/actions/workflows/ci.yml)
+[![ci](https://github.com/k1bot2026/MathForge/actions/workflows/ci.yml/badge.svg)](https://github.com/k1bot2026/MathForge/actions/workflows/ci.yml)
 
 Phase 0 — Bootstrap. See `docs/ROADMAP.md`.
 
