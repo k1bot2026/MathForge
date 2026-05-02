@@ -16,13 +16,16 @@ export const shearTemplate: Template = {
         id: "matrix-shear",
         type: "block",
         position: { x: 0, y: 0 },
-        data: { blockId: "la.matrix2x2", params: { a: 1, b: 1, c: 0, d: 1 } },
+        data: {
+          blockId: "la.matrix",
+          params: { rows: 2, cols: 2, r0c0: 1, r0c1: 1, r1c0: 0, r1c1: 1 },
+        },
       },
       {
         id: "vector-slant",
         type: "block",
         position: { x: 0, y: 220 },
-        data: { blockId: "la.vector2", params: { x: 1, y: 1 } },
+        data: { blockId: "la.vector", params: { dim: 2, c0: 1, c1: 1 } },
       },
       {
         id: "matvec",

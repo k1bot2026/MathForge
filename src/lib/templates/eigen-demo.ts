@@ -24,26 +24,29 @@ export const eigenDemoTemplate: Template = {
         id: "matrix-diag",
         type: "block",
         position: { x: 0, y: 220 },
-        data: { blockId: "la.matrix2x2", params: { a: 2, b: 0, c: 0, d: 1 } },
+        data: {
+          blockId: "la.matrix",
+          params: { rows: 2, cols: 2, r0c0: 2, r0c1: 0, r1c0: 0, r1c1: 1 },
+        },
       },
       // Three vectors stacked vertically to the left of their matvec.
       {
         id: "v-e1",
         type: "block",
         position: { x: 360, y: 0 },
-        data: { blockId: "la.vector2", params: { x: 1, y: 0 } },
+        data: { blockId: "la.vector", params: { dim: 2, c0: 1, c1: 0 } },
       },
       {
         id: "v-e2",
         type: "block",
         position: { x: 360, y: 220 },
-        data: { blockId: "la.vector2", params: { x: 0, y: 1 } },
+        data: { blockId: "la.vector", params: { dim: 2, c0: 0, c1: 1 } },
       },
       {
         id: "v-off",
         type: "block",
         position: { x: 360, y: 440 },
-        data: { blockId: "la.vector2", params: { x: 1, y: 1 } },
+        data: { blockId: "la.vector", params: { dim: 2, c0: 1, c1: 1 } },
       },
       // Three matvec results.
       {

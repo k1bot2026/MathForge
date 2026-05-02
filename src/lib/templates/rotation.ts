@@ -25,15 +25,15 @@ export const rotationTemplate: Template = {
         type: "block",
         position: { x: 0, y: 0 },
         data: {
-          blockId: "la.matrix2x2",
-          params: { a: COS30, b: -SIN30, c: SIN30, d: COS30 },
+          blockId: "la.matrix",
+          params: { rows: 2, cols: 2, r0c0: COS30, r0c1: -SIN30, r1c0: SIN30, r1c1: COS30 },
         },
       },
       {
         id: "vector-e1",
         type: "block",
         position: { x: 0, y: 220 },
-        data: { blockId: "la.vector2", params: { x: 1, y: 0 } },
+        data: { blockId: "la.vector", params: { dim: 2, c0: 1, c1: 0 } },
       },
       {
         id: "matvec",

@@ -46,7 +46,7 @@ describe("template catalog", () => {
     }
   });
 
-  test("every template references only registered Phase-1 block ids", async () => {
+  test("every template references only registered block ids", async () => {
     const { blockRegistry } = await import("~/blocks");
     const known = new Set(blockRegistry.list().map((b) => b.id));
     for (const t of TEMPLATES) {
