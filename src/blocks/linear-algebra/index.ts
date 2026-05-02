@@ -9,6 +9,7 @@ import { MatMulBlock } from "./matmul/definition";
 import { MatrixBlock } from "./matrix/definition";
 import { MatVecBlock } from "./matvec/definition";
 import { SubBlock } from "./sub/definition";
+import { TraceBlock } from "./trace/definition";
 import { TransposeBlock } from "./transpose/definition";
 import { UnitGridBlock } from "./unit-grid/definition";
 import { VectorBlock } from "./vector/definition";
@@ -21,5 +22,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(TransposeBlock);
   registry.register(AddBlock);
   registry.register(SubBlock);
+  registry.register(TraceBlock);
   registry.register(UnitGridBlock);
 }
