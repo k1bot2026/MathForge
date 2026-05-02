@@ -1,0 +1,186 @@
+import { describe, expect, it } from "vitest";
+import {
+  type ConstructionEvent,
+  projectGraph,
+  synthesizeFromSnapshot,
+} from "./construction-events";
+
+type EventInput = ConstructionEvent extends infer E
+  ? E extends ConstructionEvent
+    ? Omit<E, "at"> & { at?: number }
+    : never
+  : never;
+
+const ev = (e: EventInput): ConstructionEvent => ({ ...e, at: e.at ?? 0 }) as ConstructionEvent;
+
+describe("projectGraph", () => {
+  it("returns empty state at step 0", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+    ];
+    expect(projectGraph(events, 0)).toEqual({ nodes: [], edges: [], justAppearedIds: [] });
+  });
+
+  it("applies node-added events in order", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 1, y: 1 }, data: {} },
+      }),
+    ];
+    const out = projectGraph(events, 2);
+    expect(out.nodes.map((n) => n.id)).toEqual(["a", "b"]);
+    expect(out.justAppearedIds).toEqual(["b"]);
+  });
+
+  it("removes nodes and their incident edges", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({ kind: "edge-added", edge: { id: "e1", source: "a", target: "b" } }),
+      ev({ kind: "node-removed", nodeId: "a" }),
+    ];
+    const out = projectGraph(events, 4);
+    expect(out.nodes.map((n) => n.id)).toEqual(["b"]);
+    expect(out.edges).toEqual([]);
+    expect(out.justAppearedIds).toEqual(["a"]);
+  });
+
+  it("updates params idempotently", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: {
+          id: "a",
+          type: "block",
+          position: { x: 0, y: 0 },
+          data: { params: { x: 1 } },
+        },
+      }),
+      ev({ kind: "params-updated", nodeId: "a", params: { x: 2 } }),
+    ];
+    const out = projectGraph(events, 2);
+    const data = out.nodes[0]?.data as { params: { x: number } };
+    expect(data.params).toEqual({ x: 2 });
+  });
+
+  it("graph-reset clears state", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({ kind: "graph-reset", reason: "template" }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+    ];
+    const out = projectGraph(events, 3);
+    expect(out.nodes.map((n) => n.id)).toEqual(["b"]);
+  });
+
+  it("clamps step beyond events length", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+    ];
+    expect(projectGraph(events, 99).nodes.map((n) => n.id)).toEqual(["a"]);
+  });
+
+  it("ignores remove of non-existent node (lossless tolerance)", () => {
+    const events: ConstructionEvent[] = [ev({ kind: "node-removed", nodeId: "ghost" })];
+    expect(projectGraph(events, 1)).toEqual({ nodes: [], edges: [], justAppearedIds: ["ghost"] });
+  });
+
+  it("node-moved updates position", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({ kind: "node-moved", nodeId: "a", position: { x: 50, y: 50 } }),
+    ];
+    const out = projectGraph(events, 2);
+    expect(out.nodes[0]?.position).toEqual({ x: 50, y: 50 });
+    expect(out.justAppearedIds).toEqual(["a"]);
+  });
+
+  it("edge-removed drops the edge", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({ kind: "edge-added", edge: { id: "e1", source: "a", target: "b" } }),
+      ev({ kind: "edge-removed", edgeId: "e1" }),
+    ];
+    const out = projectGraph(events, 4);
+    expect(out.edges).toEqual([]);
+    expect(out.justAppearedIds).toEqual(["e1"]);
+  });
+});
+
+describe("synthesizeFromSnapshot", () => {
+  it("emits graph-reset, then node-added, then edge-added, in that order", () => {
+    const out = synthesizeFromSnapshot(
+      [
+        { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+        { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      ],
+      [{ id: "e1", source: "a", target: "b" }],
+      "template",
+      () => 100,
+    );
+    expect(out.map((e) => e.kind)).toEqual([
+      "graph-reset",
+      "node-added",
+      "node-added",
+      "edge-added",
+    ]);
+    expect(out[0]).toMatchObject({ kind: "graph-reset", reason: "template" });
+  });
+
+  it("synthesized timestamps are strictly monotonic", () => {
+    const out = synthesizeFromSnapshot(
+      [
+        { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+        { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      ],
+      [{ id: "e1", source: "a", target: "b" }],
+      "seed",
+      () => 0,
+    );
+    for (let i = 1; i < out.length; i++) {
+      const prev = out[i - 1];
+      const cur = out[i];
+      if (prev === undefined || cur === undefined) continue;
+      expect(cur.at).toBeGreaterThan(prev.at);
+    }
+  });
+
+  it("handles empty graphs", () => {
+    const out = synthesizeFromSnapshot([], [], "user", () => 0);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.kind).toBe("graph-reset");
+  });
+});
