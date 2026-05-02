@@ -44,6 +44,7 @@
     "tests/**/*.ts",
     "e2e/**/*.ts",
     ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
     "*.ts",
     "*.mjs",
     "*.tsx",
