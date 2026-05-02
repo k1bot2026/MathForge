@@ -12,17 +12,25 @@ For adult learners, problem-solvers, and creators of new mathematical methods. N
 
 ## Status
 
+[![ci](https://github.com/OWNER/mathforge/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/mathforge/actions/workflows/ci.yml)
+
 Phase 0 — Bootstrap. See `docs/ROADMAP.md`.
 
 ## Stack
 
-Next.js 15 · React 19 · TypeScript strict · Tailwind v4 · shadcn/ui · React Flow · Zustand · math.js · SymPy via Pyodide · Mafs · react-three-fiber · Vitest + fast-check + Playwright + Storybook · Biome · Vercel.
+Next.js 16 · React 19 · TypeScript 6 strict · Tailwind v4 · shadcn/ui · React Flow · Zustand · math.js · SymPy via Pyodide · Zod · Mafs · react-three-fiber · Vitest + fast-check + Playwright + Storybook · Biome · Vercel.
 
 ## Getting started
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev          # dev server on http://localhost:3000
+pnpm test         # vitest (unit + property)
+pnpm test:e2e     # playwright (boots dev server)
+pnpm storybook    # storybook on http://localhost:6006
+pnpm typecheck    # tsc --noEmit
+pnpm lint         # biome check
+pnpm build        # production build
 ```
 
 ## Documentation

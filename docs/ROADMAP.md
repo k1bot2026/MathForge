@@ -11,7 +11,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 **Goal**: a runnable Next.js app with the full toolchain, one trivial block on a React Flow canvas, and CI green.
 
 ### Deliverables
-- Next.js 15 + React 19 + TypeScript strict, scaffolded.
+- Next.js 16 + React 19 + TypeScript 6 strict, scaffolded (see `docs/adr/0001-jump-to-next-16-and-typescript-6.md`).
 - Tailwind v4 + shadcn/ui (`new-york`) + tokens from `docs/BRAND.md`.
 - Biome configured (lint + format).
 - Vitest + fast-check + Playwright + Storybook configured.
