@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:17:16.654Z",
+  "description": "SymPy limit() reference values for calc.limit cross-engine tests.",
+  "cases": [
+    {
+      "expression": "sin(x)/x",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "0",
+      "limit": "1"
+    },
+    {
+      "expression": "x**2",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "2",
+      "limit": "4"
+    },
+    {
+      "expression": "exp(x)",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "0",
+      "limit": "1"
+    },
+    {
+      "expression": "(1 - cos(x)) / x**2",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "0",
+      "limit": "1/2"
+    },
+    {
+      "expression": "1/x",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "oo",
+      "limit": "0"
+    },
+    {
+      "expression": "exp(-x)",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "oo",
+      "limit": "0"
+    },
+    {
+      "expression": "(x**2 - 1) / (x - 1)",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "1",
+      "limit": "2"
+    },
+    {
+      "expression": "x * sin(1/x)",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "oo",
+      "limit": "1"
+    },
+    {
+      "expression": "log(x) / x",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "oo",
+      "limit": "0"
+    },
+    {
+      "expression": "(exp(x) - 1) / x",
+      "variable": "x",
+      "limitVar": "x",
+      "point": "0",
+      "limit": "1"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:17:16.571Z",
+  "description": "SymPy diff() reference derivatives for calc.derivative cross-engine tests.",
+  "cases": [
+    {
+      "expression": "x**2",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "2*x"
+    },
+    {
+      "expression": "sin(x)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "cos(x)"
+    },
+    {
+      "expression": "exp(x)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "exp(x)"
+    },
+    {
+      "expression": "log(x)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "1/x"
+    },
+    {
+      "expression": "x**3 - 3*x + 1",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "3*x**2 - 3"
+    },
+    {
+      "expression": "sin(x) * exp(x)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "exp(x)*sin(x) + exp(x)*cos(x)"
+    },
+    {
+      "expression": "cos(x**2)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "-2*x*sin(x**2)"
+    },
+    {
+      "expression": "1 / (x + 1)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "-1/(x + 1)**2"
+    },
+    {
+      "expression": "t**4 - 2*t**2",
+      "variable": "t",
+      "diffVar": "t",
+      "derivative": "4*t**3 - 4*t"
+    },
+    {
+      "expression": "sqrt(x)",
+      "variable": "x",
+      "diffVar": "x",
+      "derivative": "1/(2*sqrt(x))"
+    }
+  ]
+}

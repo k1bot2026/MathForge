@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:17:16.738Z",
+  "description": "SymPy series().removeO() Taylor expansion reference values for calc.taylor cross-engine tests.",
+  "cases": [
+    {
+      "expression": "sin(x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 4,
+      "taylor": "-x**3/6 + x"
+    },
+    {
+      "expression": "cos(x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 4,
+      "taylor": "x**4/24 - x**2/2 + 1"
+    },
+    {
+      "expression": "exp(x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 4,
+      "taylor": "x**4/24 + x**3/6 + x**2/2 + x + 1"
+    },
+    {
+      "expression": "log(1 + x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 4,
+      "taylor": "-x**4/4 + x**3/3 - x**2/2 + x"
+    },
+    {
+      "expression": "1 / (1 - x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 4,
+      "taylor": "x**4 + x**3 + x**2 + x + 1"
+    },
+    {
+      "expression": "sin(x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 6,
+      "taylor": "x**5/120 - x**3/6 + x"
+    },
+    {
+      "expression": "exp(x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 6,
+      "taylor": "x**6/720 + x**5/120 + x**4/24 + x**3/6 + x**2/2 + x + 1"
+    },
+    {
+      "expression": "x**3 - x",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 4,
+      "taylor": "x**3 - x"
+    },
+    {
+      "expression": "sin(x)",
+      "variable": "x",
+      "seriesVar": "x",
+      "center": 0,
+      "order": 2,
+      "taylor": "x"
+    },
+    {
+      "expression": "exp(t)",
+      "variable": "t",
+      "seriesVar": "t",
+      "center": 0,
+      "order": 4,
+      "taylor": "t**4/24 + t**3/6 + t**2/2 + t + 1"
+    }
+  ]
+}

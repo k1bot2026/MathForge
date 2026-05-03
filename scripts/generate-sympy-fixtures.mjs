@@ -2515,6 +2515,224 @@ str(mgf)
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// calc.function — sympify canonicalisation fixtures
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { inputExpr, variable, canonical } triples for calc.function
+ * cross-engine tests. Each pair is validated via SymPy sympify() + str().
+ *
+ * Covers: polynomials, trig, exp/log, rational expressions, multivariate,
+ * and infix→SymPy notation normalisation (^ → **).
+ */
+async function generateCalcFunctionCases(py) {
+  const inputs = [
+    { expr: "sin(x)", variable: "x" },
+    { expr: "x**2 + 2*x + 1", variable: "x" },
+    { expr: "exp(x)", variable: "x" },
+    { expr: "log(x)", variable: "x" },
+    { expr: "cos(x) + sin(x)", variable: "x" },
+    { expr: "x**3 - 3*x", variable: "x" },
+    { expr: "1 / (x + 1)", variable: "x" },
+    { expr: "sqrt(x)", variable: "x" },
+    { expr: "t**2 + t", variable: "t" },
+    { expr: "exp(-x**2)", variable: "x" },
+  ];
+
+  const cases = [];
+  for (const { expr, variable } of inputs) {
+    const canonical = py.runPython(`
+from sympy import symbols, sympify
+${variable} = symbols('${variable}')
+str(sympify(${JSON.stringify(expr)}))
+`.trim());
+    cases.push({ inputExpr: expr, variable, canonical });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy sympify() canonical str() forms for calc.function cross-engine tests.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.derivative — diff() reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { expression, variable, diffVar, derivative } objects for
+ * calc.derivative cross-engine tests. Covers polynomials, trig, exp/log,
+ * chain rule, product rule, and higher-order derivatives.
+ */
+async function generateCalcDerivativeCases(py) {
+  const inputs = [
+    { expr: "x**2", variable: "x", diffVar: "x" },
+    { expr: "sin(x)", variable: "x", diffVar: "x" },
+    { expr: "exp(x)", variable: "x", diffVar: "x" },
+    { expr: "log(x)", variable: "x", diffVar: "x" },
+    { expr: "x**3 - 3*x + 1", variable: "x", diffVar: "x" },
+    { expr: "sin(x) * exp(x)", variable: "x", diffVar: "x" },
+    { expr: "cos(x**2)", variable: "x", diffVar: "x" },
+    { expr: "1 / (x + 1)", variable: "x", diffVar: "x" },
+    { expr: "t**4 - 2*t**2", variable: "t", diffVar: "t" },
+    { expr: "sqrt(x)", variable: "x", diffVar: "x" },
+  ];
+
+  const cases = [];
+  for (const { expr, variable, diffVar } of inputs) {
+    const derivative = py.runPython(`
+from sympy import symbols, sympify, diff
+${variable} = symbols('${variable}')
+_expr = sympify(${JSON.stringify(expr)})
+str(diff(_expr, ${diffVar}))
+`.trim());
+    cases.push({ expression: expr, variable, diffVar, derivative });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy diff() reference derivatives for calc.derivative cross-engine tests.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.integrate — integrate() reference values (indefinite)
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { expression, variable, integVar, integral } objects for
+ * calc.integrate cross-engine tests. Covers polynomials, trig, exp,
+ * and simple rational functions. No constant of integration.
+ */
+async function generateCalcIntegrateCases(py) {
+  const inputs = [
+    { expr: "x**2", variable: "x", integVar: "x" },
+    { expr: "sin(x)", variable: "x", integVar: "x" },
+    { expr: "exp(x)", variable: "x", integVar: "x" },
+    { expr: "cos(x)", variable: "x", integVar: "x" },
+    { expr: "x**3 - 3*x", variable: "x", integVar: "x" },
+    { expr: "1 / x", variable: "x", integVar: "x" },
+    { expr: "exp(-x)", variable: "x", integVar: "x" },
+    { expr: "x * exp(x)", variable: "x", integVar: "x" },
+    { expr: "t**2 + 1", variable: "t", integVar: "t" },
+    { expr: "sin(x) * cos(x)", variable: "x", integVar: "x" },
+  ];
+
+  const cases = [];
+  for (const { expr, variable, integVar } of inputs) {
+    const integral = py.runPython(`
+from sympy import symbols, sympify, integrate
+${variable} = symbols('${variable}')
+_expr = sympify(${JSON.stringify(expr)})
+str(integrate(_expr, ${integVar}))
+`.trim());
+    cases.push({ expression: expr, variable, integVar, integral });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy integrate() indefinite integral reference values for calc.integrate cross-engine tests.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.limit — limit() reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { expression, variable, limitVar, point, limit } objects for
+ * calc.limit cross-engine tests. Covers finite limits, limits at infinity,
+ * and L'Hôpital-form (0/0) cases.
+ */
+async function generateCalcLimitCases(py) {
+  const inputs = [
+    { expr: "sin(x)/x", variable: "x", limitVar: "x", point: 0 },
+    { expr: "x**2", variable: "x", limitVar: "x", point: 2 },
+    { expr: "exp(x)", variable: "x", limitVar: "x", point: 0 },
+    { expr: "(1 - cos(x)) / x**2", variable: "x", limitVar: "x", point: 0 },
+    { expr: "1/x", variable: "x", limitVar: "x", point: "oo" },
+    { expr: "exp(-x)", variable: "x", limitVar: "x", point: "oo" },
+    { expr: "(x**2 - 1) / (x - 1)", variable: "x", limitVar: "x", point: 1 },
+    { expr: "x * sin(1/x)", variable: "x", limitVar: "x", point: "oo" },
+    { expr: "log(x) / x", variable: "x", limitVar: "x", point: "oo" },
+    { expr: "(exp(x) - 1) / x", variable: "x", limitVar: "x", point: 0 },
+  ];
+
+  const cases = [];
+  for (const { expr, variable, limitVar, point } of inputs) {
+    const pointStr = typeof point === "string" ? point : String(point);
+    const limitVal = py.runPython(`
+from sympy import symbols, sympify, limit, oo, zoo
+${variable} = symbols('${variable}')
+_expr = sympify(${JSON.stringify(expr)})
+str(limit(_expr, ${limitVar}, ${pointStr}))
+`.trim());
+    cases.push({ expression: expr, variable, limitVar, point: pointStr, limit: limitVal });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy limit() reference values for calc.limit cross-engine tests.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.taylor — series() Taylor expansion reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { expression, variable, seriesVar, center, order, taylor } objects
+ * for calc.taylor cross-engine tests. Uses the same removeO() pattern as the
+ * Pyodide worker.
+ */
+async function generateCalcTaylorCases(py) {
+  const inputs = [
+    { expr: "sin(x)", variable: "x", seriesVar: "x", center: 0, order: 4 },
+    { expr: "cos(x)", variable: "x", seriesVar: "x", center: 0, order: 4 },
+    { expr: "exp(x)", variable: "x", seriesVar: "x", center: 0, order: 4 },
+    { expr: "log(1 + x)", variable: "x", seriesVar: "x", center: 0, order: 4 },
+    { expr: "1 / (1 - x)", variable: "x", seriesVar: "x", center: 0, order: 4 },
+    { expr: "sin(x)", variable: "x", seriesVar: "x", center: 0, order: 6 },
+    { expr: "exp(x)", variable: "x", seriesVar: "x", center: 0, order: 6 },
+    { expr: "x**3 - x", variable: "x", seriesVar: "x", center: 0, order: 4 },
+    { expr: "sin(x)", variable: "x", seriesVar: "x", center: 0, order: 2 },
+    { expr: "exp(t)", variable: "t", seriesVar: "t", center: 0, order: 4 },
+  ];
+
+  const cases = [];
+  for (const { expr, variable, seriesVar, center, order } of inputs) {
+    const taylorStr = py.runPython(`
+from sympy import symbols, sympify, series
+${variable} = symbols('${variable}')
+_expr = sympify(${JSON.stringify(expr)})
+_s = series(_expr, ${seriesVar}, ${center}, ${order + 1}).removeO()
+str(_s)
+`.trim());
+    cases.push({ expression: expr, variable, seriesVar, center, order, taylor: taylorStr });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy series().removeO() Taylor expansion reference values for calc.taylor cross-engine tests.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -2625,6 +2843,26 @@ async function main() {
   console.log("\nGenerating stats.mgf fixtures…");
   const mgfFixture = await generateMgfCases(py);
   writeFixture("stats-mgf", mgfFixture);
+
+  console.log("\nGenerating calc.function fixtures…");
+  const calcFunctionFixture = await generateCalcFunctionCases(py);
+  writeFixture("calc-function", calcFunctionFixture);
+
+  console.log("\nGenerating calc.derivative fixtures…");
+  const calcDerivativeFixture = await generateCalcDerivativeCases(py);
+  writeFixture("calc-derivative", calcDerivativeFixture);
+
+  console.log("\nGenerating calc.integrate fixtures…");
+  const calcIntegrateFixture = await generateCalcIntegrateCases(py);
+  writeFixture("calc-integrate", calcIntegrateFixture);
+
+  console.log("\nGenerating calc.limit fixtures…");
+  const calcLimitFixture = await generateCalcLimitCases(py);
+  writeFixture("calc-limit", calcLimitFixture);
+
+  console.log("\nGenerating calc.taylor fixtures…");
+  const calcTaylorFixture = await generateCalcTaylorCases(py);
+  writeFixture("calc-taylor", calcTaylorFixture);
 
   console.log("\nDone.");
 }

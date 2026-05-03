@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:17:16.557Z",
+  "description": "SymPy sympify() canonical str() forms for calc.function cross-engine tests.",
+  "cases": [
+    {
+      "inputExpr": "sin(x)",
+      "variable": "x",
+      "canonical": "sin(x)"
+    },
+    {
+      "inputExpr": "x**2 + 2*x + 1",
+      "variable": "x",
+      "canonical": "x**2 + 2*x + 1"
+    },
+    {
+      "inputExpr": "exp(x)",
+      "variable": "x",
+      "canonical": "exp(x)"
+    },
+    {
+      "inputExpr": "log(x)",
+      "variable": "x",
+      "canonical": "log(x)"
+    },
+    {
+      "inputExpr": "cos(x) + sin(x)",
+      "variable": "x",
+      "canonical": "sin(x) + cos(x)"
+    },
+    {
+      "inputExpr": "x**3 - 3*x",
+      "variable": "x",
+      "canonical": "x**3 - 3*x"
+    },
+    {
+      "inputExpr": "1 / (x + 1)",
+      "variable": "x",
+      "canonical": "1/(x + 1)"
+    },
+    {
+      "inputExpr": "sqrt(x)",
+      "variable": "x",
+      "canonical": "sqrt(x)"
+    },
+    {
+      "inputExpr": "t**2 + t",
+      "variable": "t",
+      "canonical": "t**2 + t"
+    },
+    {
+      "inputExpr": "exp(-x**2)",
+      "variable": "x",
+      "canonical": "exp(-x**2)"
+    }
+  ]
+}

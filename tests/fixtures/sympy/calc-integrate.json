@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:17:16.604Z",
+  "description": "SymPy integrate() indefinite integral reference values for calc.integrate cross-engine tests.",
+  "cases": [
+    {
+      "expression": "x**2",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "x**3/3"
+    },
+    {
+      "expression": "sin(x)",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "-cos(x)"
+    },
+    {
+      "expression": "exp(x)",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "exp(x)"
+    },
+    {
+      "expression": "cos(x)",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "sin(x)"
+    },
+    {
+      "expression": "x**3 - 3*x",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "x**4/4 - 3*x**2/2"
+    },
+    {
+      "expression": "1 / x",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "log(x)"
+    },
+    {
+      "expression": "exp(-x)",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "-exp(-x)"
+    },
+    {
+      "expression": "x * exp(x)",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "(x - 1)*exp(x)"
+    },
+    {
+      "expression": "t**2 + 1",
+      "variable": "t",
+      "integVar": "t",
+      "integral": "t**3/3 + t"
+    },
+    {
+      "expression": "sin(x) * cos(x)",
+      "variable": "x",
+      "integVar": "x",
+      "integral": "sin(x)**2/2"
+    }
+  ]
+}

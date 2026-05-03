@@ -637,3 +637,115 @@ export type MgfFixture = {
 export function loadMgfFixture(): MgfFixture {
   return loadJson<MgfFixture>("stats-mgf");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.function fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcFunctionCase = {
+  inputExpr: string;
+  variable: string;
+  canonical: string;
+};
+
+export type CalcFunctionFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcFunctionCase[];
+};
+
+export function loadCalcFunctionFixture(): CalcFunctionFixture {
+  return loadJson<CalcFunctionFixture>("calc-function");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.derivative fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcDerivativeCase = {
+  expression: string;
+  variable: string;
+  diffVar: string;
+  derivative: string;
+};
+
+export type CalcDerivativeFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcDerivativeCase[];
+};
+
+export function loadCalcDerivativeFixture(): CalcDerivativeFixture {
+  return loadJson<CalcDerivativeFixture>("calc-derivative");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.integrate fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcIntegrateCase = {
+  expression: string;
+  variable: string;
+  integVar: string;
+  integral: string;
+};
+
+export type CalcIntegrateFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcIntegrateCase[];
+};
+
+export function loadCalcIntegrateFixture(): CalcIntegrateFixture {
+  return loadJson<CalcIntegrateFixture>("calc-integrate");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.limit fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcLimitCase = {
+  expression: string;
+  variable: string;
+  limitVar: string;
+  point: string;
+  limit: string;
+};
+
+export type CalcLimitFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcLimitCase[];
+};
+
+export function loadCalcLimitFixture(): CalcLimitFixture {
+  return loadJson<CalcLimitFixture>("calc-limit");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.taylor fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcTaylorCase = {
+  expression: string;
+  variable: string;
+  seriesVar: string;
+  center: number;
+  order: number;
+  taylor: string;
+};
+
+export type CalcTaylorFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcTaylorCase[];
+};
+
+export function loadCalcTaylorFixture(): CalcTaylorFixture {
+  return loadJson<CalcTaylorFixture>("calc-taylor");
+}
