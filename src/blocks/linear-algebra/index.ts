@@ -5,6 +5,7 @@
 
 import type { BlockRegistry } from "../registry";
 import { AddBlock } from "./add/definition";
+import { BasisChangeBlock } from "./basis-change/definition";
 import { DetBlock } from "./det/definition";
 import { EigenBlock } from "./eigen/definition";
 import { InverseBlock } from "./inverse/definition";
@@ -41,5 +42,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(RankBlock);
   registry.register(SolveBlock);
   registry.register(SvdBlock);
+  registry.register(BasisChangeBlock);
   registry.register(UnitGridBlock);
 }
