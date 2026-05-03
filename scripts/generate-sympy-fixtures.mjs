@@ -1386,6 +1386,145 @@ async function generateSvdCases(py) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.basis-change — P⁻¹·T·P similarity transformation reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (T, P, result) triples for la.basis-change cross-engine tests.
+ *
+ * Strategy: use unimodular P (|det|=1) so P⁻¹ has exact integer entries.
+ * The result P⁻¹·T·P is then exact rational; we convert to float (exact
+ * for integer and half entries). Key invariant: tr(result) = tr(T) and
+ * det(result) = det(T) (similarity preserves trace and determinant).
+ *
+ * Sizes: 2×2, 3×3, 4×4. Includes identity T and diagonal T cases.
+ */
+async function generateBasisChangeCases(py) {
+  const systems = [
+    // 2×2 — unimodular P, general T
+    {
+      T: [
+        [3, 1],
+        [0, 2],
+      ],
+      P: [
+        [1, 1],
+        [0, 1],
+      ],
+    },
+    // 2×2 — T = identity (result should equal identity regardless of P)
+    {
+      T: [
+        [1, 0],
+        [0, 1],
+      ],
+      P: [
+        [2, 1],
+        [1, 1],
+      ],
+    },
+    // 2×2 — diagonal T
+    {
+      T: [
+        [3, 0],
+        [0, 5],
+      ],
+      P: [
+        [1, 2],
+        [0, 1],
+      ],
+    },
+    // 2×2 — symmetric T
+    {
+      T: [
+        [2, 1],
+        [1, 3],
+      ],
+      P: [
+        [1, 0],
+        [2, 1],
+      ],
+    },
+    // 3×3 — unimodular P (upper triangular with ones on diagonal)
+    {
+      T: [
+        [1, 2, 0],
+        [0, 3, 1],
+        [0, 0, 2],
+      ],
+      P: [
+        [1, 1, 0],
+        [0, 1, 1],
+        [0, 0, 1],
+      ],
+    },
+    // 3×3 — diagonal T
+    {
+      T: [
+        [2, 0, 0],
+        [0, 3, 0],
+        [0, 0, 5],
+      ],
+      P: [
+        [1, 0, 1],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+    },
+    // 4×4 — identity P (result = T)
+    {
+      T: [
+        [1, 2, 3, 4],
+        [0, 2, 1, 0],
+        [0, 0, 3, 1],
+        [0, 0, 0, 4],
+      ],
+      P: [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+      ],
+    },
+  ];
+
+  const cases = [];
+  for (const { T, P } of systems) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+T = Matrix(${JSON.stringify(T)})
+P = Matrix(${JSON.stringify(P)})
+Pinv = P.inv()
+result = Pinv * T * P
+
+def mat_to_floats(m):
+    return [[float(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+tr_T = float(T.trace())
+det_T = int(T.det())
+
+json.dumps({
+  "result": mat_to_floats(result),
+  "trT": tr_T,
+  "detT": det_T
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ T, P, result: parsed.result, trT: parsed.trT, detT: parsed.detT });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference P⁻¹·T·P values computed by SymPy 1.13.x. Uses unimodular P so result entries are exact floats. Covers 2×2, 3×3, 4×4. tr(result)=tr(T) and det(result)=det(T) verified.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -1447,6 +1586,10 @@ async function main() {
   console.log("\nGenerating la.svd fixtures…");
   const svdFixture = await generateSvdCases(py);
   writeFixture("la-svd", svdFixture);
+
+  console.log("\nGenerating la.basis-change fixtures…");
+  const basisChangeFixture = await generateBasisChangeCases(py);
+  writeFixture("la-basis-change", basisChangeFixture);
 
   console.log("\nDone.");
 }

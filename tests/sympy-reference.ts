@@ -316,3 +316,28 @@ export type SvdFixture = {
 export function loadSvdFixture(): SvdFixture {
   return loadJson<SvdFixture>("la-svd");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.basis-change fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type BasisChangeCase = {
+  T: number[][];
+  P: number[][];
+  result: number[][];
+  /** tr(T) = tr(P⁻¹·T·P) — similarity invariant. */
+  trT: number;
+  /** det(T) = det(P⁻¹·T·P) — similarity invariant. */
+  detT: number;
+};
+
+export type BasisChangeFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: BasisChangeCase[];
+};
+
+export function loadBasisChangeFixture(): BasisChangeFixture {
+  return loadJson<BasisChangeFixture>("la-basis-change");
+}
