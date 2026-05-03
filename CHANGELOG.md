@@ -9,11 +9,12 @@ Versions map to phase milestones, not calendar releases.
 
 Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
 fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
-old shared links. Twelve operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
+old shared links. All 17 operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
 `la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`, `la.qr`, `la.eigen`,
-`la.solve`. SymPy fixture infrastructure in place with cross-engine tests. React Flow
-event-handler wiring closes the Phase-1 gap where user drags/deletions were not captured
-by the Construction Protocol.
+`la.solve`, `la.svd`, `la.basis-change`, `la.kernel`, `la.image`, `la.project`. First
+3D visualization block `viz.unit-grid-3d` shipped. SymPy cross-engine fixtures cover all
+17 operation blocks + `la.matmul`/`la.matvec`. 100-node performance gate meets the
+Phase 2 exit criterion. React Flow event-handler wiring closes the Phase-1 gap.
 See `docs/ROADMAP.md` Phase 2 progress tracker.
 
 ### Operations (Phase 2)
@@ -30,6 +31,15 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **`la.qr`** — QR decomposition via Householder reflections; outputs `Q`, `R`. Property tests: `A = Q·R`, `Qᵀ·Q = I`, R upper-triangular. (`f654d61`)
 - **`la.eigen`** — eigendecomposition (real eigenvalues only); single `Tuple` output port `eigenpairs` wrapping `EigenPayload { eigenvalues: number[], eigenvectors: number[][] }`. Column k of the eigenvector matrix is the eigenvector for `eigenvalues[k]` (column-major layout, eigenvector-highlight-friendly). Throws `EigenError` for complex eigenvalues or eigenvector components. Square input only. (`5809167` + compute fix `d03f9ad`)
 - **`la.solve`** — solves the linear system `Ax = b` via math.js `lusolve`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`. Throws `SolveError` if `|det(A)| < 1e-10` (singular guard) or if the system is otherwise inconsistent. (`fd1a9ec`)
+- **`la.svd`** — singular value decomposition via `eigs(AᵀA)`; single `Tuple` output port `USV` wrapping `SvdPayload { U: Matrix<m,m>, S: Vector<min(m,n)>, V: Matrix<n,n> }`. U and V are orthogonal; S holds singular values in descending order. Reconstruction: `U·diag(S)·Vᵀ ≈ A`. Handles rank-deficient and rectangular (m≥n) inputs; U-orthogonality holds even when all singular values are zero. SymPy cross-engine fixture: 12 cases. (`d9d84cd`)
+- **`la.basis-change`** — change of basis `P⁻¹·T·P`; inputs `T: Matrix<n,n>` (transformation in standard basis) + `P: Matrix<n,n>` (columns = new basis vectors); output `TPrime: Matrix<n,n>`. Similarity invariants preserved: `trace(T′) = trace(T)`, `det(T′) = det(T)`. Throws `BasisChangeError` for singular P. Property tests: 9 cases including identity basis, chained changes, and both invariants. (`552f5b4`)
+- **`la.kernel`** — null space basis via RREF; input `A: Matrix<m,n>`; output `K: Matrix<n,k>` where k = nullity(A) = n − rank(A). Columns are basis vectors for ker(A). Returns `n×0` matrix when A has full column rank. Property tests verify `A·K ≈ 0` and rank-nullity theorem. Engine: native. (`0f2db97`)
+- **`la.image`** — column space basis via RREF pivot columns; input `A: Matrix<m,n>`; output `B: Matrix<m,r>` where r = rank(A). Columns are pivot columns of A forming a basis for im(A). Returns `m×0` matrix for zero map. Property tests verify column count equals rank. Engine: native. (`5b0f444`)
+- **`la.project`** — orthogonal projection `A·(AᵀA)⁻¹·Aᵀ·v`; inputs `A: Matrix<m,n>` (subspace basis, full column rank required) + `v: Vector<m>`; output `Pv: Vector<m>`. Property tests: idempotence `P(P·v) = P·v`, orthogonality `(v − P·v) ⊥ col(A)`. Throws if `AᵀA` is singular. (`e34f2c3`)
+
+### Visualization (Phase 2)
+
+- **`viz.unit-grid-3d`** — renders the unit cube [0,1]³ and its image under a 3×3 matrix M as an interactive 3D wireframe (react-three-fiber + @react-three/drei, OrbitControls). Basis arrows M·e₁/e₂/e₃ shown in distinct colors. Input: `M: Matrix<3,3>`; passthrough output for pipeline chaining. Four Storybook stories: identity, rotation-Z-45°, shear, scale. Dependencies added (pinned exact): `three@0.184.0`, `@react-three/fiber@9.6.1`, `@react-three/drei@10.7.7`, `@types/three@0.184.0`. (`cb64ca3`)
 
 ### Bug fixes / Phase-1 gap closures
 
@@ -52,6 +62,15 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **`la.vector` cross-engine tests** — `vector-sympy.test.ts` (46 cases): dot product and squared norm against `la-vector.json` SymPy fixtures; Cauchy-Schwarz property; perpendicular-pair check. (`31ca46b`)
 - **`la.matrix` cross-engine tests** — `matrix-sympy.test.ts` (41 cases): A·B, A·v, Aᵀ, tr(A), det(A) for 1×1 through 4×4 square inputs and 2×3·3×2 non-square inputs. Involution, det(I)=1, trace linearity. (`31ca46b`)
 - **Canvas event-handler e2e tests** — four Playwright tests (`e2e/canvas-event-wiring.spec.ts`) verify that node drags flow through `onNodesChange` into the Construction Protocol: URL hash updates after drag, scrubber max exceeds seed count, last step description contains "moved". Adds `data-testid="replay-step-description"` to `<ReplayBar />` as a stable test anchor. (`13fef11`)
+- **`la.lu` / `la.qr` / `la.eigen` / `la.solve` cross-engine fixtures** — 8 LU cases, 8 QR cases, 8 eigen cases, 10 solve cases with typed loaders and cross-engine test files. LU note: P·A = L·U invariant verified (pivot strategies differ between engines). QR note: Q·R reconstruction and Qᵀ·Q orthogonality verified (column signs differ between engines). Eigen note: eigenvalues sorted before comparison; A·v = λ·v verified for all eigenpairs from both engines. (`a95df65`)
+- **`la.basis-change` cross-engine fixture** — 7 cases (2×2/3×3/4×4, unimodular P). Tests: direct result match, trace/det similarity invariants, P·result·P⁻¹ = T round-trip. (`5999209`)
+- **`la.matmul` / `la.matvec` cross-engine tests** — matmul: 9 cases (7 square + 2 non-square); matvec: 7 cases. Both use existing `la-matrix.json` fixture reference values. (`e1565f1`)
+- **`la.kernel` cross-engine fixture** — 11 cases (full-rank, rank-deficient, all-zero, rectangular). Tests verify nullity count, `A·K ≈ 0` for SymPy and our kernel columns, rank-nullity theorem, trivial null space output shape. (`7c76040`)
+- **`la.image` / `la.project` cross-engine fixtures** — `la.image`: 10 cases verifying column count = rank(A) and pivot-column identity. `la.project`: 10 cases (1D/2D subspaces of R²/R³/R⁴) verifying `P·v` against SymPy, idempotence `P(P·v) = P·v`, and `v − P·v ⊥ col(A)`. (`5fd15f8`)
+
+### Performance
+
+- **100-node performance gate** — linear-chain ~101-node wallclock guard added to `evaluator-perf.test.ts`. Threshold: 800 ms hard failure; 16.67 ms (60 fps frame budget) soft `console.warn`. Satisfies the Phase 2 exit criterion of 60 fps with 100 nodes on Mac Mini M4. (`ea13fd0`)
 
 ### Documentation
 
