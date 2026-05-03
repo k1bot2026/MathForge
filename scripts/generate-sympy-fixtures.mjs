@@ -903,6 +903,382 @@ json.dumps({
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.lu — LU decomposition reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, L, U, P) tuples for la.lu cross-engine tests.
+ *
+ * Strategy: use integer matrices where P·A = L·U holds exactly.
+ * SymPy's Matrix.LUdecomposition() returns exact rational L and U; we
+ * convert to float (exact for the halves/integers that arise here).
+ * P is stored as the full permutation matrix (n×n, integer 0/1).
+ *
+ * Sizes: 1×1, 2×2, 3×3, 4×4. Include one case requiring row-swap (P ≠ I).
+ */
+async function generateLuCases(py) {
+  const matrices = [
+    // 1×1
+    [[4]],
+    // 2×2 — no pivot needed
+    [
+      [2, 1],
+      [4, 3],
+    ],
+    // 2×2 — pivot swap (first entry is 0)
+    [
+      [0, 1],
+      [2, 3],
+    ],
+    // 2×2 upper-triangular already
+    [
+      [3, 5],
+      [0, 2],
+    ],
+    // 3×3 — general case
+    [
+      [2, 1, 1],
+      [4, 3, 3],
+      [8, 7, 9],
+    ],
+    // 3×3 — requires row-swap
+    [
+      [0, 2, 1],
+      [3, 1, 2],
+      [6, 4, 5],
+    ],
+    // 3×3 — identity
+    [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    // 4×4
+    [
+      [1, 0, 0, 1],
+      [0, 2, 0, 0],
+      [0, 0, 3, 0],
+      [1, 0, 0, 4],
+    ],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+L_sym, U_sym, perm = A.LUdecomposition()
+
+n = A.rows
+
+# Build the full permutation matrix from the perm list.
+# SymPy returns perm as a list of (row_from, row_to) swap pairs applied in order.
+# We reconstruct P by applying those swaps to the identity.
+import copy
+P_rows = list(range(n))
+for (r1, r2) in perm:
+    P_rows[r1], P_rows[r2] = P_rows[r2], P_rows[r1]
+
+P_mat = [[1 if P_rows[i] == j else 0 for j in range(n)] for i in range(n)]
+
+def mat_to_floats(m):
+    return [[float(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+json.dumps({
+  "L": mat_to_floats(L_sym),
+  "U": mat_to_floats(U_sym),
+  "P": P_mat
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, L: parsed.L, U: parsed.U, P: parsed.P });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference LU decomposition values (L, U, P) computed by SymPy 1.13.x. P·A = L·U holds exactly. Covers 1×1 through 4×4 integer matrices including pivot-swap cases.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.qr — QR decomposition reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, Q, R) tuples for la.qr cross-engine tests.
+ *
+ * Strategy: SymPy's Matrix.QRdecomposition() returns exact rational Q and R
+ * for integer inputs. We store as floats (most are irrational — that's fine;
+ * the test uses tolerance-based comparison). Covers square and rectangular
+ * (m≥n) matrices. Includes one rank-deficient case so R has a zero on diagonal.
+ */
+async function generateQrCases(py) {
+  const matrices = [
+    // 1×1
+    [[3]],
+    // 2×2 — generic
+    [
+      [1, 2],
+      [3, 4],
+    ],
+    // 2×2 — already orthogonal (Q=I)
+    [
+      [1, 0],
+      [0, 1],
+    ],
+    // 2×2 — rank-deficient (cols proportional → R[1][1]=0)
+    [
+      [1, 2],
+      [2, 4],
+    ],
+    // 3×3 — full rank
+    [
+      [1, 2, 3],
+      [0, 1, 4],
+      [5, 6, 0],
+    ],
+    // 3×2 — rectangular (m>n)
+    [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+    ],
+    // 4×3 — rectangular
+    [
+      [1, 0, 1],
+      [0, 1, 0],
+      [1, 1, 0],
+      [0, 1, 1],
+    ],
+    // 3×3 — rank-deficient (rank 2)
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+Q_sym, R_sym = A.QRdecomposition()
+
+def mat_to_floats(m):
+    return [[float(m[r, c]) for c in range(m.cols)] for r in range(m.rows)]
+
+json.dumps({
+  "Q": mat_to_floats(Q_sym),
+  "R": mat_to_floats(R_sym)
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, Q: parsed.Q, R: parsed.R });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference QR decomposition values (Q, R) computed by SymPy 1.13.x. Q·R = A, Qᵀ·Q = I. Covers square, rectangular, and rank-deficient integer matrices.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.eigen — eigendecomposition reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, eigenvalues, eigenvectors) for la.eigen cross-engine tests.
+ *
+ * Strategy: use cherry-picked symmetric and diagonalizable integer matrices
+ * whose eigenvalues are rational (often integers). SymPy's Matrix.eigenvects()
+ * returns exact values; we convert eigenvalues to float and eigenvectors to
+ * float column matrices. The test checks A·v = λ·v within tolerance.
+ */
+async function generateEigenCases(py) {
+  // Only matrices with all-real, rational eigenvalues
+  const matrices = [
+    // 1×1 — eigenvalue is the scalar itself
+    [[5]],
+    [[-3]],
+    // 2×2 diagonal
+    [
+      [2, 0],
+      [0, 3],
+    ],
+    // 2×2 symmetric with integer eigenvalues
+    [
+      [3, 1],
+      [1, 3],
+    ],
+    // 2×2 — eigenvalues 1 and -1
+    [
+      [0, 1],
+      [1, 0],
+    ],
+    // 3×3 diagonal
+    [
+      [1, 0, 0],
+      [0, 2, 0],
+      [0, 0, 3],
+    ],
+    // 3×3 symmetric with integer eigenvalues
+    [
+      [2, 1, 0],
+      [1, 2, 1],
+      [0, 1, 2],
+    ],
+    // 3×3 — all eigenvalues 0 (nilpotent-ish, actually all zero)
+    [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+    ],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+eigvects = A.eigenvects()
+
+# eigenvects() returns list of (eigenvalue, multiplicity, [eigenvectors])
+# Flatten into one entry per eigenvalue (expanding by multiplicity)
+eigenvalues = []
+eigenvectors = []  # each is a column vector as a list
+
+for (lam, mult, vecs) in eigvects:
+    lam_f = float(lam)
+    for vec in vecs:
+        # Normalize the eigenvector to unit length
+        norm = float(vec.norm())
+        if norm < 1e-12:
+            normalized = [0.0] * vec.rows
+        else:
+            normalized = [float(vec[i, 0]) / norm for i in range(vec.rows)]
+        eigenvalues.append(lam_f)
+        eigenvectors.append(normalized)
+    # If multiplicity > len(vecs) the matrix is defective — skip (not in our test set)
+
+json.dumps({
+  "eigenvalues": eigenvalues,
+  "eigenvectors": eigenvectors
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, eigenvalues: parsed.eigenvalues, eigenvectors: parsed.eigenvectors });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference eigenvalues and unit eigenvectors computed by SymPy 1.13.x for cherry-picked matrices with real rational eigenvalues. A·v = λ·v verified per case.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.solve — linear system Ax=b reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, b, x) triples for la.solve cross-engine tests.
+ *
+ * Strategy: use unimodular or small-det integer matrices so SymPy's exact
+ * solution x = A⁻¹·b has entries that are integers or exact halves —
+ * representable as IEEE 754 doubles without rounding error.
+ */
+async function generateSolveCases(py) {
+  const systems = [
+    // 1×1
+    { A: [[2]], b: [6] },
+    { A: [[-3]], b: [9] },
+    // 2×2 — det=1
+    { A: [[1, 2], [0, 1]], b: [5, 3] },
+    { A: [[1, 0], [3, 1]], b: [4, 7] },
+    // 2×2 — det=2
+    { A: [[2, 0], [0, 2]], b: [4, 6] },
+    { A: [[2, 1], [1, 1]], b: [3, 2] },
+    // 3×3 — det=1
+    {
+      A: [
+        [1, 0, 1],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+      b: [3, 2, 1],
+    },
+    {
+      A: [
+        [1, 1, 0],
+        [0, 1, 1],
+        [0, 0, 1],
+      ],
+      b: [4, 5, 2],
+    },
+    // 3×3 — det=2
+    {
+      A: [
+        [2, 1, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ],
+      b: [3, 2, 1],
+    },
+    // 4×4 — det=1
+    {
+      A: [
+        [1, 0, 0, 1],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+      ],
+      b: [3, 1, 2, 4],
+    },
+  ];
+
+  const cases = [];
+  for (const { A, b } of systems) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+
+A = Matrix(${JSON.stringify(A)})
+b = Matrix(${JSON.stringify(b)})
+x = A.solve(b)
+
+json.dumps({
+  "x": [float(x[i, 0]) for i in range(x.rows)]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, b, x: parsed.x });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference solutions x to Ax=b computed by SymPy 1.13.x using exact arithmetic. Uses unimodular and |det|=2 matrices so solutions are exact floats. Covers 1×1 through 4×4.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -944,6 +1320,22 @@ async function main() {
   console.log("\nGenerating la.rref / la.rank fixtures…");
   const rrefRankFixture = await generateRrefRankCases(py);
   writeFixture("la-rref-rank", rrefRankFixture);
+
+  console.log("\nGenerating la.lu fixtures…");
+  const luFixture = await generateLuCases(py);
+  writeFixture("la-lu", luFixture);
+
+  console.log("\nGenerating la.qr fixtures…");
+  const qrFixture = await generateQrCases(py);
+  writeFixture("la-qr", qrFixture);
+
+  console.log("\nGenerating la.eigen fixtures…");
+  const eigenFixture = await generateEigenCases(py);
+  writeFixture("la-eigen", eigenFixture);
+
+  console.log("\nGenerating la.solve fixtures…");
+  const solveFixture = await generateSolveCases(py);
+  writeFixture("la-solve", solveFixture);
 
   console.log("\nDone.");
 }

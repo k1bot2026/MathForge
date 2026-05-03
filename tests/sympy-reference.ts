@@ -210,3 +210,89 @@ export type RrefRankFixture = {
 export function loadRrefRankFixture(): RrefRankFixture {
   return loadJson<RrefRankFixture>("la-rref-rank");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.lu fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type LuCase = {
+  A: number[][];
+  L: number[][];
+  U: number[][];
+  P: number[][];
+};
+
+export type LuFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: LuCase[];
+};
+
+export function loadLuFixture(): LuFixture {
+  return loadJson<LuFixture>("la-lu");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.qr fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type QrCase = {
+  A: number[][];
+  Q: number[][];
+  R: number[][];
+};
+
+export type QrFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: QrCase[];
+};
+
+export function loadQrFixture(): QrFixture {
+  return loadJson<QrFixture>("la-qr");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.eigen fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type EigenCase = {
+  A: number[][];
+  eigenvalues: number[];
+  /** Each entry is a unit eigenvector (1-D array) for the corresponding eigenvalue. */
+  eigenvectors: number[][];
+};
+
+export type EigenFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: EigenCase[];
+};
+
+export function loadEigenFixture(): EigenFixture {
+  return loadJson<EigenFixture>("la-eigen");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.solve fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type SolveCase = {
+  A: number[][];
+  b: number[];
+  x: number[];
+};
+
+export type SolveFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: SolveCase[];
+};
+
+export function loadSolveFixture(): SolveFixture {
+  return loadJson<SolveFixture>("la-solve");
+}
