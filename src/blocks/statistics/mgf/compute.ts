@@ -1,8 +1,7 @@
 import type { ResolvedInputs, ResolvedParams } from "~/blocks/types";
 import * as pyClient from "~/engine/workers/pyodide.client";
-import type { MathValue } from "~/math/types";
+import type { ExpressionPayload, MathValue } from "~/math/types";
 import type { DistributionPayload } from "../distribution-payload";
-import type { ExpressionPayload } from "../expression-payload";
 
 export class MgfError extends Error {
   constructor(message: string) {
@@ -40,16 +39,17 @@ export async function computeMgf(
   if ("alpha" in p && typeof p.alpha === "number") params.alpha = p.alpha;
   if ("beta" in p && typeof p.beta === "number") params.beta = p.beta;
 
-  let sympyStr: string;
+  let serialized: string;
   try {
-    sympyStr = await pyClient.mgf(family, params);
+    serialized = await pyClient.mgf(family, params);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new MgfError(`SymPy MGF computation failed: ${msg}`);
   }
 
   const payload: ExpressionPayload = {
-    sympyStr,
+    form: "sympy",
+    serialized,
     freeVars: ["t"],
   };
 

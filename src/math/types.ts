@@ -55,13 +55,24 @@ export type VectorPayload = ReadonlyArray<ScalarPayload>;
 
 export type MatrixPayload = ReadonlyArray<ReadonlyArray<ScalarPayload>>;
 
+export type ExpressionPayload = {
+  /** Serialization format: "sympy" = SymPy str() printout, "latex" = display form */
+  form: "sympy" | "latex";
+  /** The serialized expression string, e.g. "(1 - p) + p*exp(t)" */
+  serialized: string;
+  /** Free variable names present in the expression, e.g. ["t"] */
+  freeVars: ReadonlyArray<string>;
+};
+
 export type Payload<T extends MathType> = T extends { kind: "Scalar" }
   ? ScalarPayload
   : T extends { kind: "Vector" }
     ? VectorPayload
     : T extends { kind: "Matrix" }
       ? MatrixPayload
-      : unknown;
+      : T extends { kind: "Expression" }
+        ? ExpressionPayload
+        : unknown;
 
 export type Provenance = {
   blockId: string;

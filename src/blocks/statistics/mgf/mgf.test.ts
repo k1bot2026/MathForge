@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import type { MathValue } from "~/math/types";
+import type { ExpressionPayload, MathValue } from "~/math/types";
 import type { DistributionPayload } from "../distribution-payload";
-import type { ExpressionPayload } from "../expression-payload";
 import { computeMgf, MgfError } from "./compute";
 
 // The pyodide worker is unavailable in jsdom — mock the client module.
@@ -51,12 +50,13 @@ describe("stats.mgf compute", () => {
     expect(result.type).toEqual({ kind: "Expression", freeVars: ["t"] });
   });
 
-  test("payload contains sympyStr returned by worker", async () => {
+  test("payload has form=sympy and serialized string returned by worker", async () => {
     const expectedExpr = "exp(mu*t + sigma**2*t**2/2)";
     await mockMgf(() => expectedExpr);
     const result = await computeMgf({ distribution: normalInput(2, 3) }, {});
     const payload = result.payload as unknown as ExpressionPayload;
-    expect(payload.sympyStr).toBe(expectedExpr);
+    expect(payload.form).toBe("sympy");
+    expect(payload.serialized).toBe(expectedExpr);
     expect(payload.freeVars).toEqual(["t"]);
   });
 

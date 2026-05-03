@@ -1,5 +1,5 @@
 import type { BlockDefinition } from "~/blocks/types";
-import type { ExpressionPayload } from "../expression-payload";
+import type { ExpressionPayload } from "~/math/types";
 import { computeMgf } from "./compute";
 
 export const MgfBlock: BlockDefinition = {
@@ -33,11 +33,11 @@ export const MgfBlock: BlockDefinition = {
     effect: (inputs, output) => {
       if (inputs.distribution === undefined) return "Connect a distribution to compute its MGF.";
       const payload = output.payload as unknown as ExpressionPayload;
-      return `M_X(t) = ${payload.sympyStr}`;
+      return `M_X(t) = ${payload.serialized}`;
     },
     impact: (_inputs, output) => {
       const payload = output.payload as unknown as ExpressionPayload;
-      return `Expression in t: ${payload.sympyStr}. Differentiate at t=0 to recover moments.`;
+      return `Expression in t: ${payload.serialized}. Differentiate at t=0 to recover moments.`;
     },
   },
 };
