@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:09:50.563Z",
+  "description": "SymPy MGF string representations for Bernoulli, Binomial, Poisson, Normal, Gamma. Used to verify pyodide.worker buildMgfCode output matches SymPy str() form.",
+  "cases": [
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.3
+      },
+      "sympyStr": "3*exp(t)/10 + 7/10"
+    },
+    {
+      "family": "Binomial",
+      "parameters": {
+        "n": 5,
+        "p": 0.3333333333333333
+      },
+      "sympyStr": "(exp(t)/3 + 2/3)**5"
+    },
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 2
+      },
+      "sympyStr": "exp(2*exp(t) - 2)"
+    },
+    {
+      "family": "Normal",
+      "parameters": {
+        "mu": 0,
+        "sigma": 1
+      },
+      "sympyStr": "exp(t**2/2)"
+    },
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 2,
+        "beta": 3
+      },
+      "sympyStr": "(1 - t/3)**(-2)"
+    }
+  ]
+}
