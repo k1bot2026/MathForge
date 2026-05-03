@@ -283,7 +283,7 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `calc.integrate` [shipped] — indefinite integral ∫f dx via SymPy integrate(); input `fn: Function`; param `variable` (blank = infer); output port `fn: Function` (antiderivative; constant of integration omitted). Throws `IntegrateError`. (`8d41219`)
 - `calc.definite-integrate` [shipped] — ∫ₐᵇ f dx via SymPy N(integrate(f,(x,a,b))); inputs `fn: Function`, optional `a: Scalar(real)`, optional `b: Scalar(real)`; params `a` (default 0), `b` (default 1), `variable`; output port `value: Scalar(real, approximate)`. Bound inputs override params. Throws `DefiniteIntegrateError`. (`5cbf696`)
 - `calc.limit` [shipped] — lim_{x→c} f(x) via SymPy limit(); inputs `fn: Function`, optional `point: Scalar(real)`; params `point` (default 0), `variable`; output port `value: Expression(freeVars=[])`. Scalar for finite numeric results; Expression for symbolic answers (oo, zoo). Throws `LimitError`. (`3ceb98f`)
-- `calc.series` — series expansion to order n; output `fn: Function`. [pending]
+- `calc.series` [shipped] — partial sum Σ_{n=from}^{to} aₙ via SymPy Sum().doit(); inputs `fn: Function` (general term aₙ), optional `from: Scalar(real)`, optional `to: Scalar(real)`; params `from` (default 0), `to` (default 10), `index` (blank = infer); output port `value: Scalar(real, approximate)` for numeric sums, or `fn: Function` for parametric terms. Bound inputs override params. Throws `SeriesError`. (`505b00a`)
 - `calc.taylor` [shipped] — degree-n Taylor polynomial via SymPy series().removeO(); inputs `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`; params `center` (default 0), `order` (1–20, default 5), `variable`; output port `fn: Function` (polynomial, no O() term). Throws `TaylorError`. Phase 4 exit-criterion centerpiece. (`99b529f`)
 - `calc.ode-solve` — first-order ODE y′ = f(x,y) via SymPy dsolve(); output `fn: Function`. [pending]
 
@@ -292,7 +292,7 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `viz.tangent` — Mafs curve with movable tangent point + tangent line; input `fn: Function`. [pending]
 - `viz.riemann` — Observable Plot Riemann sum bars; input `fn: Function`; params `a`, `b`, `n` (slider). [pending]
 - `viz.epsilon-delta` — ε–δ limit visualisation; inputs `fn: Function`, `c: Scalar`, `L: Scalar`. [pending]
-- `viz.taylor` — original function + Taylor polynomial overlay; inputs `fn: Function` (original), `poly: Function` (from calc.taylor). [pending]
+- `viz.taylor` [shipped] — plots f(x) (solid) and Tₙ(x) (dashed) on the same axes; inputs `fn: Function` (original), optional `taylor: Function` (from calc.taylor); passthrough output `fn: Function`. Evaluates expression strings numerically via mathjs.evaluate(). Introduces `viz-calc.ts` shared helpers (evalAt, sampleExpr, yRange) for calculus viz blocks. Phase 4 exit-criterion demo block. (`18e7d58`)
 - `viz.vector-field` — 2D vector field; inputs `fx: Function`, `fy: Function`; grid density param. [pending]
 
 ### Phase 5 (Composites)

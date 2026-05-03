@@ -334,9 +334,9 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 |---|---|---|
 | **Foundation** | SymPy Pyodide worker RPC pattern (`stats.mgf`, `13a1760`); `FunctionPayload` + `ExpressionPayload` in `src/math/types.ts`; Pyodide client extended with sympify/diff/integrate/definiteIntegrate/limit/taylor RPCs (`calc.function`, `02b5512`) | — |
 | **Function blocks** | `calc.function` (`02b5512`) | — |
-| **Operation blocks** | `calc.derivative` (`cc3542d`), `calc.integrate` (`8d41219`), `calc.definite-integrate` (`5cbf696`), `calc.limit` (`3ceb98f`), `calc.taylor` (`99b529f`) | `calc.partial`, `calc.gradient`, `calc.series`, `calc.ode-solve` |
-| **Visualization** | — | `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`, `viz.taylor`, `viz.vector-field` |
-| **Testing** | Calc fixture infra: 5 fixture sets + loaders + `function-sympy.test.ts` (`679fcd0`); Pyodide client error-path coverage (`3ad4736`) | Cross-engine tests for calc.derivative through calc.taylor |
+| **Operation blocks** | `calc.derivative` (`cc3542d`), `calc.integrate` (`8d41219`), `calc.definite-integrate` (`5cbf696`), `calc.limit` (`3ceb98f`), `calc.series` (`505b00a`), `calc.taylor` (`99b529f`) | `calc.partial`, `calc.gradient`, `calc.ode-solve` |
+| **Visualization** | `viz.taylor` (`18e7d58`) | `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`, `viz.vector-field` |
+| **Testing** | Calc fixture infra (`679fcd0`); Pyodide client error-paths (`3ad4736`); calc.derivative cross-engine (`9bc0382`); calc.integrate cross-engine + derivative∘integrate invariant (`41d7fca`) | Cross-engine tests for calc.definite-integrate, calc.limit, calc.taylor, calc.series |
 | **Docs** | ROADMAP.md Phase 4 section; BLOCK_TAXONOMY.md calc.* section | BLOCK_AUTHORING_GUIDE.md SymPy-engine worked example |
 
 ### Phase 4 progress
@@ -353,7 +353,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - [x] `calc.integrate` — ∫f dx (indefinite); input `fn: Function`, param `variable`; output port `fn: Function` (antiderivative, no constant of integration). Throws `IntegrateError`. (`8d41219`)
 - [x] `calc.definite-integrate` — ∫ₐᵇ f dx; inputs `fn: Function`, optional `a: Scalar`, optional `b: Scalar`; params `a`, `b`, `variable`; output port `value: Scalar(real, approximate)` via SymPy N(). Bound inputs override params. Throws `DefiniteIntegrateError`. (`5cbf696`)
 - [x] `calc.limit` — lim_{x→c} f(x); inputs `fn: Function`, optional `point: Scalar`; param `point`, `variable`; output port `value: Expression(freeVars=[])`. Returns `Scalar` for finite numeric results; `Expression` for symbolic answers (oo, zoo). Throws `LimitError`. (`3ceb98f`)
-- [ ] `calc.series` — Taylor/Maclaurin series expansion to order n; output `fn: Function`
+- [x] `calc.series` — partial sum Σ_{n=from}^{to} aₙ via SymPy Sum().doit(); inputs `fn: Function` (general term), optional `from: Scalar`, optional `to: Scalar`; params `from` (default 0), `to` (default 10), `index`; output port `value: Scalar` (numeric) or `fn: Function` (parametric). Throws `SeriesError`. (`505b00a`)
 - [x] `calc.taylor` — degree-n Taylor polynomial of f around x=a via SymPy series().removeO(); inputs `fn: Function`, optional `center: Scalar`, optional `order: Scalar`; params `center`, `order` (1–20), `variable`; output port `fn: Function` (polynomial). Throws `TaylorError`. Phase 4 exit-criterion centerpiece. (`99b529f`)
 - [ ] `calc.ode-solve` — solve y′ = f(x, y) symbolically; output `fn: Function`
 
@@ -362,14 +362,16 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - [ ] `viz.tangent` — Mafs movable point tangent line to a curve
 - [ ] `viz.riemann` — Riemann sum with n-slider; Observable Plot bars
 - [ ] `viz.epsilon-delta` — ε–δ limit visualization
-- [ ] `viz.taylor` — incremental Taylor term addition animation
+- [x] `viz.taylor` — f(x) (solid) + Tₙ(x) (dashed) overlay; inputs `fn: Function` (original), optional `taylor: Function` (from calc.taylor); passthrough output `fn: Function`. `viz-calc.ts` shared evaluation helpers. (`18e7d58`)
 - [ ] `viz.vector-field` — 2D vector field (∇f or custom)
 
 **Testing**
 
 - [x] Calc fixture infrastructure: 5 fixture sets (`calc-function.json`, `calc-derivative.json`, `calc-integrate.json`, `calc-limit.json`, `calc-taylor.json`) + 5 typed loaders + `function-sympy.test.ts` (22 tests). (`679fcd0`)
-- [x] Pyodide client error-path coverage for all new RPCs (sympify, diff, integrate, definiteIntegrate, limit, taylor). (`3ad4736`)
-- [ ] Cross-engine tests for calc.derivative, calc.integrate, calc.definite-integrate, calc.limit, calc.taylor
+- [x] Pyodide client error-path coverage for all new RPCs. (`3ad4736`)
+- [x] Cross-engine tests for calc.derivative (`9bc0382`)
+- [x] Cross-engine tests for calc.integrate + derivative∘integrate FToC invariant (`41d7fca`)
+- [ ] Cross-engine tests for calc.definite-integrate, calc.limit, calc.taylor, calc.series
 
 **Docs**
 

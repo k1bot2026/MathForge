@@ -5,7 +5,7 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 4 in progress: 6 calc blocks shipped (function, derivative, integrate, definite-integrate, limit, taylor)
+## [Unreleased] — Phase 4 in progress: 7 calc blocks + viz.taylor shipped
 
 Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
 (viz.unit-grid-3d, eigenvector highlighting, det area/volume animation), SymPy
@@ -28,10 +28,15 @@ extends the Pyodide client with all Phase 4 RPCs. Five operation blocks follow.
 - **`calc.limit`** — lim_{x→c} f(x) via SymPy limit(). Inputs: `fn: Function`, optional `point: Scalar(real)`. Params: `point` (default 0), `variable`. Output `value: Expression(freeVars=[])`. Returns `Scalar(real)` for finite numeric results; `Expression` for symbolic answers (oo, zoo, indeterminate forms). Throws `LimitError`. (`3ceb98f`)
 - **`calc.taylor`** — degree-n Taylor polynomial via SymPy series().removeO(). Inputs: `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`. Params: `center` (default 0), `order` (1–20, default 5), `variable`. Output `fn: Function` (polynomial expression, big-O term removed). Throws `TaylorError`. Phase 4 exit-criterion centerpiece — connects to viz.taylor for convergence animation. (`99b529f`)
 
+- **`calc.series`** — partial sum Σ_{n=from}^{to} aₙ via SymPy Sum().doit(). Inputs: `fn: Function` (general term), optional `from: Scalar`, optional `to: Scalar`. Params: `from` (default 0), `to` (default 10), `index` (blank = infer). Output `value: Scalar` for numeric sums; `fn: Function` for parametric terms. Bound inputs override params for slider-driven convergence exploration. Throws `SeriesError`. (`505b00a`)
+- **`viz.taylor`** — Taylor convergence overlay: plots f(x) (solid) and Tₙ(x) (dashed) on the same SVG canvas. Inputs: `fn: Function` (original), optional `taylor: Function` (from calc.taylor); passthrough output `fn`. Evaluates expression strings via mathjs.evaluate(). Introduces `src/blocks/calculus/viz-calc.ts` with shared `evalAt`/`sampleExpr`/`yRange` helpers for all calculus viz blocks. Connect calc.taylor's order port to a slider to animate convergence — the Phase 4 exit-criterion demo. (`18e7d58`)
+
 ### Testing (Phase 4)
 
 - **Calculus fixture infrastructure** — five fixture sets committed: `calc-function.json`, `calc-derivative.json`, `calc-integrate.json`, `calc-limit.json`, `calc-taylor.json`. Five typed loaders added to `tests/sympy-reference.ts` (`loadCalcFunctionFixture` through `loadCalcTaylorFixture`). Cross-engine test `function-sympy.test.ts` (22 tests via mocked sympify). Generators added to `scripts/generate-sympy-fixtures.mjs`. (`679fcd0`)
 - **Pyodide client error-path coverage** — all new RPC methods (sympify, diff, integrate, definiteIntegrate, limit, taylor) covered in `src/engine/workers/pyodide.client.test.ts`. (`3ad4736`)
+- **`calc.derivative` cross-engine tests** — `derivative-sympy.test.ts` loads `calc-derivative.json` fixture; asserts derivative expressions match SymPy diff() output for polynomial, trigonometric, exponential, and composite functions. (`9bc0382`)
+- **`calc.integrate` cross-engine tests** — `integrate-sympy.test.ts` includes standard antiderivative assertions and the `derivative(integrate(f)) = f` compositional invariant (Fundamental Theorem of Calculus verification). (`41d7fca`)
 
 ### Distributions (Phase 3)
 
