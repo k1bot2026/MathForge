@@ -208,13 +208,13 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 | Area | Shipped | Pending |
 |---|---|---|
-| **Foundation** | `Distribution` and `RandomVariable` types defined in `src/math/types.ts`; `DistributionFamily` type covers all Phase 3 distributions | Distribution payload conventions (TYPES.md §); Supabase wiring; Auth; persistent graph URLs |
-| **Distributions** | `stats.bernoulli`, `stats.binomial`, `stats.uniform` | `stats.normal`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical` |
-| **Operations** | — | `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior` |
-| **Composite** | — | `stats.bayes-net` |
-| **Visualization** | — | `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`, `viz.posterior-update` |
-| **Testing** | — | SymPy `sympy.stats` cross-engine fixtures per distribution; moments + parametric property tests |
-| **Docs** | ROADMAP.md Phase 3 section | TYPES.md Distribution payload conventions; BLOCK_TAXONOMY.md stats rows (pending entries added); BLOCK_AUTHORING_GUIDE.md stochastic-block worked example |
+| **Foundation** | `Distribution` and `RandomVariable` types defined in `src/math/types.ts`; `DistributionFamily` type covers all Phase 3 distributions; `DistributionPayload` convention in TYPES.md; `ExpressionPayload` (stats.mgf); SymPy Pyodide worker RPC pattern (stats.mgf) | Supabase wiring; Auth; persistent graph URLs |
+| **Distributions** | `stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical` | — |
+| **Operations** | `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior` | — |
+| **Composite** | — | `stats.bayes-net` (deferred to Phase 5 — requires `core.subgraph`) |
+| **Visualization** | `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`, `viz.posterior-update` | — |
+| **Testing** | SymPy `sympy.stats` fixtures (Bernoulli); LLN tests ±2σ/√n mean bands; cross-engine tests for stats.expect + stats.var | SymPy cross-engine fixtures for remaining distributions |
+| **Docs** | ROADMAP.md Phase 3 section; TYPES.md Distribution payload conventions; BLOCK_TAXONOMY.md stats.* section | BLOCK_AUTHORING_GUIDE.md stochastic-block worked example |
 
 ### Phase 3 progress
 
@@ -222,39 +222,45 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 - [x] `stats.bernoulli` — Bernoulli(p). (`7fed327`)
 - [x] `stats.binomial` — Binomial(n, p). (`96b7fd7`)
-- [ ] `stats.normal`
+- [x] `stats.normal` — Normal(μ, σ). (pre-existing)
 - [x] `stats.uniform` — Uniform(a, b). (`66d0e3b`)
-- [ ] `stats.poisson`
-- [ ] `stats.beta`
-- [ ] `stats.gamma`
-- [ ] `stats.empirical`
+- [x] `stats.poisson` — Poisson(λ); E[X]=Var[X]=λ (equidispersion). (`d8c5069`)
+- [x] `stats.beta` — Beta(α, β); support [0,1]; conjugate prior for Bernoulli/Binomial. (`180ceff`)
+- [x] `stats.gamma` — Gamma(α, β) shape/rate; Gamma(1,β)=Exponential(β); conjugate prior for Poisson. (`111afc5`)
+- [x] `stats.empirical` — wraps sample Vector as Distribution(Empirical); population variance (÷n). (`870d195`)
 
 **Operations**
 
-- [ ] `stats.sample`
-- [ ] `stats.expect`
-- [ ] `stats.var`
-- [ ] `stats.cov`
-- [ ] `stats.cor`
-- [ ] `stats.mgf`
-- [ ] `stats.posterior`
+- [x] `stats.sample` — PCG32-seeded sampling from all distributions; output Vector<n, real>. (`78f7e51`)
+- [x] `stats.expect` — reads `moments.mean` from DistributionPayload; native engine. (`a0555ce`)
+- [x] `stats.var` — reads `moments.variance` from DistributionPayload; native engine. (`56bddd1`)
+- [x] `stats.cov` — assumes independence (Cov=0 unless X=Y); inputs Distribution×Distribution. (`c5ed65f`)
+- [x] `stats.cor` — Pearson correlation = Cov/(√Var[X]·√Var[Y]); 3 inputs: cov, X, Y. (`7451bef`)
+- [x] `stats.mgf` — M_X(t) symbolically via SymPy Pyodide worker; output Expression(t); stability: beta. (`13a1760`)
+- [x] `stats.posterior` — 4 conjugate pairs (Beta–Bernoulli, Beta–Binomial, Normal–Normal, Gamma–Poisson); 18 property tests. (`4e856fe`)
 
 **Composite**
 
-- [ ] `stats.bayes-net`
+- [ ] `stats.bayes-net` — **deferred to Phase 5** (requires `core.subgraph`)
 
 **Visualization**
 
-- [ ] `viz.pdf-cdf`
-- [ ] `viz.histogram`
-- [ ] `viz.joint-heatmap`
-- [ ] `viz.posterior-update`
+- [x] `viz.pdf-cdf` — PDF/CDF side-by-side (Observable Plot); passthrough Distribution output. (`ebbf0ce`)
+- [x] `viz.histogram` — Observable Plot histogram + optional KDE overlay; input Vector<n>; bins param (0=auto). (`6054a7e`)
+- [x] `viz.joint-heatmap` — SVG joint density heatmap for X×Y (independence assumed); passthrough X. (`3cd3863`)
+- [x] `viz.posterior-update` — Beta prior + Beta posterior input ports; overlaid curve animation; stability: beta. (`cc75e44`, refactored `427a2ac`)
 
 **Testing**
 
 - [x] SymPy `sympy.stats` fixture pattern established (`stats-bernoulli.json`, `loadBernoulliFixture()`). (`6470cf5`)
 - [x] `stats.bernoulli` cross-engine test (`bernoulli-sympy.test.ts`) (`66d0e3b`)
-- [ ] Cross-engine tests for remaining distributions
+- [x] LLN tests upgraded to ±2σ/√n mean bands + ±5% variance checks for all 7 parametric families. (`5793827`)
+- [x] Cross-engine tests for `stats.expect` and `stats.var` (5 and 7 families respectively). (`39582d0`)
+- [ ] SymPy cross-engine fixtures for remaining distributions
+
+**Refactors**
+
+- [x] `viz-math.ts` shared utility extracted (PDF/PMF, CDF helpers); DRY across pdf-cdf, joint-heatmap, posterior-update. (`e20084f`)
 
 **Docs**
 

@@ -239,33 +239,33 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 - `stats.bernoulli` [shipped] — Bernoulli(p); output port `dist: Distribution(Bernoulli)`. `DistributionPayload` with `parameters: { family: "Bernoulli", p }`, eager closed-form moments (`mean=p`, `variance=p(1-p)`), `support: { kind: "discrete", values: [0,1] }`. Establishes the `DistributionPayload` pattern for all Phase 3 blocks. (`7fed327`)
 - `stats.binomial` [shipped] — Binomial(n, p); output port `dist: Distribution(Binomial)`. Params: `n ∈ ℕ₀` (integer), `p ∈ [0,1]` (number slider). `E[X]=n·p`, `Var[X]=n·p·(1-p)`. Bernoulli-as-Binomial(1,p) consistency verified. (`96b7fd7`)
-- `stats.normal` — Normal(μ, σ²); outputs `Distribution(Normal)`. [pending]
+- `stats.normal` [shipped] — Normal(μ, σ); output port `dist: Distribution(Normal)`. Params `μ` (mean), `σ > 0` (std dev). E[X]=μ, Var[X]=σ², skewness=0, excess kurtosis=0. (pre-existing)
 - `stats.uniform` [shipped] — Uniform(a, b) continuous distribution; output port `dist: Distribution(Uniform)`. Params `a < b` (validated). E[X]=(a+b)/2, Var[X]=(b-a)²/12, skewness=0, excess kurtosis=−1.2. (`66d0e3b`)
-- `stats.poisson` — Poisson(λ); outputs `Distribution(Poisson)`. [pending]
-- `stats.beta` — Beta(α, β); outputs `Distribution(Beta)`. [pending]
-- `stats.gamma` — Gamma(k, θ); outputs `Distribution(Gamma)`. [pending]
-- `stats.empirical` — Empirical distribution from a data vector; outputs `Distribution(Empirical)`. [pending]
+- `stats.poisson` [shipped] — Poisson(λ); output port `dist: Distribution(Poisson)`. Param `λ > 0`. E[X]=Var[X]=λ (equidispersion). Discrete support 0..⌈λ+6√λ⌉. 7 property tests. (`d8c5069`)
+- `stats.beta` [shipped] — Beta(α, β); output port `dist: Distribution(Beta)`. Params `α, β > 0`. Support [0,1]. E[X]=α/(α+β), Var[X]=αβ/((α+β)²(α+β+1)). Closed-form skewness + excess kurtosis. Beta(1,1)=Uniform(0,1). Conjugate prior for Bernoulli/Binomial. (`180ceff`)
+- `stats.gamma` [shipped] — Gamma(α, β) shape/rate; output port `dist: Distribution(Gamma)`. Params `α, β > 0`. Support [0, ∞). E[X]=α/β, Var[X]=α/β². Gamma(1,β)=Exponential(β). Conjugate prior for Poisson. (`111afc5`)
+- `stats.empirical` [shipped] — wraps sample Vector as Distribution(Empirical); input `samples: Vector<n, real>`; output port `dist: Distribution(Empirical)`. E[X]=sample mean, Var[X]=population variance (÷n). Support carries original sample array for viz.histogram. (`870d195`)
 
 **Operations** _(operation role, pure unless sampling, violet color)_
 
-- `stats.sample` — draw n samples from a distribution; inputs `Distribution`, output `RandomVariable`. [pending]
-- `stats.expect` — expected value 𝔼[X]; inputs `Distribution`, output `Scalar`. [pending]
-- `stats.var` — variance Var[X]; inputs `Distribution`, output `Scalar`. [pending]
-- `stats.cov` — covariance Cov[X, Y]; inputs `Distribution × Distribution`, output `Scalar`. [pending]
-- `stats.cor` — correlation Cor[X, Y]; inputs `Distribution × Distribution`, output `Scalar`. [pending]
-- `stats.mgf` — moment-generating function M_X(t); inputs `Distribution`, output `Function`. [pending]
-- `stats.posterior` — Bayesian posterior update; inputs prior `Distribution` + likelihood `Distribution`, output posterior `Distribution`. [pending]
+- `stats.sample` [shipped] — draws n independent samples from a distribution; input `dist: Distribution`; output `samples: Vector<n, real>`. PCG32-seeded PRNG (BigInt 64-bit state) for reproducibility. Params: `n` (count), `seed`. Supports all 8 parametric families. (`78f7e51`)
+- `stats.expect` [shipped] — reads `moments.mean` from DistributionPayload; input `dist: Distribution`; output `mean: Scalar(real)`. Engine: native. Cross-engine tested against SymPy for 5 families. (`a0555ce`)
+- `stats.var` [shipped] — reads `moments.variance` from DistributionPayload; input `dist: Distribution`; output `variance: Scalar(real)`. Engine: native. Cross-engine tested against SymPy for 7 families. (`56bddd1`)
+- `stats.cov` [shipped] — Cov[X, Y] = E[(X−E[X])(Y−E[Y])]; inputs `X: Distribution`, `Y: Distribution`; output `cov: Scalar(real)`. Assumes independence (returns 0) unless X=Y. (`c5ed65f`)
+- `stats.cor` [shipped] — Pearson Cor[X, Y] = Cov/(√Var[X]·√Var[Y]) ∈ [−1,1]; inputs `cov: Scalar`, `X: Distribution`, `Y: Distribution`; output `cor: Scalar(real)`. (`7451bef`)
+- `stats.mgf` [shipped] — M_X(t) = E[e^{tX}] symbolically via SymPy Pyodide worker; input `distribution: Distribution`; output `mgf: Expression(t)`; stability: beta; engine: sympy. First block using the SymPy RPC pattern (establishes pattern for Phase 4). (`13a1760`)
+- `stats.posterior` [shipped] — conjugate Bayesian update: prior + likelihood evidence → posterior; inputs `prior: Distribution`, `likelihood: Distribution`; params `n_obs`, `k_hits`, `x_obs`; output `posterior: Distribution`. 4 conjugate pairs: Beta–Bernoulli, Beta–Binomial, Normal–Normal (known σ), Gamma–Poisson. 18 property tests. Stability: beta. (`4e856fe`)
 
 **Composite**
 
-- `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. [pending]
+- `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. **Deferred to Phase 5** (requires `core.subgraph`).
 
 **Visualization** _(visualizer role, emerald color)_
 
-- `viz.pdf-cdf` — PDF/CDF plot (Mafs); inputs `Distribution`, slider for point evaluation. [pending]
-- `viz.histogram` — histogram from `RandomVariable` samples (Observable Plot). [pending]
-- `viz.joint-heatmap` — 2D joint density heatmap for bivariate distributions (Observable Plot). [pending]
-- `viz.posterior-update` — slider-driven prior → likelihood → posterior update animation. [pending]
+- `viz.pdf-cdf` [shipped] — PDF/CDF side-by-side plot; input `X: Distribution`; passthrough output `X: Distribution`. Uses Observable Plot. (`ebbf0ce`)
+- `viz.histogram` [shipped] — Observable Plot histogram with optional KDE overlay; input `samples: Vector<n, real>`; passthrough output; params `bins` (0=auto), `kde` (boolean). (`6054a7e`)
+- `viz.joint-heatmap` [shipped] — SVG joint density heatmap p(x,y)=p_X(x)·p_Y(y); inputs `X: Distribution`, `Y: Distribution`; passthrough output `X: Distribution`. Independence assumed. (`3cd3863`)
+- `viz.posterior-update` [shipped] — overlaid Beta prior + posterior curves; inputs `prior: Distribution(Beta)`, `posterior: Distribution(Beta)`; passthrough output `posterior: Distribution(Beta)`. Stats.posterior does the Bayesian math; this block is pure visualizer. Stability: beta. (`cc75e44`, refactored `427a2ac`)
 
 ### Phase 4 (Calculus)
 `calc.function`, `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve`, `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`.
