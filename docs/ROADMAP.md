@@ -328,6 +328,53 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 **Goal**: single-variable calculus and selected multivariable; SymPy is dominant here.
 
+### Phase 4 status snapshot
+
+| Area | Shipped | Pending |
+|---|---|---|
+| **Foundation** | SymPy Pyodide worker RPC pattern (`stats.mgf`, `13a1760`); `ExpressionPayload` type (`src/blocks/statistics/expression-payload.ts`) | `calc.function` input UI (MathLive expression entry) |
+| **Function blocks** | — | `calc.function` (symbolic expression entry) |
+| **Operation blocks** | — | `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve` |
+| **Visualization** | — | `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`, `viz.taylor`, `viz.vector-field` |
+| **Testing** | — | SymPy cross-engine fixtures per calculus operation |
+| **Docs** | ROADMAP.md Phase 4 section | BLOCK_TAXONOMY.md calc.* section; BLOCK_AUTHORING_GUIDE.md SymPy-engine worked example |
+
+### Phase 4 progress
+
+**Function blocks**
+
+- [ ] `calc.function` — symbolic function entry via MathLive; output `Expression`
+
+**Operation blocks (SymPy engine)**
+
+- [ ] `calc.derivative` — d/dx of Expression; output `Expression`
+- [ ] `calc.partial` — ∂/∂xᵢ of multivariate Expression; output `Expression`
+- [ ] `calc.gradient` — ∇f; inputs `Expression + variable list`; output `Vector<Expression>`
+- [ ] `calc.integrate` — indefinite integral ∫f dx; output `Expression`
+- [ ] `calc.definite-integrate` — ∫ₐᵇ f dx; inputs `Expression + a + b`; output `Scalar`
+- [ ] `calc.limit` — lim_{x→c} f(x); output `Scalar or Expression`
+- [ ] `calc.series` — Taylor/Maclaurin series expansion to order n; output `Expression`
+- [ ] `calc.taylor` — Taylor polynomial at point a to degree n; output `Expression`
+- [ ] `calc.ode-solve` — solve y′ = f(x, y) symbolically; output `Expression`
+
+**Visualization**
+
+- [ ] `viz.tangent` — Mafs movable point tangent line to a curve
+- [ ] `viz.riemann` — Riemann sum with n-slider; Observable Plot bars
+- [ ] `viz.epsilon-delta` — ε–δ limit visualization
+- [ ] `viz.taylor` — incremental Taylor term addition animation
+- [ ] `viz.vector-field` — 2D vector field (∇f or custom)
+
+**Testing**
+
+- [ ] SymPy cross-engine fixtures per calculus operation
+
+**Docs**
+
+- [x] ROADMAP.md Phase 4 section
+- [ ] BLOCK_TAXONOMY.md calc.* section
+- [ ] BLOCK_AUTHORING_GUIDE.md SymPy-engine worked example (e.g. calc.derivative)
+
 ### Blocks
 `calc.function`, `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve`.
 
