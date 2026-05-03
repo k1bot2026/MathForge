@@ -6,6 +6,7 @@ import type { BlockRegistry } from "../registry";
 import { BernoulliBlock } from "./bernoulli/definition";
 import { BetaBlock } from "./beta/definition";
 import { BinomialBlock } from "./binomial/definition";
+import { EmpiricalBlock } from "./empirical/definition";
 import { GammaBlock } from "./gamma/definition";
 import { NormalBlock } from "./normal/definition";
 import { PoissonBlock } from "./poisson/definition";
@@ -15,6 +16,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(BernoulliBlock);
   registry.register(BetaBlock);
   registry.register(BinomialBlock);
+  registry.register(EmpiricalBlock);
   registry.register(GammaBlock);
   registry.register(NormalBlock);
   registry.register(PoissonBlock);
