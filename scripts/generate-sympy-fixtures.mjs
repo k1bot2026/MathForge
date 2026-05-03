@@ -1742,6 +1742,111 @@ json.dumps({"Pv": vec_to_floats(Pv)})
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// stats.bernoulli — discrete two-outcome distribution
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference values for stats.bernoulli.
+ *
+ * Uses sympy.stats with rational p values so moments are exact fractions.
+ * Each case records:
+ *   - p: success probability (rational)
+ *   - moments: { mean, variance, m1, m2, m3, m4 } — E[X^k] for k=1..4
+ *   - pmf: [{ x, value }] at x=0 and x=1
+ *   - cdf: [{ x, value }] at x=-1, 0, 0.5, 1, 2
+ *
+ * All values stored as floats for easy numeric comparison in tests.
+ * Rational exact form is derivable from p directly: mean=p, var=p(1-p).
+ */
+async function generateBernoulliCases(py) {
+  // Rational p values — all produce exact rational moments.
+  // Avoid p=0 and p=1 edge cases in the main set; add them separately.
+  const params = [
+    { p: "Rational(1, 4)", pFloat: 0.25 },
+    { p: "Rational(1, 2)", pFloat: 0.5 },
+    { p: "Rational(3, 4)", pFloat: 0.75 },
+    { p: "Rational(1, 3)", pFloat: 1 / 3 },
+    { p: "Rational(2, 3)", pFloat: 2 / 3 },
+    { p: "Rational(1, 5)", pFloat: 0.2 },
+    { p: "Rational(4, 5)", pFloat: 0.8 },
+    { p: "Rational(0, 1)", pFloat: 0.0 },
+    { p: "Rational(1, 1)", pFloat: 1.0 },
+  ];
+
+  const cases = [];
+  for (const { p, pFloat } of params) {
+    const result = py.runPython(`
+from sympy import Rational
+from sympy.stats import Bernoulli, E, variance, density, P
+import json
+
+p_val = ${p}
+X = Bernoulli('X', p_val)
+
+mean_val = float(E(X))
+var_val = float(variance(X))
+
+# Raw moments E[X^k] — for Bernoulli: E[X^k] = p for all k >= 1
+m1 = float(E(X**1))
+m2 = float(E(X**2))
+m3 = float(E(X**3))
+m4 = float(E(X**4))
+
+# PMF: density(X) returns the distribution object; .pmf(k) evaluates it.
+dist = density(X)
+pmf0 = float(dist.pmf(0))
+pmf1 = float(dist.pmf(1))
+
+# CDF: use P(X <= x) for arbitrary evaluation points.
+cdf_neg = float(P(X <= -1))
+cdf_0   = float(P(X <= 0))
+cdf_half = float(P(X <= Rational(1, 2)))
+cdf_1   = float(P(X <= 1))
+cdf_2   = float(P(X <= 2))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val,
+  "m1": m1, "m2": m2, "m3": m3, "m4": m4,
+  "pmf": [{"x": 0, "value": pmf0}, {"x": 1, "value": pmf1}],
+  "cdf": [
+    {"x": -1, "value": cdf_neg},
+    {"x": 0,  "value": cdf_0},
+    {"x": 0.5, "value": cdf_half},
+    {"x": 1,  "value": cdf_1},
+    {"x": 2,  "value": cdf_2}
+  ]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Bernoulli",
+      parameters: { p: pFloat },
+      moments: {
+        mean: parsed.mean,
+        variance: parsed.variance,
+        m1: parsed.m1,
+        m2: parsed.m2,
+        m3: parsed.m3,
+        m4: parsed.m4,
+      },
+      pmf: parsed.pmf,
+      cdf: parsed.cdf,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments and density/CDF samples for Bernoulli(p) from sympy.stats. " +
+      "Parameters chosen to produce exact rational moments. " +
+      "Invariants: mean=p, variance=p(1-p), pmf(0)=1-p, pmf(1)=p, CDF is a step function.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -1816,6 +1921,10 @@ async function main() {
   console.log("\nGenerating la.project fixtures…");
   const projectFixture = await generateProjectCases(py);
   writeFixture("la-project", projectFixture);
+
+  console.log("\nGenerating stats.bernoulli fixtures…");
+  const bernoulliFixture = await generateBernoulliCases(py);
+  writeFixture("stats-bernoulli", bernoulliFixture);
 
   console.log("\nDone.");
 }

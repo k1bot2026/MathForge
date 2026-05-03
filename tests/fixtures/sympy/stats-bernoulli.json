@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T14:21:00.469Z",
+  "description": "Reference moments and density/CDF samples for Bernoulli(p) from sympy.stats. Parameters chosen to produce exact rational moments. Invariants: mean=p, variance=p(1-p), pmf(0)=1-p, pmf(1)=p, CDF is a step function.",
+  "cases": [
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.25
+      },
+      "moments": {
+        "mean": 0.25,
+        "variance": 0.1875,
+        "m1": 0.25,
+        "m2": 0.25,
+        "m3": 0.25,
+        "m4": 0.25
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.75
+        },
+        {
+          "x": 1,
+          "value": 0.25
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.75
+        },
+        {
+          "x": 0.5,
+          "value": 0.75
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.5
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.25,
+        "m1": 0.5,
+        "m2": 0.5,
+        "m3": 0.5,
+        "m4": 0.5
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 0.5
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.5
+        },
+        {
+          "x": 0.5,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.75
+      },
+      "moments": {
+        "mean": 0.75,
+        "variance": 0.1875,
+        "m1": 0.75,
+        "m2": 0.75,
+        "m3": 0.75,
+        "m4": 0.75
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.25
+        },
+        {
+          "x": 1,
+          "value": 0.75
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.25
+        },
+        {
+          "x": 0.5,
+          "value": 0.25
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.3333333333333333
+      },
+      "moments": {
+        "mean": 0.3333333333333333,
+        "variance": 0.2222222222222222,
+        "m1": 0.3333333333333333,
+        "m2": 0.3333333333333333,
+        "m3": 0.3333333333333333,
+        "m4": 0.3333333333333333
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.6666666666666666
+        },
+        {
+          "x": 1,
+          "value": 0.3333333333333333
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.6666666666666666
+        },
+        {
+          "x": 0.5,
+          "value": 0.6666666666666666
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.6666666666666666
+      },
+      "moments": {
+        "mean": 0.6666666666666666,
+        "variance": 0.2222222222222222,
+        "m1": 0.6666666666666666,
+        "m2": 0.6666666666666666,
+        "m3": 0.6666666666666666,
+        "m4": 0.6666666666666666
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 1,
+          "value": 0.6666666666666666
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 0.5,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.2
+      },
+      "moments": {
+        "mean": 0.2,
+        "variance": 0.16,
+        "m1": 0.2,
+        "m2": 0.2,
+        "m3": 0.2,
+        "m4": 0.2
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.8
+        },
+        {
+          "x": 1,
+          "value": 0.2
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.8
+        },
+        {
+          "x": 0.5,
+          "value": 0.8
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0.8
+      },
+      "moments": {
+        "mean": 0.8,
+        "variance": 0.16,
+        "m1": 0.8,
+        "m2": 0.8,
+        "m3": 0.8,
+        "m4": 0.8
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.2
+        },
+        {
+          "x": 1,
+          "value": 0.8
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.2
+        },
+        {
+          "x": 0.5,
+          "value": 0.2
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 0
+      },
+      "moments": {
+        "mean": 0,
+        "variance": 0,
+        "m1": 0,
+        "m2": 0,
+        "m3": 0,
+        "m4": 0
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 1
+        },
+        {
+          "x": 1,
+          "value": 0
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 1
+        },
+        {
+          "x": 0.5,
+          "value": 1
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Bernoulli",
+      "parameters": {
+        "p": 1
+      },
+      "moments": {
+        "mean": 1,
+        "variance": 0,
+        "m1": 1,
+        "m2": 1,
+        "m3": 1,
+        "m4": 1
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0
+        },
+        {
+          "x": 1,
+          "value": 1
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

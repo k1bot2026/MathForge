@@ -234,7 +234,38 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `viz.unit-grid-3d` [shipped] — renders unit cube [0,1]³ and its image under a 3×3 matrix M as an interactive 3D wireframe (react-three-fiber + drei, OrbitControls). Basis arrows M·e₁/e₂/e₃ in distinct colors. Input `M: Matrix<3,3>`; passthrough output. Dependencies added: `three@0.184.0`, `@react-three/fiber@9.6.1`, `@react-three/drei@10.7.7`. (`cb64ca3`)
 
 ### Phase 3 (Statistics)
-`stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`, `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`, `stats.bayes-net`, `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`.
+
+**Distributions** _(source role, stochastic, rose color)_
+
+- `stats.bernoulli` — Bernoulli(p); outputs `Distribution(Bernoulli)`. [pending]
+- `stats.binomial` — Binomial(n, p); outputs `Distribution(Binomial)`. [pending]
+- `stats.normal` — Normal(μ, σ²); outputs `Distribution(Normal)`. [pending]
+- `stats.uniform` — Uniform(a, b); outputs `Distribution(Uniform)`. [pending]
+- `stats.poisson` — Poisson(λ); outputs `Distribution(Poisson)`. [pending]
+- `stats.beta` — Beta(α, β); outputs `Distribution(Beta)`. [pending]
+- `stats.gamma` — Gamma(k, θ); outputs `Distribution(Gamma)`. [pending]
+- `stats.empirical` — Empirical distribution from a data vector; outputs `Distribution(Empirical)`. [pending]
+
+**Operations** _(operation role, pure unless sampling, violet color)_
+
+- `stats.sample` — draw n samples from a distribution; inputs `Distribution`, output `RandomVariable`. [pending]
+- `stats.expect` — expected value 𝔼[X]; inputs `Distribution`, output `Scalar`. [pending]
+- `stats.var` — variance Var[X]; inputs `Distribution`, output `Scalar`. [pending]
+- `stats.cov` — covariance Cov[X, Y]; inputs `Distribution × Distribution`, output `Scalar`. [pending]
+- `stats.cor` — correlation Cor[X, Y]; inputs `Distribution × Distribution`, output `Scalar`. [pending]
+- `stats.mgf` — moment-generating function M_X(t); inputs `Distribution`, output `Function`. [pending]
+- `stats.posterior` — Bayesian posterior update; inputs prior `Distribution` + likelihood `Distribution`, output posterior `Distribution`. [pending]
+
+**Composite**
+
+- `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. [pending]
+
+**Visualization** _(visualizer role, emerald color)_
+
+- `viz.pdf-cdf` — PDF/CDF plot (Mafs); inputs `Distribution`, slider for point evaluation. [pending]
+- `viz.histogram` — histogram from `RandomVariable` samples (Observable Plot). [pending]
+- `viz.joint-heatmap` — 2D joint density heatmap for bivariate distributions (Observable Plot). [pending]
+- `viz.posterior-update` — slider-driven prior → likelihood → posterior update animation. [pending]
 
 ### Phase 4 (Calculus)
 `calc.function`, `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve`, `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`.

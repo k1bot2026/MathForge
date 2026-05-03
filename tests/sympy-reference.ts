@@ -408,3 +408,37 @@ export type ProjectFixture = {
 export function loadProjectFixture(): ProjectFixture {
   return loadJson<ProjectFixture>("la-project");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.bernoulli fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type DistSample = { x: number; value: number };
+
+export type BernoulliCase = {
+  family: "Bernoulli";
+  parameters: { p: number };
+  moments: {
+    mean: number;
+    variance: number;
+    m1: number;
+    m2: number;
+    m3: number;
+    m4: number;
+  };
+  /** pmf at x=0 and x=1 */
+  pmf: DistSample[];
+  /** CDF at x=-1, 0, 0.5, 1, 2 */
+  cdf: DistSample[];
+};
+
+export type BernoulliFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: BernoulliCase[];
+};
+
+export function loadBernoulliFixture(): BernoulliFixture {
+  return loadJson<BernoulliFixture>("stats-bernoulli");
+}
