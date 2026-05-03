@@ -286,6 +286,42 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - Bayesian inference pipeline (prior + likelihood → posterior) works visually with a slider on evidence.
 - Property tests cross-checked against SymPy `sympy.stats` for moments and parametric distribution properties.
 
+### Phase 3 retrospective (as of 2026-05-03)
+
+**Velocity (single keep-working session):**
+
+| Category | Count |
+|---|---|
+| Distribution blocks shipped | 8 (`stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`) |
+| Operation blocks shipped | 7 (`stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`) |
+| Visualization blocks shipped | 4 (`viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`, `viz.posterior-update`) |
+| SymPy-engine blocks (new pattern) | 1 (`stats.mgf`) |
+| Developer commits | ~18 (d8c5069 through 427a2ac) |
+| Tester commits | 2 (`5793827` LLN upgrade, `39582d0` cross-engine expect/var) |
+| Docs commits | ~6 (taxonomy, types, changelog, tickbox sweeps) |
+| Total new tests | ~719 (619 → 1338) |
+
+**What the agent-team structure enabled:**
+- Developer shipped all 8 distributions back-to-back before moving to operations, establishing a rhythm of "source blocks fully in place before derived operations". The `DistributionPayload` convention (eager closed-form moments) meant stats.expect and stats.var required almost no compute logic — they read off payload fields directly.
+- `stats.mgf` breaking the Pyodide worker boundary was the most consequential Phase 3 event. The developer wired the SymPy RPC pattern in one commit; that infrastructure is now ready for all Phase 4 calculus blocks. No refactor debt was left behind — `ExpressionPayload` is a clean, reusable type.
+- `viz.posterior-update` was refactored (427a2ac) within the session after initial implementation to separate concerns: stats.posterior handles the Bayesian math; the visualization block is a pure renderer. This is the correct architecture for reuse (the posterior output can be piped elsewhere independently).
+- Each agent committed atomically and pushed immediately; `main` remained reviewable at every step. The test count was monotonically increasing throughout.
+
+**Phase 3 status at close of this retrospective:**
+
+| Area | Status |
+|---|---|
+| All 8 distribution blocks | Complete |
+| All 7 operation blocks | Complete |
+| All 4 visualization blocks | Complete |
+| Bayesian inference pipeline (Beta–Bernoulli end-to-end) | Complete |
+| SymPy Pyodide worker RPC pattern (stats.mgf) | Complete — foundation for Phase 4 |
+| LLN tests with statistically principled tolerances | Complete |
+| Cross-engine tests for stats.expect + stats.var | Complete |
+| stats.bayes-net | Deferred to Phase 5 (requires `core.subgraph`) |
+
+**Phase 3 is complete.** 8 distributions + 7 operations + 4 visualization blocks shipped. 1338 tests green. The SymPy worker pattern is established and ready for Phase 4 calculus. Advancing to Phase 4.
+
 ---
 
 ## Phase 4 — Calculus (target: 4 weeks)
