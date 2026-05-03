@@ -212,6 +212,92 @@ describe("stats.posterior — Gamma–Poisson conjugate", () => {
   });
 });
 
+describe("stats.posterior definition explain.effect", () => {
+  test("returns connect prompt when prior is undefined", async () => {
+    const { PosteriorBlock } = await import("./definition");
+    const effect = PosteriorBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const dummyOutput = {
+      type: { kind: "Distribution" as const, family: "Beta" as const },
+      payload: {
+        parameters: { family: "Beta" as const, alpha: 2, beta: 3 },
+        moments: { mean: 0.4, variance: 0.04 },
+        support: { kind: "continuous" as const, lo: 0, hi: 1 },
+      } as unknown as number,
+      provenance: {
+        blockId: "stats.posterior",
+        inputs: [],
+        computedAt: 0,
+        engine: "native" as const,
+      },
+    };
+    expect(effect({}, dummyOutput)).toMatch(/Connect/);
+  });
+
+  test("effect describes Beta posterior with E[θ]", async () => {
+    const { PosteriorBlock } = await import("./definition");
+    const effect = PosteriorBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    // Use a Beta dist directly as MathValue (same shape as betaDist helper returns for .prior)
+    const betaPayload: DistributionPayload = {
+      parameters: { family: "Beta", alpha: 8, beta: 4 },
+      moments: { mean: 8 / 12, variance: (8 * 4) / (144 * 13) },
+      support: { kind: "continuous", lo: 0, hi: 1 },
+    };
+    const prior = betaDist(8, 4);
+    const inputs = { ...prior, likelihood: bernoulliDist() };
+    const result = computePosterior(inputs, { n_obs: 0, k_hits: 0 });
+    const priorVal = {
+      type: { kind: "Distribution" as const, family: "Beta" as const },
+      payload: betaPayload as unknown as number,
+      provenance: {
+        blockId: "stats.beta",
+        inputs: [] as string[],
+        computedAt: 0,
+        engine: "native" as const,
+      },
+    };
+    const out = effect({ prior: priorVal }, result);
+    expect(out).toMatch(/Beta/);
+    expect(out).toMatch(/E\[θ\]/);
+  });
+
+  test("effect describes Normal posterior", async () => {
+    const { PosteriorBlock } = await import("./definition");
+    const effect = PosteriorBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const prior = normalDist(0, 1);
+    const result = computePosterior(
+      { prior, likelihood: normalDist(0, 2) },
+      { n_obs: 5, x_obs: 1 },
+    );
+    const out = effect({ prior }, result);
+    expect(out).toMatch(/Normal/);
+  });
+
+  test("effect describes Gamma posterior with E[λ]", async () => {
+    const { PosteriorBlock } = await import("./definition");
+    const effect = PosteriorBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const prior = gammaDist(2, 1);
+    const result = computePosterior({ prior, likelihood: poissonDist() }, { n_obs: 4, k_hits: 8 });
+    const out = effect({ prior }, result);
+    expect(out).toMatch(/Gamma/);
+    expect(out).toMatch(/E\[λ\]/);
+  });
+
+  test("impact returns family name and visualization hint", async () => {
+    const { PosteriorBlock } = await import("./definition");
+    const impact = PosteriorBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const inputs = { ...betaDist(1, 1), likelihood: bernoulliDist() };
+    const result = computePosterior(inputs, { n_obs: 10, k_hits: 5 });
+    const msg = impact({}, result);
+    expect(msg).toMatch(/Beta/);
+    expect(msg).toMatch(/viz/);
+  });
+});
+
 describe("stats.posterior — error cases", () => {
   test("throws PosteriorError for missing prior", () => {
     expect(() => computePosterior({ likelihood: bernoulliDist() }, {})).toThrow(PosteriorError);
