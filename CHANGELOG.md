@@ -5,17 +5,24 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 2: Linear algebra full
+## [Unreleased] — Phase 3: Statistics (rolling in from Phase 2)
 
-Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
-fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
-old shared links. All 17 operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
-`la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`, `la.qr`, `la.eigen`,
-`la.solve`, `la.svd`, `la.basis-change`, `la.kernel`, `la.image`, `la.project`. First
-3D visualization block `viz.unit-grid-3d` shipped. SymPy cross-engine fixtures cover all
-17 operation blocks + `la.matmul`/`la.matvec`. 100-node performance gate meets the
-Phase 2 exit criterion. React Flow event-handler wiring closes the Phase-1 gap.
-See `docs/ROADMAP.md` Phase 2 progress tracker.
+Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
+(viz.unit-grid-3d, eigenvector highlighting, det area/volume animation), SymPy
+cross-engine fixtures for every operation, and 100-node perf gate green.
+Phase 3 started: `stats.bernoulli` establishes the `DistributionPayload` convention;
+`stats.binomial` follows. See `docs/ROADMAP.md` Phase 3 progress tracker.
+
+### Distributions (Phase 3)
+
+- **`stats.bernoulli`** — Bernoulli(p) distribution. Source block (no inputs); param `p ∈ [0,1]` via slider. Output port `dist: Distribution(Bernoulli)`. Establishes the `DistributionPayload` pattern (`distribution-payload.ts`): discriminated `parameters` union, eager closed-form `moments` (mean, variance, skewness?, excessKurtosis?), typed `support`. 14 property tests. (`7fed327`)
+- **`stats.binomial`** — Binomial(n, p) distribution. Params: `n ∈ ℕ₀` (integer), `p ∈ [0,1]`. E[X]=n·p, Var[X]=n·p·(1−p). 12 property tests including Bernoulli-as-Binomial(1,p) consistency. (`96b7fd7`)
+
+### Testing infrastructure (Phase 3)
+
+- **`sympy.stats` fixture pattern** — `stats-bernoulli.json` (9 cases: moments, PMF, CDF for p ∈ {0, 1/5, …, 1}); `loadBernoulliFixture()` typed accessor in `sympy-reference.ts`. Sets the per-distribution cross-engine test pattern for Phase 3. (`6470cf5`)
+
+### Operations (Phase 2)
 
 ### Operations (Phase 2)
 
