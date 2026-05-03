@@ -1,5 +1,6 @@
 import type { BlockDefinition } from "~/blocks/types";
 import { computeDet } from "./compute";
+import { DetPreviewRenderer } from "./det-preview";
 
 export const DetBlock: BlockDefinition = {
   id: "la.det",
@@ -27,6 +28,7 @@ export const DetBlock: BlockDefinition = {
     },
   ],
   compute: (inputs) => computeDet(inputs),
+  previewRenderer: DetPreviewRenderer,
   explain: {
     what: "Computes the determinant of a square matrix using LU decomposition.",
     why: "The determinant encodes whether a linear map is invertible (det ≠ 0), scales volumes by |det|, and equals the product of all eigenvalues — making it essential for solving linear systems and computing characteristic polynomials.",

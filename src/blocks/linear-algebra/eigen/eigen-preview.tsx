@@ -10,6 +10,7 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
+import type { ResolvedInputs } from "~/blocks/types";
 import type { MathValue } from "~/math/types";
 import type { EigenPayload } from "./compute";
 
@@ -216,7 +217,7 @@ function EigenPreview3d({ eigenvalues, eigenvectors }: EigenPayload) {
 
 // ── Public component: dispatch on matrix size ────────────────────────────────
 
-export function EigenPreviewRenderer({ value }: { value: MathValue }) {
+export function EigenPreviewRenderer({ value }: { value: MathValue; inputs: ResolvedInputs }) {
   const payload = value.payload as unknown as EigenPayload;
   const { eigenvalues, eigenvectors } = payload;
   const n = eigenvectors.length;

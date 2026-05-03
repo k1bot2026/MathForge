@@ -115,7 +115,7 @@ export function InspectorPanel() {
           </span>
           {(() => {
             const Preview = def.previewRenderer;
-            return <Preview value={result.value} />;
+            return <Preview value={result.value} inputs={inputs} />;
           })()}
         </div>
       ) : null}

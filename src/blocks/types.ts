@@ -128,5 +128,6 @@ export type BlockDefinition = {
    */
   previewRenderer?: ComponentType<{
     value: MathValue;
+    inputs: ResolvedInputs;
   }>;
 };
