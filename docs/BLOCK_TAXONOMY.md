@@ -237,8 +237,8 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 **Distributions** _(source role, stochastic, rose color)_
 
-- `stats.bernoulli` — Bernoulli(p); outputs `Distribution(Bernoulli)`. [pending]
-- `stats.binomial` — Binomial(n, p); outputs `Distribution(Binomial)`. [pending]
+- `stats.bernoulli` [shipped] — Bernoulli(p); output port `dist: Distribution(Bernoulli)`. `DistributionPayload` with `parameters: { family: "Bernoulli", p }`, eager closed-form moments (`mean=p`, `variance=p(1-p)`), `support: { kind: "discrete", values: [0,1] }`. Establishes the `DistributionPayload` pattern for all Phase 3 blocks. (`7fed327`)
+- `stats.binomial` [shipped] — Binomial(n, p); output port `dist: Distribution(Binomial)`. Params: `n ∈ ℕ₀` (integer), `p ∈ [0,1]` (number slider). `E[X]=n·p`, `Var[X]=n·p·(1-p)`. Bernoulli-as-Binomial(1,p) consistency verified. (`96b7fd7`)
 - `stats.normal` — Normal(μ, σ²); outputs `Distribution(Normal)`. [pending]
 - `stats.uniform` — Uniform(a, b); outputs `Distribution(Uniform)`. [pending]
 - `stats.poisson` — Poisson(λ); outputs `Distribution(Poisson)`. [pending]
