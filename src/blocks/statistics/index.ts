@@ -10,6 +10,7 @@ import { EmpiricalBlock } from "./empirical/definition";
 import { GammaBlock } from "./gamma/definition";
 import { NormalBlock } from "./normal/definition";
 import { PoissonBlock } from "./poisson/definition";
+import { SampleBlock } from "./sample/definition";
 import { UniformBlock } from "./uniform/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -20,5 +21,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(GammaBlock);
   registry.register(NormalBlock);
   registry.register(PoissonBlock);
+  registry.register(SampleBlock);
   registry.register(UniformBlock);
 }

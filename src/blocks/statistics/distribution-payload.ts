@@ -9,8 +9,6 @@
 // stats.var, stats.sample, viz.pdf-cdf) can pattern-match on family without
 // casting.
 
-import type { DistributionFamily } from "~/math/types";
-
 export type BernoulliParameters = { p: number };
 export type BinomialParameters = { n: number; p: number };
 export type UniformParameters = { a: number; b: number };
@@ -28,8 +26,7 @@ export type DistributionParameters =
   | ({ family: "Poisson" } & PoissonParameters)
   | ({ family: "Beta" } & BetaParameters)
   | ({ family: "Gamma" } & GammaParameters)
-  | ({ family: "Empirical" } & EmpiricalParameters)
-  | { family: DistributionFamily };
+  | ({ family: "Empirical" } & EmpiricalParameters);
 
 export type DistributionMoments = {
   mean: number;
