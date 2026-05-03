@@ -1609,6 +1609,139 @@ json.dumps({
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// la.image — column space basis
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference values for la.image (column space basis).
+ *
+ * For each matrix A, SymPy computes the column space via A.columnspace().
+ * We store: A, rank, and the SymPy column space basis columns as floats.
+ *
+ * Note: our implementation returns pivot columns from the original A,
+ * which span the same space as SymPy's (possibly orthogonalized) basis.
+ * Tests verify column count matches rank and all columns are in span(A),
+ * NOT direct column equality with SymPy.
+ */
+async function generateImageCases(py) {
+  const matrices = [
+    // Full-rank square (image = full column space)
+    { A: [[1, 0], [0, 1]] },
+    { A: [[1, 2], [3, 4]] },
+    { A: [[1, 0, 0], [0, 1, 0], [0, 0, 1]] },
+    // Rank-deficient square
+    { A: [[1, 2], [2, 4]] },
+    { A: [[1, 2, 3], [4, 5, 6], [7, 8, 9]] },
+    // All-zero (empty image)
+    { A: [[0, 0], [0, 0]] },
+    // Wide rectangular
+    { A: [[1, 0, 2], [0, 1, 3]] },
+    { A: [[1, 2, 3, 4], [5, 6, 7, 8]] },
+    // Tall rectangular
+    { A: [[1, 0], [0, 1], [1, 1]] },
+    { A: [[1, 2], [2, 4], [3, 6]] },
+  ];
+
+  const cases = [];
+  for (const { A } of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+A = Matrix(${JSON.stringify(A)})
+rank = A.rank()
+cs = A.columnspace()
+def vec_to_floats(v):
+    return [float(v[i]) for i in range(v.rows)]
+image_cols = [vec_to_floats(v) for v in cs]
+m = A.rows
+if rank == 0:
+    image_matrix = []
+else:
+    image_matrix = [[image_cols[j][i] for j in range(rank)] for i in range(m)]
+json.dumps({
+    "rank": rank,
+    "Im": image_matrix
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      A,
+      rank: parsed.rank,
+      Im: parsed.Im,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description: "Reference column space dimension from SymPy A.columnspace(). Rank = number of columns. Tests verify column count and that columns lie in span(A).",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.project — orthogonal projection onto column space of A
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference values for la.project.
+ *
+ * For each (A, v) pair, SymPy computes P·v = A·(AᵀA)⁻¹·Aᵀ·v.
+ * We use full-column-rank matrices so AᵀA is invertible.
+ *
+ * Key invariants the test will verify:
+ *   1. P·v matches SymPy exactly (same formula).
+ *   2. P(P·v) ≈ P·v — idempotence.
+ *   3. v − P·v is orthogonal to all columns of A.
+ */
+async function generateProjectCases(py) {
+  const systems = [
+    // 1D subspace of R² (project onto a line)
+    { A: [[1], [0]], v: [3, 4] },
+    { A: [[1], [1]], v: [1, 3] },
+    // 2D full-rank square (projection = identity)
+    { A: [[1, 0], [0, 1]], v: [2, 5] },
+    { A: [[1, 1], [0, 1]], v: [3, 7] },
+    // 1D subspace of R³
+    { A: [[1], [0], [0]], v: [2, 3, 4] },
+    { A: [[1], [1], [1]], v: [1, 2, 3] },
+    // 2D subspace of R³
+    { A: [[1, 0], [0, 1], [0, 0]], v: [5, 6, 7] },
+    { A: [[1, 0], [0, 1], [1, 0]], v: [2, 4, 6] },
+    // 2D subspace of R⁴
+    { A: [[1, 0], [0, 1], [0, 0], [0, 0]], v: [1, 2, 3, 4] },
+    // Diagonal subspace
+    { A: [[1, 0], [0, 2], [0, 0]], v: [3, 5, 7] },
+  ];
+
+  const cases = [];
+  for (const { A, v } of systems) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+A = Matrix(${JSON.stringify(A)})
+v = Matrix(${JSON.stringify(v)})
+At = A.T
+AtA = At * A
+AtAinv = AtA.inv()
+Pv = A * AtAinv * At * v
+def vec_to_floats(vec):
+    return [float(vec[i]) for i in range(vec.rows)]
+json.dumps({"Pv": vec_to_floats(Pv)})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({ A, v, Pv: parsed.Pv });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description: "Reference A·(AᵀA)⁻¹·Aᵀ·v projections from SymPy (exact rational arithmetic). Invariants: matches our output, idempotence P(Pv)=Pv, v-Pv ⊥ A.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -1675,6 +1808,14 @@ async function main() {
   console.log("\nGenerating la.kernel fixtures…");
   const kernelFixture = await generateKernelCases(py);
   writeFixture("la-kernel", kernelFixture);
+
+  console.log("\nGenerating la.image fixtures…");
+  const imageFixture = await generateImageCases(py);
+  writeFixture("la-image", imageFixture);
+
+  console.log("\nGenerating la.project fixtures…");
+  const projectFixture = await generateProjectCases(py);
+  writeFixture("la-project", projectFixture);
 
   console.log("\nDone.");
 }

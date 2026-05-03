@@ -364,3 +364,47 @@ export type KernelFixture = {
 export function loadKernelFixture(): KernelFixture {
   return loadJson<KernelFixture>("la-kernel");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.image fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type ImageCase = {
+  A: number[][];
+  rank: number;
+  /** Im columns form a SymPy basis for col(A). Empty array when rank = 0. */
+  Im: number[][];
+};
+
+export type ImageFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: ImageCase[];
+};
+
+export function loadImageFixture(): ImageFixture {
+  return loadJson<ImageFixture>("la-image");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.project fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type ProjectCase = {
+  A: number[][];
+  v: number[];
+  /** SymPy result of A·(AᵀA)⁻¹·Aᵀ·v. */
+  Pv: number[];
+};
+
+export type ProjectFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: ProjectCase[];
+};
+
+export function loadProjectFixture(): ProjectFixture {
+  return loadJson<ProjectFixture>("la-project");
+}
