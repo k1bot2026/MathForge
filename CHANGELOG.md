@@ -40,6 +40,8 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 ### Visualization (Phase 2)
 
 - **`viz.unit-grid-3d`** — renders the unit cube [0,1]³ and its image under a 3×3 matrix M as an interactive 3D wireframe (react-three-fiber + @react-three/drei, OrbitControls). Basis arrows M·e₁/e₂/e₃ shown in distinct colors. Input: `M: Matrix<3,3>`; passthrough output for pipeline chaining. Four Storybook stories: identity, rotation-Z-45°, shear, scale. Dependencies added (pinned exact): `three@0.184.0`, `@react-three/fiber@9.6.1`, `@react-three/drei@10.7.7`, `@types/three@0.184.0`. (`cb64ca3`)
+- **Eigenvector highlighting** — `EigenPreviewRenderer` added to `la.eigen` definition as `previewRenderer`. Renders SVG 2D arrows for 2×2 inputs and react-three-fiber 3D arrows for 3×3 inputs; text fallback for other sizes. Displayed in the inspector-preview section between the explanation tabs and the value strip. Introduced `BlockDefinition.previewRenderer?: ComponentType<{ value: MathValue }>` optional field. (`4cd42b4`)
+- **Determinant area/volume animation** — `DetPreviewRenderer` added to `la.det` definition as `previewRenderer`. Renders an SVG parallelogram (2×2) or react-three-fiber parallelepiped (3×3) colored by sign: blue (positive), orange (negative, with orientation-flip label), red (zero/singular). Extended `previewRenderer` signature to include `inputs: ResolvedInputs` so the renderer can access the original matrix, not just the scalar det output. (`16ea77a`)
 
 ### Bug fixes / Phase-1 gap closures
 
