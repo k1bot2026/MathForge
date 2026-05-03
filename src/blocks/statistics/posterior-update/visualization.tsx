@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import type { ResolvedInputs, ResolvedParams } from "~/blocks/types";
 import type { MathValue } from "~/math/types";
 import type { DistributionPayload } from "../distribution-payload";
+import { betaPdf } from "../viz-math";
 
 const W = 440;
 const H = 200;
@@ -23,24 +24,6 @@ const PAD_B = 32;
 const PLOT_W = W - PAD_L - PAD_R;
 const PLOT_H = H - PAD_T - PAD_B;
 const N_POINTS = 200;
-
-function lnGamma(z: number): number {
-  const c = [76.18009173, -86.50532033, 24.01409824, -1.23173957, 0.00120865097, -5.3952394e-6];
-  const x = z;
-  let y = z;
-  const tmp = x + 5.5;
-  const ser = c.reduce((acc, ci) => {
-    y += 1;
-    return acc + ci / y;
-  }, 1.00000000019);
-  return (x + 0.5) * Math.log(tmp) - tmp + Math.log((2.50662827465 * ser) / x);
-}
-
-function betaPdf(x: number, alpha: number, beta: number): number {
-  if (x <= 0 || x >= 1) return 0;
-  const logB = lnGamma(alpha) + lnGamma(beta) - lnGamma(alpha + beta);
-  return Math.exp((alpha - 1) * Math.log(x) + (beta - 1) * Math.log(1 - x) - logB);
-}
 
 function xs(): number[] {
   return Array.from({ length: N_POINTS }, (_, i) => 0.001 + (i / (N_POINTS - 1)) * 0.998);

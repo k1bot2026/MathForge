@@ -7,6 +7,7 @@
 import type { ResolvedInputs } from "~/blocks/types";
 import type { MathValue } from "~/math/types";
 import type { DistributionParameters, DistributionPayload } from "../distribution-payload";
+import { betaPdf, binomialPmf, gammaPdf, normalPdf, poissonPmf, uniformPdf } from "../viz-math";
 
 const GRID = 40;
 const W = 300;
@@ -14,54 +15,6 @@ const H = 300;
 const PAD = 28;
 const CELL_W = (W - PAD * 2) / GRID;
 const CELL_H = (H - PAD * 2) / GRID;
-
-// Reuse the same marginal PDF functions from pdf-cdf but inline here to avoid coupling.
-
-function normalPdf(x: number, mu: number, sigma: number): number {
-  const z = (x - mu) / sigma;
-  return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
-}
-
-function lnGamma(z: number): number {
-  const c = [76.18009173, -86.50532033, 24.01409824, -1.23173957, 0.00120865097, -5.3952394e-6];
-  const x = z;
-  let y = z;
-  const tmp = x + 5.5;
-  const ser = c.reduce((acc, ci) => {
-    y += 1;
-    return acc + ci / y;
-  }, 1.00000000019);
-  return (x + 0.5) * Math.log(tmp) - tmp + Math.log((2.50662827465 * ser) / x);
-}
-
-function betaPdf(x: number, alpha: number, beta: number): number {
-  if (x <= 0 || x >= 1) return 0;
-  const logB = lnGamma(alpha) + lnGamma(beta) - lnGamma(alpha + beta);
-  return Math.exp((alpha - 1) * Math.log(x) + (beta - 1) * Math.log(1 - x) - logB);
-}
-
-function gammaPdf(x: number, alpha: number, beta: number): number {
-  if (x <= 0) return 0;
-  return Math.exp(alpha * Math.log(beta) + (alpha - 1) * Math.log(x) - beta * x - lnGamma(alpha));
-}
-
-function uniformPdf(x: number, a: number, b: number): number {
-  return x >= a && x <= b ? 1 / (b - a) : 0;
-}
-
-function poissonPmf(k: number, lambda: number): number {
-  if (k < 0 || !Number.isInteger(k)) return 0;
-  let logP = k * Math.log(lambda) - lambda;
-  for (let i = 1; i <= k; i++) logP -= Math.log(i);
-  return Math.exp(logP);
-}
-
-function binomialPmf(k: number, n: number, p: number): number {
-  if (k < 0 || k > n || !Number.isInteger(k)) return 0;
-  let logBinom = 0;
-  for (let i = 0; i < k; i++) logBinom += Math.log(n - i) - Math.log(i + 1);
-  return Math.exp(logBinom + k * Math.log(p) + (n - k) * Math.log(1 - p));
-}
 
 function marginalPdf(x: number, params: DistributionParameters): number {
   if (params.family === "Normal") return normalPdf(x, params.mu, params.sigma);

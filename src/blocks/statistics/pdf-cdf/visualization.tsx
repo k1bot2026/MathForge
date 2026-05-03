@@ -3,6 +3,15 @@
 import type { ResolvedInputs } from "~/blocks/types";
 import type { MathValue } from "~/math/types";
 import type { DistributionParameters, DistributionPayload } from "../distribution-payload";
+import {
+  betaPdf,
+  binomialPmf,
+  gammaPdf,
+  normalCdf,
+  normalPdf,
+  poissonPmf,
+  uniformPdf,
+} from "../viz-math";
 
 const W = 480;
 const H = 180;
@@ -18,70 +27,6 @@ function tx(frac: number): number {
 }
 function ty(frac: number): number {
   return PAD_T + (1 - frac) * PLOT_H;
-}
-
-// Normal PDF: φ(x; μ, σ)
-function normalPdf(x: number, mu: number, sigma: number): number {
-  const z = (x - mu) / sigma;
-  return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
-}
-
-// Normal CDF: Φ(x; μ, σ) — approximation via erf
-function erf(z: number): number {
-  const sign = z >= 0 ? 1 : -1;
-  const t = 1 / (1 + 0.3275911 * Math.abs(z));
-  const poly =
-    t *
-    (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
-  return sign * (1 - poly * Math.exp(-z * z));
-}
-function normalCdf(x: number, mu: number, sigma: number): number {
-  return 0.5 * (1 + erf((x - mu) / (sigma * Math.SQRT2)));
-}
-
-// Beta PDF: uses log-gamma for numerical stability (Lanczos g=5)
-function lnGamma(z: number): number {
-  const c = [76.18009173, -86.50532033, 24.01409824, -1.23173957, 0.00120865097, -5.3952394e-6];
-  const x = z;
-  let y = z;
-  const tmp = x + 5.5;
-  const ser = c.reduce((acc, ci) => {
-    y += 1;
-    return acc + ci / y;
-  }, 1.00000000019);
-  return (x + 0.5) * Math.log(tmp) - tmp + Math.log((2.50662827465 * ser) / x);
-}
-function betaPdf(x: number, alpha: number, beta: number): number {
-  if (x <= 0 || x >= 1) return 0;
-  const logB = lnGamma(alpha) + lnGamma(beta) - lnGamma(alpha + beta);
-  return Math.exp((alpha - 1) * Math.log(x) + (beta - 1) * Math.log(1 - x) - logB);
-}
-
-// Gamma PDF
-function gammaPdf(x: number, alpha: number, beta: number): number {
-  if (x <= 0) return 0;
-  const logGammaAlpha = lnGamma(alpha);
-  return Math.exp(alpha * Math.log(beta) + (alpha - 1) * Math.log(x) - beta * x - logGammaAlpha);
-}
-
-// Uniform PDF
-function uniformPdf(x: number, a: number, b: number): number {
-  return x >= a && x <= b ? 1 / (b - a) : 0;
-}
-
-// Poisson PMF
-function poissonPmf(k: number, lambda: number): number {
-  let logP = k * Math.log(lambda) - lambda;
-  for (let i = 1; i <= k; i++) logP -= Math.log(i);
-  return Math.exp(logP);
-}
-
-// Binomial PMF
-function binomialPmf(k: number, n: number, p: number): number {
-  if (k < 0 || k > n) return 0;
-  let logBinom = 0;
-  for (let i = 0; i < k; i++) logBinom += Math.log(n - i) - Math.log(i + 1);
-  return Math.exp(logBinom + k * Math.log(p) + (n - k) * Math.log(1 - p));
 }
 
 type PlotSeries = {
