@@ -5,7 +5,7 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 3: Statistics (complete)
+## [Unreleased] — Phase 4 in progress: 6 calc blocks shipped (function, derivative, integrate, definite-integrate, limit, taylor)
 
 Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
 (viz.unit-grid-3d, eigenvector highlighting, det area/volume animation), SymPy
@@ -15,6 +15,23 @@ Phase 3 complete: 8 distributions + 7 operations + 4 visualization blocks. Bayes
 inference pipeline (prior + likelihood → posterior → viz) works end-to-end.
 `stats.mgf` establishes the SymPy Pyodide worker RPC pattern for Phase 4 calculus.
 1338 tests green. `stats.bayes-net` deferred to Phase 5 (requires `core.subgraph`).
+
+Phase 4 in progress: `calc.function` establishes the `FunctionPayload` convention and
+extends the Pyodide client with all Phase 4 RPCs. Five operation blocks follow.
+
+### Calculus (Phase 4)
+
+- **`calc.function`** — symbolic expression entry via SymPy sympify(). Params: `expression` (string, default "sin(x)"), `variable` (string, default "x"). Output port `fn: Function(arity=1, real→real)`. `FunctionPayload` stores canonical SymPy str() form and ordered variable list. Also extends `src/engine/workers/pyodide.{client,worker}.ts` with sympify, diff, integrate, definiteIntegrate, limit, and taylor RPCs — pre-wired for all Phase 4 blocks. Throws `FunctionError`. (`02b5512`)
+- **`calc.derivative`** — symbolic differentiation d/dx via SymPy diff(). Input `fn: Function`; param `variable` (blank = infer from `payload.variables[0]`); output `fn: Function` (differentiated expression). Chainable for higher-order derivatives. Throws `DerivativeError`. (`cc3542d`)
+- **`calc.integrate`** — indefinite integral ∫f dx via SymPy integrate(). Input `fn: Function`; param `variable`; output `fn: Function` (antiderivative; constant of integration omitted). Throws `IntegrateError`. Compose with calc.derivative to verify the Fundamental Theorem. (`8d41219`)
+- **`calc.definite-integrate`** — ∫ₐᵇ f dx via SymPy N(integrate(f,(x,a,b))). Inputs: `fn: Function`, optional `a: Scalar(real)` (lower bound), optional `b: Scalar(real)` (upper bound). Params: `a` (default 0), `b` (default 1), `variable`. Output `value: Scalar(real, approximate)`. Bound input ports override param defaults — upstream Scalar blocks drive integration limits dynamically. Throws `DefiniteIntegrateError`. (`5cbf696`)
+- **`calc.limit`** — lim_{x→c} f(x) via SymPy limit(). Inputs: `fn: Function`, optional `point: Scalar(real)`. Params: `point` (default 0), `variable`. Output `value: Expression(freeVars=[])`. Returns `Scalar(real)` for finite numeric results; `Expression` for symbolic answers (oo, zoo, indeterminate forms). Throws `LimitError`. (`3ceb98f`)
+- **`calc.taylor`** — degree-n Taylor polynomial via SymPy series().removeO(). Inputs: `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`. Params: `center` (default 0), `order` (1–20, default 5), `variable`. Output `fn: Function` (polynomial expression, big-O term removed). Throws `TaylorError`. Phase 4 exit-criterion centerpiece — connects to viz.taylor for convergence animation. (`99b529f`)
+
+### Testing (Phase 4)
+
+- **Calculus fixture infrastructure** — five fixture sets committed: `calc-function.json`, `calc-derivative.json`, `calc-integrate.json`, `calc-limit.json`, `calc-taylor.json`. Five typed loaders added to `tests/sympy-reference.ts` (`loadCalcFunctionFixture` through `loadCalcTaylorFixture`). Cross-engine test `function-sympy.test.ts` (22 tests via mocked sympify). Generators added to `scripts/generate-sympy-fixtures.mjs`. (`679fcd0`)
+- **Pyodide client error-path coverage** — all new RPC methods (sympify, diff, integrate, definiteIntegrate, limit, taylor) covered in `src/engine/workers/pyodide.client.test.ts`. (`3ad4736`)
 
 ### Distributions (Phase 3)
 
