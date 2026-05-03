@@ -179,4 +179,79 @@ describe("graph-store", () => {
     const { results } = useGraphStore.getState();
     expect(results.x?.kind).toBe("value");
   });
+
+  test("setNodes replaces the node array directly", () => {
+    const nodes: Node[] = [{ id: "x", type: "block", position: { x: 0, y: 0 }, data: {} }];
+    useGraphStore.getState().setNodes(nodes);
+    expect(useGraphStore.getState().nodes).toEqual(nodes);
+  });
+
+  test("setEdges replaces the edge array directly", () => {
+    const edges: Edge[] = [{ id: "e1", source: "a", target: "b" }];
+    useGraphStore.getState().setEdges(edges);
+    expect(useGraphStore.getState().edges).toEqual(edges);
+  });
+
+  test("setEvalStatus updates evalStatus", () => {
+    useGraphStore.getState().setEvalStatus("running");
+    expect(useGraphStore.getState().evalStatus).toBe("running");
+    useGraphStore.getState().setEvalStatus("idle");
+    expect(useGraphStore.getState().evalStatus).toBe("idle");
+  });
+
+  test("onNodesChange removes node and records event", () => {
+    useHistoryStore.getState().reset();
+    const node: Node = {
+      id: "n1",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: {},
+    };
+    useGraphStore.getState().addNode(node);
+    useGraphStore.getState().onNodesChange([{ type: "remove", id: "n1" }]);
+    expect(useGraphStore.getState().nodes.find((n) => n.id === "n1")).toBeUndefined();
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("node-removed");
+  });
+
+  test("onNodesChange records node-moved when position change is not dragging", () => {
+    useHistoryStore.getState().reset();
+    const node: Node = {
+      id: "n1",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: {},
+    };
+    useGraphStore.setState({ nodes: [node] });
+    useGraphStore
+      .getState()
+      .onNodesChange([{ type: "position", id: "n1", dragging: false, position: { x: 50, y: 75 } }]);
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("node-moved");
+    if (ev?.kind === "node-moved") {
+      expect(ev.position).toEqual({ x: 50, y: 75 });
+    }
+  });
+
+  test("onNodesChange does not record event for in-progress drag", () => {
+    useHistoryStore.getState().reset();
+    const node: Node = { id: "n1", type: "block", position: { x: 0, y: 0 }, data: {} };
+    useGraphStore.setState({ nodes: [node] });
+    useGraphStore
+      .getState()
+      .onNodesChange([{ type: "position", id: "n1", dragging: true, position: { x: 50, y: 75 } }]);
+    expect(useHistoryStore.getState().events).toHaveLength(0);
+  });
+
+  test("onEdgesChange removes edge and records event", () => {
+    useHistoryStore.getState().reset();
+    useGraphStore.setState({ edges: [{ id: "e1", source: "a", target: "b" }] });
+    useGraphStore.getState().onEdgesChange([{ type: "remove", id: "e1" }]);
+    expect(useGraphStore.getState().edges).toHaveLength(0);
+    const ev = useHistoryStore.getState().events.at(-1);
+    expect(ev?.kind).toBe("edge-removed");
+    if (ev?.kind === "edge-removed") {
+      expect(ev.edgeId).toBe("e1");
+    }
+  });
 });
