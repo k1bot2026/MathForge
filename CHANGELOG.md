@@ -56,7 +56,7 @@ inference pipeline (prior + likelihood → posterior → viz) works end-to-end.
 
 ### Foundation (Phase 3)
 
-- **`ExpressionPayload` type** — introduced in `src/blocks/statistics/expression-payload.ts` (shipped with `stats.mgf`) for blocks that return SymPy-computed symbolic expressions. Fields: `serialized` (LaTeX string), `freeVars` (bound variable names). (`13a1760`)
+- **`ExpressionPayload` type** — defined in `src/math/types.ts` (shipped with `stats.mgf`) for blocks that return SymPy-computed symbolic expressions. Fields: `form` ("sympy" | "latex"), `serialized` (expression string), `freeVars` (bound variable names). (`13a1760`)
 - **`DistributionPayload` convention** — documented in `docs/TYPES.md`: `parameters` discriminated union by family, eager closed-form `moments`, `support` typed union. Payload cast idiom. (`33a978e`)
 
 ### Operations (Phase 2)
