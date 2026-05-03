@@ -290,6 +290,64 @@ Inside the engine, types are trusted. At the boundary (between UI events, networ
 
 Cap empirical distributions at 10⁴ samples in serialized form; full samples live in cache only.
 
+## Distribution payload conventions (Phase 3)
+
+Established by `stats.bernoulli` (`7fed327`). All Phase 3 distribution blocks follow this pattern.
+
+### DistributionPayload
+
+Defined in `src/blocks/statistics/distribution-payload.ts`:
+
+```typescript
+export type DistributionPayload = {
+  parameters: DistributionParameters; // discriminated union: { family: "Bernoulli", p } | ...
+  moments: DistributionMoments;       // mean, variance, skewness?, excessKurtosis?
+  support:
+    | { kind: "discrete"; values: ReadonlyArray<number> }
+    | { kind: "continuous"; lo: number; hi: number };
+};
+```
+
+`parameters` is a discriminated union keyed on `family`, matching `DistributionFamily` in `src/math/types.ts`. Downstream blocks pattern-match on `parameters.family` to extract family-specific params without casting.
+
+### Moments strategy
+
+- **Eager, closed-form.** All Phase 3 parametric families have O(1) moment formulas. Moments are computed at block `compute` time and stored in `payload.moments`. There is no lazy-evaluation cache for moments.
+- **Degenerate cases.** `skewness` and `excessKurtosis` are `undefined` when the distribution is degenerate (e.g. `Bernoulli(0)` or `Bernoulli(1)` where variance = 0).
+- **SymPy escalation.** Reserved for `stats.mgf` (moment-generating function, returns `Expression`) and `stats.posterior` (conjugate prior update). Standard moments never escalate to SymPy.
+
+### Payload cast
+
+Because `MathValue.payload` is typed as `number` (the common case), distribution blocks cast:
+
+```typescript
+payload: payload as unknown as number
+```
+
+The `kind: "Distribution"` discriminator in `MathValue.type` is the canonical signal to consumers. Downstream blocks cast back via `output.payload as unknown as DistributionPayload`.
+
+### canConnect rules for Distribution
+
+`canConnect` in `src/editor/connections.ts` currently accepts any same-kind `Distribution` connection (`ok: true` via the default case). Structural family-level rules — e.g. rejecting `Distribution(Normal)` into a slot typed `Distribution(Bernoulli)` — will be added when the first operation block that requires a specific family lands.
+
+Current behavior (Phase 3, first blocks):
+- `Distribution(Bernoulli)` → `Distribution(Bernoulli)` slot: accepted.
+- `Distribution(Normal)` → `Distribution(Bernoulli)` slot: accepted (family not yet enforced).
+- `Distribution(any)` → `Distribution(Bernoulli)` slot: accepted.
+
+Family-polymorphic slots (e.g. `stats.sample` accepts any distribution) will use `family: DistributionFamily` as the static type, which matches any connected distribution. Family-specific slots may narrow to a concrete member once the structural rule is added.
+
+### Distribution vs RandomVariable
+
+| | `Distribution` | `RandomVariable` |
+|---|---|---|
+| What it is | A parametric description of a probability law | A concrete sample draw or composite |
+| Payload | `DistributionPayload` (params + moments + support) | `RandomVariablePayload` (samples array, summary stats) |
+| Source | `stats.bernoulli`, `stats.normal`, etc. — no inputs | `stats.sample` — input is a `Distribution` |
+| Connects to | `stats.expect`, `stats.var`, `stats.mgf`, `stats.posterior`, `viz.pdf-cdf` | `viz.histogram`, downstream `stats.cov`/`stats.cor` |
+
+`RandomVariable` is the result of sampling a `Distribution`; `Distribution` is an abstract object you can reason about symbolically.
+
 ## Notes on extensibility
 
 - Add a new `MathType` kind only via ADR — it cascades to `canConnect`, payloads, serialization, validation, and visualizers.
