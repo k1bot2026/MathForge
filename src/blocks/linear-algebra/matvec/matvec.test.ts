@@ -2,6 +2,7 @@ import fc from "fast-check";
 import { describe, expect, test } from "vitest";
 import type { MathValue } from "~/math/types";
 import { computeMatVec, MatVecError } from "./compute";
+import { MatVecBlock } from "./definition";
 
 const REAL_MATRIX = (m: number, n: number) => ({ kind: "Matrix", m, n, field: "real" }) as const;
 const REAL_VECTOR = (n: number) => ({ kind: "Vector", n, field: "real" }) as const;
@@ -143,5 +144,77 @@ describe("la.matvec compute", () => {
       ),
       { numRuns: 50 },
     );
+  });
+});
+
+describe("la.matvec definition — explain.effect and output type", () => {
+  const ctx = { signal: new AbortController().signal };
+
+  test("explain.effect with M input shows matrix shape and vector length", () => {
+    const M: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 2, field: "real" },
+      payload: [
+        [1, 0],
+        [0, 1],
+        [1, 1],
+      ] as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const v: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [1, 2] as number[],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const out = computeMatVec({ M, v });
+    const text = MatVecBlock.explain.effect?.({ M, v }, out) ?? "";
+    expect(text).toMatch(/3×2/);
+    expect(text).toMatch(/3-vector/);
+  });
+
+  test("explain.effect without M input shows result array", () => {
+    const out: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [5, 7] as number[],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const text = MatVecBlock.explain.effect?.({}, out) ?? "";
+    expect(text).toMatch(/5/);
+    expect(text).toMatch(/7/);
+    expect(text).not.toMatch(/matrix/i);
+  });
+
+  test("output type function returns concrete n when M type is present", () => {
+    const outputSpec = MatVecBlock.outputs[0];
+    if (!outputSpec || typeof outputSpec.type !== "function") return;
+    const result = outputSpec.type({
+      M: { kind: "Matrix", m: 4, n: 3, field: "real" },
+    });
+    expect(result).toMatchObject({ kind: "Vector", n: 4, field: "real" });
+  });
+
+  test("output type function returns 'any' n when M type is absent", () => {
+    const outputSpec = MatVecBlock.outputs[0];
+    if (!outputSpec || typeof outputSpec.type !== "function") return;
+    const result = outputSpec.type({});
+    expect(result).toMatchObject({ kind: "Vector", n: "any" });
+  });
+
+  test("compute delegates to computeMatVec", async () => {
+    const M: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 2, field: "real" },
+      payload: [
+        [1, 2],
+        [3, 4],
+      ] as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const v: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [1, 0] as number[],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const raw = MatVecBlock.compute({ M, v }, {}, ctx);
+    const result = raw instanceof Promise ? await raw : raw;
+    expect(result.payload).toEqual([1, 3]);
   });
 });

@@ -2,6 +2,7 @@ import fc from "fast-check";
 import { describe, expect, test } from "vitest";
 import type { MathValue } from "~/math/types";
 import { computeMatMul, MatMulError } from "./compute";
+import { MatMulBlock } from "./definition";
 
 const REAL_MATRIX = (m: number, n: number) => ({ kind: "Matrix", m, n, field: "real" }) as const;
 
@@ -178,5 +179,80 @@ describe("la.matmul compute", () => {
         { numRuns: 30 },
       );
     });
+  });
+});
+
+describe("la.matmul definition — explain.effect and output type", () => {
+  const ctx = { signal: new AbortController().signal };
+
+  test("explain.effect with inputs shows combined shape", () => {
+    const A: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 4, field: "real" },
+      payload: Array.from({ length: 3 }, () => Array(4).fill(0)) as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const B: MathValue = {
+      type: { kind: "Matrix", m: 4, n: 2, field: "real" },
+      payload: Array.from({ length: 4 }, () => Array(2).fill(0)) as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const out = computeMatMul({ A, B });
+    const text = MatMulBlock.explain.effect?.({ A, B }, out) ?? "";
+    expect(text).toMatch(/3×4/);
+    expect(text).toMatch(/4×2/);
+    expect(text).toMatch(/3×2/);
+  });
+
+  test("explain.effect without A input shows output shape only", () => {
+    const out: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 3, field: "real" },
+      payload: Array.from({ length: 2 }, () => Array(3).fill(1)) as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const text = MatMulBlock.explain.effect?.({}, out) ?? "";
+    expect(text).toMatch(/2×3/);
+    expect(text).not.toMatch(/Combined/);
+  });
+
+  test("output type function returns concrete dimensions when both types present", () => {
+    const outputSpec = MatMulBlock.outputs[0];
+    if (!outputSpec || typeof outputSpec.type !== "function") return;
+    const result = outputSpec.type({
+      A: { kind: "Matrix", m: 3, n: 4, field: "real" },
+      B: { kind: "Matrix", m: 4, n: 5, field: "real" },
+    });
+    expect(result).toMatchObject({ kind: "Matrix", m: 3, n: 5, field: "real" });
+  });
+
+  test("output type function returns 'any' dimensions when inputs are absent", () => {
+    const outputSpec = MatMulBlock.outputs[0];
+    if (!outputSpec || typeof outputSpec.type !== "function") return;
+    const result = outputSpec.type({});
+    expect(result).toMatchObject({ kind: "Matrix", m: "any", n: "any" });
+  });
+
+  test("compute delegates to computeMatMul", async () => {
+    const A: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 2, field: "real" },
+      payload: [
+        [1, 0],
+        [0, 1],
+      ] as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const B: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 2, field: "real" },
+      payload: [
+        [2, 3],
+        [4, 5],
+      ] as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const raw = MatMulBlock.compute({ A, B }, {}, ctx);
+    const result = raw instanceof Promise ? await raw : raw;
+    expect(result.payload).toEqual([
+      [2, 3],
+      [4, 5],
+    ]);
   });
 });
