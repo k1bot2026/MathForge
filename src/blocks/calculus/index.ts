@@ -4,6 +4,7 @@ import { DerivativeBlock } from "./derivative/definition";
 import { FunctionBlock } from "./function/definition";
 import { IntegrateBlock } from "./integrate/definition";
 import { LimitBlock } from "./limit/definition";
+import { TaylorBlock } from "./taylor/definition";
 
 export function register(registry: BlockRegistry): void {
   registry.register(FunctionBlock);
@@ -11,4 +12,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(IntegrateBlock);
   registry.register(DefiniteIntegrateBlock);
   registry.register(LimitBlock);
+  registry.register(TaylorBlock);
 }
