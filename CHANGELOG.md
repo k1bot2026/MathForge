@@ -5,25 +5,59 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 3: Statistics (rolling in from Phase 2)
+## [Unreleased] — Phase 3: Statistics (complete)
 
 Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
 (viz.unit-grid-3d, eigenvector highlighting, det area/volume animation), SymPy
 cross-engine fixtures for every operation, and 100-node perf gate green.
-Phase 3 started: `stats.bernoulli` establishes the `DistributionPayload` convention;
-`stats.binomial` follows. See `docs/ROADMAP.md` Phase 3 progress tracker.
+
+Phase 3 complete: 8 distributions + 7 operations + 4 visualization blocks. Bayesian
+inference pipeline (prior + likelihood → posterior → viz) works end-to-end.
+`stats.mgf` establishes the SymPy Pyodide worker RPC pattern for Phase 4 calculus.
+1338 tests green. `stats.bayes-net` deferred to Phase 5 (requires `core.subgraph`).
 
 ### Distributions (Phase 3)
 
 - **`stats.bernoulli`** — Bernoulli(p) distribution. Source block (no inputs); param `p ∈ [0,1]` via slider. Output port `dist: Distribution(Bernoulli)`. Establishes the `DistributionPayload` pattern (`distribution-payload.ts`): discriminated `parameters` union, eager closed-form `moments` (mean, variance, skewness?, excessKurtosis?), typed `support`. 14 property tests. (`7fed327`)
 - **`stats.binomial`** — Binomial(n, p) distribution. Params: `n ∈ ℕ₀` (integer), `p ∈ [0,1]`. E[X]=n·p, Var[X]=n·p·(1−p). 12 property tests including Bernoulli-as-Binomial(1,p) consistency. (`96b7fd7`)
+- **`stats.normal`** — Normal(μ, σ) distribution. Params `μ` (mean), `σ > 0` (standard deviation). E[X]=μ, Var[X]=σ², skewness=0, excess kurtosis=0. (pre-existing)
 - **`stats.uniform`** — Uniform(a, b) continuous distribution. Params `a < b` (validated). E[X]=(a+b)/2, Var[X]=(b-a)²/12, skewness=0, excess kurtosis=−1.2. 9 property tests including standard U(0,1) identity. Also ships `bernoulli-sympy.test.ts` (cross-engine test using `stats-bernoulli.json` fixture). (`66d0e3b`)
+- **`stats.poisson`** — Poisson(λ) distribution. Param `λ > 0`. E[X]=Var[X]=λ (equidispersion). Discrete support 0..⌈λ+6√λ⌉ (captures >99.9999998% probability mass). 7 property tests including equidispersion identity. (`d8c5069`)
+- **`stats.beta`** — Beta(α, β) distribution on [0,1]. Params `α, β > 0`. Closed-form skewness and excess kurtosis (no gamma function needed). Beta(1,1)=Uniform(0,1) identity verified. 8 property tests. Conjugate prior for Bernoulli/Binomial. (`180ceff`)
+- **`stats.gamma`** — Gamma(α, β) shape/rate distribution on [0, ∞). Params `α, β > 0`. E[X]=α/β, Var[X]=α/β². Gamma(1,β)=Exponential(β) identity verified. 9 property tests. Conjugate prior for Poisson. (`111afc5`)
+- **`stats.empirical`** — wraps a sample Vector as Distribution(Empirical). Input `samples: Vector<n, real>`. E[X]=sample mean, Var[X]=population variance (÷n, not n−1). Support carries the original sample array for viz.histogram. 8 property tests. (`870d195`)
 
-### Testing infrastructure (Phase 3)
+### Operations (Phase 3)
+
+- **`stats.sample`** — draws n independent samples from a distribution using a seeded PCG32 PRNG (BigInt 64-bit state) for full reproducibility. Output `samples: Vector<n, real>`. Params: `n` (count), `seed`. Supports Bernoulli, Binomial, Uniform, Normal (Box-Muller), Poisson (Knuth), Beta (ratio of Gamma draws), Gamma (Marsaglia-Tsang), Empirical. Removes catch-all from `DistributionParameters` union for correct TypeScript narrowing. 10 tests. (`78f7e51`)
+- **`stats.expect`** — E[X]: reads `moments.mean` directly from `DistributionPayload`; engine: native. Input `dist: Distribution`; output `mean: Scalar(real)`. Cross-engine tested against SymPy for 5 families. (`a0555ce`)
+- **`stats.var`** — Var[X]: reads `moments.variance` directly from `DistributionPayload`; engine: native. Input `dist: Distribution`; output `variance: Scalar(real)`. Cross-engine tested against SymPy for 7 families. (`56bddd1`)
+- **`stats.cov`** — Cov[X, Y] = E[(X−E[X])(Y−E[Y])]. Assumes independence (returns 0) unless X and Y are the same random variable. Inputs `X: Distribution`, `Y: Distribution`; output `cov: Scalar(real)`. (`c5ed65f`)
+- **`stats.cor`** — Pearson Cor[X, Y] = Cov/(√Var[X]·√Var[Y]) ∈ [−1, 1]. Three inputs: `cov: Scalar`, `X: Distribution`, `Y: Distribution`; output `cor: Scalar(real)`. (`7451bef`)
+- **`stats.mgf`** — M_X(t) = E[e^{tX}] computed symbolically via SymPy Pyodide worker; output `mgf: Expression(t)`. Engine: sympy; stability: beta. Introduces `ExpressionPayload` type for SymPy-backed symbolic outputs. First block using the Pyodide worker RPC pattern — establishes the template for Phase 4 calculus blocks. (`13a1760`)
+- **`stats.posterior`** — conjugate Bayesian update: prior + likelihood evidence → posterior. Params `n_obs`, `k_hits`, `x_obs`. Four supported conjugate pairs: Beta–Bernoulli, Beta–Binomial, Normal–Normal (known σ), Gamma–Poisson. Closed-form posterior parameters computed exactly. 18 property tests. Stability: beta. (`4e856fe`)
+
+### Visualization (Phase 3)
+
+- **`viz.pdf-cdf`** — plots PDF (or PMF for discrete distributions) and CDF side-by-side using Observable Plot. Input `X: Distribution`; passthrough output. Handles both discrete (PMF/step-CDF) and continuous (density/smooth-CDF) distributions. (`ebbf0ce`)
+- **`viz.histogram`** — Observable Plot histogram with optional Gaussian KDE density overlay; input `samples: Vector<n, real>`; passthrough output. Params: `bins` (integer, 0=auto), `kde` (boolean toggle). (`6054a7e`)
+- **`viz.joint-heatmap`** — SVG joint density heatmap p(x,y)=p_X(x)·p_Y(y) assuming independence. Inputs `X: Distribution`, `Y: Distribution`; passthrough output `X`. Grid computed from marginal PDFs/PMFs. (`3cd3863`)
+- **`viz.posterior-update`** — overlays prior and posterior Beta distributions on the same axis. Inputs `prior: Distribution(Beta)`, `posterior: Distribution(Beta)` (wire from stats.posterior); passthrough output `posterior`. Separation of Bayesian computation (stats.posterior) from visualization (this block). Stability: beta. (`cc75e44`; refactored to consume stats.posterior via input port in `427a2ac`)
+
+### Refactors (Phase 3)
+
+- **`viz-math.ts` shared utility** — extracted `pdfAt`, `pmfAt`, `cdfAt`, and KDE helpers from pdf-cdf, joint-heatmap, and posterior-update visualizations into `src/blocks/statistics/viz-math.ts`. Eliminates duplicate distribution math across 3 visualization modules. (`e20084f`)
+
+### Testing (Phase 3)
 
 - **`sympy.stats` fixture pattern** — `stats-bernoulli.json` (9 cases: moments, PMF, CDF for p ∈ {0, 1/5, …, 1}); `loadBernoulliFixture()` typed accessor in `sympy-reference.ts`. Sets the per-distribution cross-engine test pattern for Phase 3. (`6470cf5`)
+- **LLN tests upgraded** — `sample-lln.test.ts` updated with statistically principled ±2σ/√n mean bands and ±5% variance convergence checks for all 7 parametric families (Bernoulli(0.3), Binomial(20,0.4), Uniform(0,10), Normal(0,1), Poisson(5), Beta(2,3), Gamma(2,1)). Each family uses a unique seed (42–48). Replaces the previous flat ±1% tolerance. (`5793827`)
+- **Cross-engine tests for stats.expect + stats.var** — `expect-sympy.test.ts`: E[X] pipeline test for 5 families chained through computeX → computeExpect. `var-sympy.test.ts`: Var[X] pipeline test for 7 parametric families. Tests count: 1190 → 1271 (+81). (`39582d0`)
 
-### Operations (Phase 2)
+### Foundation (Phase 3)
+
+- **`ExpressionPayload` type** — introduced in `src/blocks/statistics/expression-payload.ts` (shipped with `stats.mgf`) for blocks that return SymPy-computed symbolic expressions. Fields: `serialized` (LaTeX string), `freeVars` (bound variable names). (`13a1760`)
+- **`DistributionPayload` convention** — documented in `docs/TYPES.md`: `parameters` discriminated union by family, eager closed-form `moments`, `support` typed union. Payload cast idiom. (`33a978e`)
 
 ### Operations (Phase 2)
 
