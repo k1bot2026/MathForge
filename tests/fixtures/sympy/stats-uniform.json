@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T14:27:31.043Z",
+  "description": "Reference moments and density/CDF samples for Uniform(a,b) from sympy.stats. Invariants: mean=(a+b)/2, variance=(b-a)^2/12, CDF(a)=0, CDF(b)=1.",
+  "cases": [
+    {
+      "family": "Uniform",
+      "parameters": {
+        "a": 0,
+        "b": 1
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.08333333333333333
+      },
+      "pdf": [
+        {
+          "x": 0,
+          "value": 1
+        },
+        {
+          "x": 0.5,
+          "value": 1
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Uniform",
+      "parameters": {
+        "a": 0,
+        "b": 2
+      },
+      "moments": {
+        "mean": 1,
+        "variance": 0.3333333333333333
+      },
+      "pdf": [
+        {
+          "x": 0,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 0.5
+        },
+        {
+          "x": 2,
+          "value": 0.5
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 1,
+          "value": 0.5
+        },
+        {
+          "x": 2,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Uniform",
+      "parameters": {
+        "a": -1,
+        "b": 1
+      },
+      "moments": {
+        "mean": 0,
+        "variance": 0.3333333333333333
+      },
+      "pdf": [
+        {
+          "x": -1,
+          "value": 0.5
+        },
+        {
+          "x": 0,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 0.5
+        }
+      ],
+      "cdf": [
+        {
+          "x": -1,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Uniform",
+      "parameters": {
+        "a": 1,
+        "b": 4
+      },
+      "moments": {
+        "mean": 2.5,
+        "variance": 0.75
+      },
+      "pdf": [
+        {
+          "x": 1,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 2.5,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 4,
+          "value": 0.3333333333333333
+        }
+      ],
+      "cdf": [
+        {
+          "x": 1,
+          "value": 0
+        },
+        {
+          "x": 2.5,
+          "value": 0.49999999999999994
+        },
+        {
+          "x": 4,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Uniform",
+      "parameters": {
+        "a": -0.5,
+        "b": 0.5
+      },
+      "moments": {
+        "mean": 0,
+        "variance": 0.08333333333333333
+      },
+      "pdf": [
+        {
+          "x": -0.5,
+          "value": 1
+        },
+        {
+          "x": 0,
+          "value": 1
+        },
+        {
+          "x": 0.5,
+          "value": 1
+        }
+      ],
+      "cdf": [
+        {
+          "x": -0.5,
+          "value": 0
+        },
+        {
+          "x": 0,
+          "value": 0.5
+        },
+        {
+          "x": 0.5,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Uniform",
+      "parameters": {
+        "a": 2,
+        "b": 5
+      },
+      "moments": {
+        "mean": 3.5,
+        "variance": 0.75
+      },
+      "pdf": [
+        {
+          "x": 2,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 3.5,
+          "value": 0.3333333333333333
+        },
+        {
+          "x": 5,
+          "value": 0.3333333333333333
+        }
+      ],
+      "cdf": [
+        {
+          "x": 2,
+          "value": 0
+        },
+        {
+          "x": 3.5,
+          "value": 0.4999999999999999
+        },
+        {
+          "x": 5,
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T14:27:33.338Z",
+  "description": "Reference moments and density/CDF samples for Poisson(lambda) from sympy.stats. Invariants: mean=lambda, variance=lambda, skewness=1/sqrt(lambda), excessKurtosis=1/lambda.",
+  "cases": [
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 1
+      },
+      "moments": {
+        "mean": 1,
+        "variance": 1
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.36787944117144233
+        },
+        {
+          "x": 1,
+          "value": 0.36787944117144233
+        },
+        {
+          "x": 2,
+          "value": 0.18393972058572117
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0.36787944117144233
+        },
+        {
+          "x": 1,
+          "value": 0.7357588823428847
+        }
+      ]
+    },
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 2
+      },
+      "moments": {
+        "mean": 2,
+        "variance": 2
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.1353352832366127
+        },
+        {
+          "x": 2,
+          "value": 0.2706705664732254
+        },
+        {
+          "x": 3,
+          "value": 0.18044704431548358
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0.1353352832366127
+        },
+        {
+          "x": 2,
+          "value": 0.6766764161830634
+        }
+      ]
+    },
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 5
+      },
+      "moments": {
+        "mean": 5,
+        "variance": 5
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.006737946999085467
+        },
+        {
+          "x": 5,
+          "value": 0.1754673697678507
+        },
+        {
+          "x": 6,
+          "value": 0.1462228081398756
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0.006737946999085467
+        },
+        {
+          "x": 5,
+          "value": 0.6159606548330632
+        }
+      ]
+    },
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 10
+      },
+      "moments": {
+        "mean": 10,
+        "variance": 10
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.000045399929762484854
+        },
+        {
+          "x": 10,
+          "value": 0.1251100357211333
+        },
+        {
+          "x": 11,
+          "value": 0.11373639611012118
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0.000045399929762484854
+        },
+        {
+          "x": 10,
+          "value": 0.5830397501929855
+        }
+      ]
+    },
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 0.5
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.5
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.6065306597126334
+        },
+        {
+          "x": 0,
+          "value": 0.6065306597126334
+        },
+        {
+          "x": 1,
+          "value": 0.3032653298563167
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0.6065306597126334
+        },
+        {
+          "x": 0,
+          "value": 0.6065306597126334
+        }
+      ]
+    },
+    {
+      "family": "Poisson",
+      "parameters": {
+        "lambda": 1.5
+      },
+      "moments": {
+        "mean": 1.5,
+        "variance": 1.5
+      },
+      "pmf": [
+        {
+          "x": 0,
+          "value": 0.22313016014842982
+        },
+        {
+          "x": 1,
+          "value": 0.33469524022264474
+        },
+        {
+          "x": 2,
+          "value": 0.2510214301669836
+        }
+      ],
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0.22313016014842982
+        },
+        {
+          "x": 1,
+          "value": 0.5578254003710745
+        }
+      ]
+    }
+  ]
+}

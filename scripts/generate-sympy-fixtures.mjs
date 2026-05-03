@@ -1847,6 +1847,309 @@ json.dumps({
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// stats.binomial — moments and pmf/CDF samples
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference moments and density/CDF samples for Binomial(n, p).
+ * Parameters chosen so moments are exact rationals in SymPy.
+ */
+async function generateBinomialCases(py) {
+  const params = [
+    { n: 1, p: "Rational(1, 2)", pFloat: 0.5 },
+    { n: 5, p: "Rational(1, 3)", pFloat: 1 / 3 },
+    { n: 5, p: "Rational(2, 3)", pFloat: 2 / 3 },
+    { n: 10, p: "Rational(1, 4)", pFloat: 0.25 },
+    { n: 10, p: "Rational(3, 4)", pFloat: 0.75 },
+    { n: 20, p: "Rational(1, 2)", pFloat: 0.5 },
+    { n: 3, p: "Rational(0, 1)", pFloat: 0.0 },
+    { n: 4, p: "Rational(1, 1)", pFloat: 1.0 },
+  ];
+
+  const cases = [];
+  for (const { n, p, pFloat } of params) {
+    const result = py.runPython(`
+from sympy import Rational
+from sympy.stats import Binomial, E, variance, density, P
+import json
+
+n_val = ${n}
+p_val = ${p}
+X = Binomial('X', n_val, p_val)
+
+mean_val = float(E(X))
+var_val = float(variance(X))
+
+dist = density(X)
+# pmf at k=0 and k=n
+pmf0 = float(dist.pmf(0))
+pmfN = float(dist.pmf(n_val))
+pmfMid = float(dist.pmf(n_val // 2))
+
+# CDF at -1, 0, n//2, n, n+1
+cdf_neg  = float(P(X <= -1))
+cdf_0    = float(P(X <= 0))
+cdf_mid  = float(P(X <= n_val // 2))
+cdf_n    = float(P(X <= n_val))
+cdf_nP1  = float(P(X <= n_val + 1))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val,
+  "pmf": [{"x": 0, "value": pmf0}, {"x": n_val // 2, "value": pmfMid}, {"x": n_val, "value": pmfN}],
+  "cdf": [
+    {"x": -1,        "value": cdf_neg},
+    {"x": 0,         "value": cdf_0},
+    {"x": n_val // 2,"value": cdf_mid},
+    {"x": n_val,     "value": cdf_n},
+    {"x": n_val + 1, "value": cdf_nP1}
+  ]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Binomial",
+      parameters: { n, p: pFloat },
+      moments: { mean: parsed.mean, variance: parsed.variance },
+      pmf: parsed.pmf,
+      cdf: parsed.cdf,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments and density/CDF samples for Binomial(n,p) from sympy.stats. " +
+      "Invariants: mean=np, variance=np(1-p), CDF(n)=1, CDF(-1)=0.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.uniform — moments and PDF/CDF samples
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference moments and density/CDF samples for Uniform(a, b).
+ */
+async function generateUniformCases(py) {
+  const params = [
+    { a: "0", b: "1", aFloat: 0, bFloat: 1 },
+    { a: "0", b: "2", aFloat: 0, bFloat: 2 },
+    { a: "-1", b: "1", aFloat: -1, bFloat: 1 },
+    { a: "1", b: "4", aFloat: 1, bFloat: 4 },
+    { a: "Rational(-1, 2)", b: "Rational(1, 2)", aFloat: -0.5, bFloat: 0.5 },
+    { a: "2", b: "5", aFloat: 2, bFloat: 5 },
+  ];
+
+  const cases = [];
+  for (const { a, b, aFloat, bFloat } of params) {
+    const result = py.runPython(`
+from sympy import Rational
+from sympy.stats import Uniform, E, variance, density, P
+import json
+
+a_val = ${a}
+b_val = ${b}
+X = Uniform('X', a_val, b_val)
+
+mean_val = float(E(X))
+var_val  = float(variance(X))
+
+# PDF at midpoint = 1/(b-a); at a and b boundaries
+mid = (a_val + b_val) / 2
+pdf_mid  = float(density(X)(mid))
+pdf_lo   = float(density(X)(a_val))
+pdf_hi   = float(density(X)(b_val))
+
+# CDF: F(a)=0, F(mid)=0.5, F(b)=1
+cdf_lo   = float(P(X <= a_val))
+cdf_mid  = float(P(X <= mid))
+cdf_hi   = float(P(X <= b_val))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val,
+  "pdf": [{"x": float(a_val), "value": pdf_lo}, {"x": float(mid), "value": pdf_mid}, {"x": float(b_val), "value": pdf_hi}],
+  "cdf": [{"x": float(a_val), "value": cdf_lo}, {"x": float(mid), "value": cdf_mid}, {"x": float(b_val), "value": cdf_hi}]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Uniform",
+      parameters: { a: aFloat, b: bFloat },
+      moments: { mean: parsed.mean, variance: parsed.variance },
+      pdf: parsed.pdf,
+      cdf: parsed.cdf,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments and density/CDF samples for Uniform(a,b) from sympy.stats. " +
+      "Invariants: mean=(a+b)/2, variance=(b-a)^2/12, CDF(a)=0, CDF(b)=1.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.normal — moments and PDF/CDF samples
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference moments and density/CDF samples for Normal(mu, sigma).
+ */
+async function generateNormalCases(py) {
+  const params = [
+    { mu: "0", sigma: "1", muFloat: 0, sigmaFloat: 1 },
+    { mu: "1", sigma: "1", muFloat: 1, sigmaFloat: 1 },
+    { mu: "0", sigma: "2", muFloat: 0, sigmaFloat: 2 },
+    { mu: "-1", sigma: "Rational(1, 2)", muFloat: -1, sigmaFloat: 0.5 },
+    { mu: "3", sigma: "Rational(3, 2)", muFloat: 3, sigmaFloat: 1.5 },
+  ];
+
+  const cases = [];
+  for (const { mu, sigma, muFloat, sigmaFloat } of params) {
+    const result = py.runPython(`
+from sympy import Rational, N
+from sympy.stats import Normal, E, variance, density, P
+import json
+
+mu_val    = ${mu}
+sigma_val = ${sigma}
+X = Normal('X', mu_val, sigma_val)
+
+mean_val = float(E(X))
+var_val  = float(variance(X))
+
+# PDF at mu (peak = 1/(sigma*sqrt(2*pi))), mu ± sigma
+from sympy import pi, sqrt, exp
+pdf_peak   = float(N(density(X)(mu_val)))
+pdf_plus1  = float(N(density(X)(mu_val + sigma_val)))
+pdf_minus1 = float(N(density(X)(mu_val - sigma_val)))
+
+# CDF: F(mu)=0.5, F(mu+sigma)~0.8413, F(mu-sigma)~0.1587
+cdf_mu     = float(N(P(X <= mu_val)))
+cdf_plus1  = float(N(P(X <= mu_val + sigma_val)))
+cdf_minus1 = float(N(P(X <= mu_val - sigma_val)))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val,
+  "pdf": [
+    {"x": float(mu_val - sigma_val), "value": pdf_minus1},
+    {"x": float(mu_val),             "value": pdf_peak},
+    {"x": float(mu_val + sigma_val), "value": pdf_plus1}
+  ],
+  "cdf": [
+    {"x": float(mu_val - sigma_val), "value": cdf_minus1},
+    {"x": float(mu_val),             "value": cdf_mu},
+    {"x": float(mu_val + sigma_val), "value": cdf_plus1}
+  ]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Normal",
+      parameters: { mu: muFloat, sigma: sigmaFloat },
+      moments: { mean: parsed.mean, variance: parsed.variance },
+      pdf: parsed.pdf,
+      cdf: parsed.cdf,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments and density/CDF samples for Normal(mu,sigma) from sympy.stats. " +
+      "Invariants: mean=mu, variance=sigma^2, skewness=0, excessKurtosis=0, CDF(mu)=0.5.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.poisson — moments and pmf/CDF samples
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference moments and density/CDF samples for Poisson(lambda).
+ */
+async function generatePoissonCases(py) {
+  const params = [
+    { lambda: "1", lambdaFloat: 1 },
+    { lambda: "2", lambdaFloat: 2 },
+    { lambda: "5", lambdaFloat: 5 },
+    { lambda: "10", lambdaFloat: 10 },
+    { lambda: "Rational(1, 2)", lambdaFloat: 0.5 },
+    { lambda: "Rational(3, 2)", lambdaFloat: 1.5 },
+  ];
+
+  const cases = [];
+  for (const { lambda, lambdaFloat } of params) {
+    const result = py.runPython(`
+from sympy import Rational, N, floor
+from sympy.stats import Poisson, E, variance, density, P
+import json
+
+lam = ${lambda}
+X = Poisson('X', lam)
+
+mean_val = float(E(X))
+var_val  = float(variance(X))
+
+dist = density(X)
+# For discrete sympy.stats distributions, use .pmf() via dict lookup or pdf()
+# Poisson density dict keys are Integer objects; evaluate via P(X = k)
+from sympy import Eq
+k0   = 0
+kMod = int(float(lam))
+pmf0    = float(N(P(Eq(X, k0))))
+pmfMod  = float(N(P(Eq(X, kMod))))
+pmfMod1 = float(N(P(Eq(X, kMod + 1))))
+
+# CDF at k0 and kMod
+cdf0    = float(N(P(X <= k0)))
+cdfMod  = float(N(P(X <= kMod)))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val,
+  "pmf": [
+    {"x": k0,       "value": pmf0},
+    {"x": kMod,     "value": pmfMod},
+    {"x": kMod + 1, "value": pmfMod1}
+  ],
+  "cdf": [
+    {"x": k0,   "value": cdf0},
+    {"x": kMod, "value": cdfMod}
+  ]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Poisson",
+      parameters: { lambda: lambdaFloat },
+      moments: { mean: parsed.mean, variance: parsed.variance },
+      pmf: parsed.pmf,
+      cdf: parsed.cdf,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments and density/CDF samples for Poisson(lambda) from sympy.stats. " +
+      "Invariants: mean=lambda, variance=lambda, skewness=1/sqrt(lambda), excessKurtosis=1/lambda.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -1925,6 +2228,22 @@ async function main() {
   console.log("\nGenerating stats.bernoulli fixtures…");
   const bernoulliFixture = await generateBernoulliCases(py);
   writeFixture("stats-bernoulli", bernoulliFixture);
+
+  console.log("\nGenerating stats.binomial fixtures…");
+  const binomialFixture = await generateBinomialCases(py);
+  writeFixture("stats-binomial", binomialFixture);
+
+  console.log("\nGenerating stats.uniform fixtures…");
+  const uniformFixture = await generateUniformCases(py);
+  writeFixture("stats-uniform", uniformFixture);
+
+  console.log("\nGenerating stats.normal fixtures…");
+  const normalFixture = await generateNormalCases(py);
+  writeFixture("stats-normal", normalFixture);
+
+  console.log("\nGenerating stats.poisson fixtures…");
+  const poissonFixture = await generatePoissonCases(py);
+  writeFixture("stats-poisson", poissonFixture);
 
   console.log("\nDone.");
 }

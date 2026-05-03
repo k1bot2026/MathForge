@@ -442,3 +442,103 @@ export type BernoulliFixture = {
 export function loadBernoulliFixture(): BernoulliFixture {
   return loadJson<BernoulliFixture>("stats-bernoulli");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.binomial fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type BinomialCase = {
+  family: "Binomial";
+  parameters: { n: number; p: number };
+  moments: { mean: number; variance: number };
+  /** pmf at x=0, x=floor(n/2), x=n */
+  pmf: DistSample[];
+  /** CDF at x=-1, 0, floor(n/2), n, n+1 */
+  cdf: DistSample[];
+};
+
+export type BinomialFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: BinomialCase[];
+};
+
+export function loadBinomialFixture(): BinomialFixture {
+  return loadJson<BinomialFixture>("stats-binomial");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.uniform fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type UniformDistCase = {
+  family: "Uniform";
+  parameters: { a: number; b: number };
+  moments: { mean: number; variance: number };
+  /** PDF at x=a, x=(a+b)/2, x=b */
+  pdf: DistSample[];
+  /** CDF at x=a, x=(a+b)/2, x=b */
+  cdf: DistSample[];
+};
+
+export type UniformDistFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: UniformDistCase[];
+};
+
+export function loadUniformDistFixture(): UniformDistFixture {
+  return loadJson<UniformDistFixture>("stats-uniform");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.normal fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type NormalDistCase = {
+  family: "Normal";
+  parameters: { mu: number; sigma: number };
+  moments: { mean: number; variance: number };
+  /** PDF at x=mu-sigma, x=mu, x=mu+sigma */
+  pdf: DistSample[];
+  /** CDF at x=mu-sigma, x=mu, x=mu+sigma */
+  cdf: DistSample[];
+};
+
+export type NormalDistFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: NormalDistCase[];
+};
+
+export function loadNormalDistFixture(): NormalDistFixture {
+  return loadJson<NormalDistFixture>("stats-normal");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.poisson fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type PoissonCase = {
+  family: "Poisson";
+  parameters: { lambda: number };
+  moments: { mean: number; variance: number };
+  /** pmf at x=0, x=floor(lambda), x=floor(lambda)+1 */
+  pmf: DistSample[];
+  /** CDF at x=0, x=floor(lambda) */
+  cdf: DistSample[];
+};
+
+export type PoissonFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: PoissonCase[];
+};
+
+export function loadPoissonFixture(): PoissonFixture {
+  return loadJson<PoissonFixture>("stats-poisson");
+}
