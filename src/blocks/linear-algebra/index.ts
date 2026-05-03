@@ -25,6 +25,7 @@ import { SvdBlock } from "./svd/definition";
 import { TraceBlock } from "./trace/definition";
 import { TransposeBlock } from "./transpose/definition";
 import { UnitGridBlock } from "./unit-grid/definition";
+import { UnitGrid3dBlock } from "./unit-grid-3d/definition";
 import { VectorBlock } from "./vector/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -50,4 +51,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(ImageBlock);
   registry.register(ProjectBlock);
   registry.register(UnitGridBlock);
+  registry.register(UnitGrid3dBlock);
 }
