@@ -17,6 +17,7 @@ Phase 3 started: `stats.bernoulli` establishes the `DistributionPayload` convent
 
 - **`stats.bernoulli`** — Bernoulli(p) distribution. Source block (no inputs); param `p ∈ [0,1]` via slider. Output port `dist: Distribution(Bernoulli)`. Establishes the `DistributionPayload` pattern (`distribution-payload.ts`): discriminated `parameters` union, eager closed-form `moments` (mean, variance, skewness?, excessKurtosis?), typed `support`. 14 property tests. (`7fed327`)
 - **`stats.binomial`** — Binomial(n, p) distribution. Params: `n ∈ ℕ₀` (integer), `p ∈ [0,1]`. E[X]=n·p, Var[X]=n·p·(1−p). 12 property tests including Bernoulli-as-Binomial(1,p) consistency. (`96b7fd7`)
+- **`stats.uniform`** — Uniform(a, b) continuous distribution. Params `a < b` (validated). E[X]=(a+b)/2, Var[X]=(b-a)²/12, skewness=0, excess kurtosis=−1.2. 9 property tests including standard U(0,1) identity. Also ships `bernoulli-sympy.test.ts` (cross-engine test using `stats-bernoulli.json` fixture). (`66d0e3b`)
 
 ### Testing infrastructure (Phase 3)
 
