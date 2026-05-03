@@ -39,6 +39,18 @@ describe("EvalCache", () => {
     c.clear();
     expect(c.size()).toBe(0);
   });
+
+  test("delete removes an existing entry and returns true", () => {
+    const c = new EvalCache();
+    c.set("k", value(5));
+    expect(c.delete("k")).toBe(true);
+    expect(c.get("k")).toBeUndefined();
+    expect(c.size()).toBe(0);
+  });
+
+  test("delete returns false for a missing entry", () => {
+    expect(new EvalCache().delete("nonexistent")).toBe(false);
+  });
 });
 
 describe("buildCacheKey + hashInput", () => {

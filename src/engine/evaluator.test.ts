@@ -61,6 +61,26 @@ const throwingBlock: BlockDefinition = {
   },
 };
 
+const throwStringBlock: BlockDefinition = {
+  ...addBlock,
+  id: "test.throw-string",
+  inputs: [],
+  compute: () => {
+    // eslint-disable-next-line no-throw-literal
+    throw "string error";
+  },
+};
+
+const throwObjectBlock: BlockDefinition = {
+  ...addBlock,
+  id: "test.throw-object",
+  inputs: [],
+  compute: () => {
+    // eslint-disable-next-line no-throw-literal
+    throw { code: 42 };
+  },
+};
+
 const asyncBlock: BlockDefinition = {
   ...addBlock,
   id: "test.async",
@@ -76,6 +96,8 @@ function buildRegistry(): BlockRegistry {
   r.register(constantBlock);
   r.register(addBlock);
   r.register(throwingBlock);
+  r.register(throwStringBlock);
+  r.register(throwObjectBlock);
   r.register(asyncBlock);
   return r;
 }
@@ -246,5 +268,31 @@ describe("evaluate", () => {
     expect(results.get("b")?.kind).toBe("error");
     const ra = results.get("a");
     if (ra?.kind === "error") expect(ra.error.message).toBe("Cycle detected");
+  });
+
+  test("compute() throwing a string → message is the string", async () => {
+    const graph: GraphSpec = {
+      nodes: [{ id: "s", blockId: "test.throw-string", params: {} }],
+      edges: [],
+    };
+    const results = await evaluate({ graph, registry: buildRegistry() });
+    const r = results.get("s");
+    expect(r?.kind).toBe("error");
+    if (r?.kind === "error") {
+      expect(r.error.message).toBe("string error");
+    }
+  });
+
+  test("compute() throwing a non-Error object → generic message", async () => {
+    const graph: GraphSpec = {
+      nodes: [{ id: "o", blockId: "test.throw-object", params: {} }],
+      edges: [],
+    };
+    const results = await evaluate({ graph, registry: buildRegistry() });
+    const r = results.get("o");
+    expect(r?.kind).toBe("error");
+    if (r?.kind === "error") {
+      expect(r.error.message).toBe("compute() threw a non-Error value");
+    }
   });
 });
