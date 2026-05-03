@@ -12,6 +12,7 @@ import { EmpiricalBlock } from "./empirical/definition";
 import { ExpectBlock } from "./expect/definition";
 import { GammaBlock } from "./gamma/definition";
 import { NormalBlock } from "./normal/definition";
+import { PdfCdfBlock } from "./pdf-cdf/definition";
 import { PoissonBlock } from "./poisson/definition";
 import { SampleBlock } from "./sample/definition";
 import { UniformBlock } from "./uniform/definition";
@@ -27,6 +28,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(ExpectBlock);
   registry.register(GammaBlock);
   registry.register(NormalBlock);
+  registry.register(PdfCdfBlock);
   registry.register(PoissonBlock);
   registry.register(SampleBlock);
   registry.register(UniformBlock);
