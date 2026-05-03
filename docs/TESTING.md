@@ -579,13 +579,16 @@ tests.
 
 ### Planned arbitraries (not yet in source)
 
-These are documented in `docs/TESTING.md` as forward-pointers; they land alongside the
-blocks that need them.
+These are documented as forward-pointers; they land alongside the blocks that need them.
 
-- `positiveDefiniteMatrix(n)` — for `la.cholesky` (Phase 2 later).
-- `diagonalMatrix(n)` — for `la.eigen` diagonal case tests.
-- `distribution()` — for Phase 3 statistics blocks.
+- `positiveDefiniteMatrix(n)` — for `la.cholesky` (if added in a later phase).
+- `diagonalMatrix(n)` — for eigendecomposition diagonal case tests.
 - `expression({ vars })` — for Phase 4 calculus blocks.
+
+Note: Phase 3 statistics blocks did not require a `distribution()` arbitrary — property
+tests use concrete `DistributionPayload` values computed by `computeX()` directly, then
+cross-checked against SymPy fixtures. A generic arbitrary may still be useful for
+`canConnect` tests over Distribution kinds.
 
 All arbitraries shrink toward "boring" cases (identity, small integers, zero) so that
 fast-check counterexamples are minimal and human-readable.

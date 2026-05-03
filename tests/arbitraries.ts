@@ -5,7 +5,7 @@
 // blocks need. Function / Expression / RandomVariable / Distribution
 // arbitraries land alongside their respective domains in later phases.
 //
-// Phase 2 additions: invertibleMatrix, orthogonalMatrix.
+// Phase 2 additions: invertibleMatrix, orthogonalMatrix, singularMatrix.
 //
 // Convention: arbitraries shrink to "boring" cases (zeros, identity,
 // small integers) so failures are minimal counterexamples.
