@@ -170,7 +170,7 @@ The unifier will reject a connection if the two inputs carry different concrete 
 
 ## 3a. Multi-output blocks (Tuple convention)
 
-Some blocks produce multiple matrices — `la.lu` outputs L, U, and P; `la.qr` outputs Q and R; `la.eigen` will output eigenvalues and eigenvectors. The evaluator supports exactly one `MathValue` per output port, so multiple results are packed into a single `Tuple` output.
+Some blocks produce multiple matrices — `la.lu` outputs L, U, and P; `la.qr` outputs Q and R; `la.eigen` outputs eigenvalues and eigenvectors. The evaluator supports exactly one `MathValue` per output port, so multiple results are packed into a single `Tuple` output.
 
 ### The pattern
 
@@ -243,7 +243,7 @@ const { L, U, P } = result.payload as unknown as LuPayload;
 |---|---|---|---|
 | `la.lu` | `LUP` | `LuPayload` | `L`, `U`, `P` |
 | `la.qr` | `QR` | `QrPayload` | `Q`, `R` |
-| `la.eigen` | `eigen` | `EigenPayload` | `values` (Vector), `vectors` (Matrix) |
+| `la.eigen` | `eigenpairs` | `EigenPayload` | `eigenvalues` (number[]), `eigenvectors` (number[][], columns) |
 | `la.svd` | `SVD` | `SvdPayload` | `U`, `S`, `Vt` |
 
 `la.qr` (`f654d61`) confirms the convention: `QrPayload = { Q, R }`, single `QR` output port, `Tuple` type with elements `Matrix<m,m>` (Q) and `Matrix<m,n>` (R), opaque cast `as unknown as number[][]`. See `src/blocks/linear-algebra/qr/definition.ts` and `qr/compute.ts`.
