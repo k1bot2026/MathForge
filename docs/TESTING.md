@@ -272,6 +272,144 @@ Cross-engine tests go in `*-sympy.test.ts`; fast-check structural tests (associa
 - **Cheap to extend** — add a case to the generator, re-run `pnpm generate:fixtures`, commit the JSON. The test loop picks it up automatically.
 - **Auditable** — the JSON fixtures are human-readable and diff cleanly in PRs. A reviewer can verify the expected values without running SymPy.
 
+## `sympy.stats` fixture pattern (Phase 3+)
+
+Statistics blocks follow the same committed-JSON workflow as linear-algebra blocks, but with a different fixture shape because distribution moments are **not always exact integers**.
+
+### Key differences from `la.*` fixtures
+
+| Dimension | `la.*` fixtures | `stats.*` fixtures |
+|---|---|---|
+| Precision | Exact integer arithmetic | Rational floats (SymPy returns exact rationals; serialised as IEEE 754) |
+| What is stored | Computed matrix/vector values | Moments (`mean`, `variance`, raw moments `m1..m4`), PMF/CDF sample points |
+| Equality assertion | `toBe` (exact) | `Math.abs(a - b) < TOL` with `TOL = 1e-9` |
+| irrational avoidance | Store norms as squares (e.g. `normASq`) | Use rational parameter values (e.g. `p = 0.25`, not `1/3`) so moments are exact floats |
+| Fixture family field | Not present | `"family": "Bernoulli"` in each case |
+
+### Fixture structure for a distribution
+
+```json
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T14:21:00Z",
+  "description": "Reference moments and density/CDF samples for Bernoulli(p) from sympy.stats. ...",
+  "cases": [
+    {
+      "family": "Bernoulli",
+      "parameters": { "p": 0.25 },
+      "moments": {
+        "mean": 0.25,
+        "variance": 0.1875,
+        "m1": 0.25, "m2": 0.25, "m3": 0.25, "m4": 0.25
+      },
+      "pmf": [
+        { "x": 0, "value": 0.75 },
+        { "x": 1, "value": 0.25 }
+      ],
+      "cdf": [
+        { "x": -1, "value": 0 },
+        { "x": 0,  "value": 0.75 },
+        { "x": 1,  "value": 1.0 }
+      ]
+    }
+  ]
+}
+```
+
+Continuous distributions (Normal, Beta, Gamma, Uniform) store `pdf` sample points instead of `pmf`. The `support` field is not stored — it is derived analytically in the block.
+
+### How to assert moments
+
+```typescript
+const TOL = 1e-9;
+
+describe("mean matches SymPy E[X]", () => {
+  for (const c of fixture.cases) {
+    test(`p=${c.parameters.p}`, () => {
+      const pl = computeBernoulli({}, c.parameters).payload as unknown as DistributionPayload;
+      expect(Math.abs(pl.moments.mean - c.moments.mean)).toBeLessThan(TOL);
+    });
+  }
+});
+```
+
+Do **not** use `toBe` for moment comparisons — even when parameters are rational, floating-point accumulation in the formula can produce tiny errors. Use `Math.abs(a - b) < TOL`.
+
+### Choosing parameter values for exact moments
+
+Pick parameter values where SymPy returns exact rationals serialisable as terminating decimals:
+
+- **Bernoulli(p):** use `p ∈ {0, 0.25, 0.5, 0.75, 1}` — all of `p(1-p)` are exact.
+- **Binomial(n, p):** same `p` choices; use `n ∈ {5, 10, 20}` for integer moments.
+- **Uniform(a, b):** use `a, b ∈ ℤ` — mean `(a+b)/2` is exact when `a+b` is even.
+- **Normal(μ, σ):** `μ ∈ ℤ`, `σ ∈ {0.5, 1, 2}` — moments are exact floats.
+- **Poisson(λ):** `λ ∈ {1, 2, 3, 5}` — equidispersion `mean = variance = λ` is exact.
+- **Beta(α, β):** `α, β ∈ {1, 2, 3}` — moments are exact rational fractions.
+- **Gamma(α, β):** `α, β ∈ {1, 2}` — `E[X]=α/β` and `Var[X]=α/β²` are exact floats.
+
+Avoid irrational choices like `p = 1/3` or `σ = √2` — SymPy will serialise them as approximate floats that differ from our closed-form computation by more than 1e-9.
+
+### Worked example: adding a stats fixture set
+
+**Step 1 — Add a generator in `scripts/generate-sympy-fixtures.mjs`:**
+
+```javascript
+async function generateBernoulliCases(py) {
+  const cases = [];
+  for (const p of [0, 0.25, 0.5, 0.75, 1]) {
+    const result = py.runPython(`
+from sympy.stats import Bernoulli, E, variance, density, cdf
+X = Bernoulli("X", ${p})
+moments = {"mean": float(E(X)), "variance": float(variance(X)), ...}
+...
+    `);
+    cases.push({ family: "Bernoulli", parameters: { p }, ...JSON.parse(result) });
+  }
+  return { schemaVersion: 1, generated: new Date().toISOString(), description: "...", cases };
+}
+```
+
+**Step 2 — Add a typed loader in `tests/sympy-reference.ts`:**
+
+```typescript
+export type BernoulliCase = {
+  family: "Bernoulli";
+  parameters: { p: number };
+  moments: { mean: number; variance: number; m1: number; m2: number; m3: number; m4: number };
+  pmf: Array<{ x: number; value: number }>;
+  cdf: Array<{ x: number; value: number }>;
+};
+
+export type BernoulliFixture = { schemaVersion: number; generated: string; cases: BernoulliCase[] };
+
+export function loadBernoulliFixture(): BernoulliFixture {
+  return loadJson<BernoulliFixture>("stats-bernoulli");
+}
+```
+
+**Step 3 — Run the generator and commit:**
+
+```bash
+pnpm generate:fixtures
+git add scripts/generate-sympy-fixtures.mjs tests/sympy-reference.ts tests/fixtures/sympy/stats-bernoulli.json
+```
+
+**Step 4 — Write the cross-engine test** in `src/blocks/statistics/bernoulli/bernoulli-sympy.test.ts` with the `@cross-engine` tag. See the "Property testing pattern" section above for structure.
+
+### Stats fixture files in `tests/fixtures/sympy/`
+
+| File | Family | Cases | Key invariants |
+|---|---|---|---|
+| `stats-bernoulli.json` | Bernoulli(p) | 9 cases | mean=p, var=p(1−p), raw moments all = p, pmf/CDF step |
+| `stats-binomial.json` | Binomial(n,p) | ~10 cases | mean=np, var=np(1−p), Bernoulli(p)=Binomial(1,p) |
+| `stats-uniform.json` | Uniform(a,b) | ~8 cases | mean=(a+b)/2, var=(b−a)²/12, pdf=1/(b−a) on support |
+| `stats-normal.json` | Normal(μ,σ) | ~8 cases | mean=μ, var=σ², pdf at mean = 1/(σ√2π) |
+| `stats-poisson.json` | Poisson(λ) | ~7 cases | equidispersion: mean=var=λ, pmf(k)=e⁻ᵞλᵏ/k! |
+| `stats-beta.json` | Beta(α,β) | ~8 cases | mean=α/(α+β), var=αβ/((α+β)²(α+β+1)) |
+| `stats-gamma.json` | Gamma(α,β) | ~7 cases | mean=α/β, var=α/β², Gamma(1,β)=Exponential(β) |
+| `stats-mgf.json` | all families | ~5 cases | serialized SymPy MGF expression string |
+| `stats-posterior.json` | Beta/Normal/Gamma posteriors | ~10 cases | 4 conjugate pairs, closed-form posterior parameters |
+
 ## `@cross-engine` tag convention
 
 ### What it marks
@@ -289,8 +427,7 @@ carries a `@cross-engine` JSDoc tag at the top:
  */
 ```
 
-Currently applied to: `vector-sympy.test.ts`, `matrix-sympy.test.ts`. Any new
-`*-sympy.test.ts` file should carry the tag.
+Currently applied to all `*-sympy.test.ts` files: `vector-sympy.test.ts`, `matrix-sympy.test.ts`, and one file per linear-algebra and statistics operation block. Any new `*-sympy.test.ts` file should carry the tag.
 
 ### What the tag signals to readers
 
