@@ -183,4 +183,18 @@ describe("synthesizeFromSnapshot", () => {
     expect(out).toHaveLength(1);
     expect(out[0]?.kind).toBe("graph-reset");
   });
+
+  it("uses default now() when no clock argument is passed", () => {
+    const before = performance.now();
+    const out = synthesizeFromSnapshot(
+      [{ id: "a", type: "block", position: { x: 0, y: 0 }, data: {} }],
+      [],
+      "user",
+    );
+    const after = performance.now();
+    expect(out).toHaveLength(2);
+    const t = out[0]?.at ?? -1;
+    expect(t).toBeGreaterThanOrEqual(before);
+    expect(t).toBeLessThanOrEqual(after);
+  });
 });

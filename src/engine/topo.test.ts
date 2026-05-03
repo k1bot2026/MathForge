@@ -76,6 +76,36 @@ describe("topoSort", () => {
     }
   });
 
+  test("edge referencing unknown node ids is silently skipped", () => {
+    const result = topoSort({
+      nodes: [{ id: "a" }, { id: "b" }],
+      edges: [
+        { source: "a", target: "b" },
+        { source: "a", target: "ghost" },
+        { source: "phantom", target: "b" },
+      ],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.order).toEqual(["a", "b"]);
+    }
+  });
+
+  test("three-node cycle is detected and all cycle members are reported", () => {
+    const result = topoSort({
+      nodes: [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }],
+      edges: [
+        { source: "a", target: "b" },
+        { source: "b", target: "c" },
+        { source: "c", target: "b" },
+      ],
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect([...result.cycle].sort()).toEqual(["b", "c"]);
+    }
+  });
+
   test("property: every edge points forward in the result order", () => {
     fc.assert(
       fc.property(
