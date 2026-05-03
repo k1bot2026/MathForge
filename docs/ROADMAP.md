@@ -165,6 +165,39 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - Visualization: `viz.unit-grid-3d`, eigenvector highlighting, determinant area/volume animation
 - Performance: 60 fps at 100 nodes (tested at 25 and 50 nodes via wallclock guards; 100 not yet gated)
 
+### Phase 2 retrospective (resumed session as of 2026-05-03)
+
+**Velocity (resumed keep-working session — advanced operations + viz layer):**
+
+| Category | Count |
+|---|---|
+| Operation blocks shipped | 5 (`la.svd`, `la.basis-change`, `la.kernel`, `la.image`, `la.project`) |
+| Visualization blocks shipped | 1 (`viz.unit-grid-3d`) |
+| SymPy cross-engine fixture sets added | 5 (`la-lu`, `la-qr`, `la-eigen`, `la-solve` in one pass; `la-basis-change`; `la-kernel`; `la-image`, `la-project` in one pass) |
+| Cross-engine tests backfilled | `la.matmul`, `la.matvec` (using existing `la-matrix.json` fixture) |
+| Developer commits | 6 (`d9d84cd`, `552f5b4`, `0f2db97`, `5b0f444`, `e34f2c3`, `cb64ca3`) |
+| Tester commits | 6 (`a95df65`, `ea13fd0`, `5999209`, `e1565f1`, `7c76040`, `5fd15f8`) |
+| Total new tests | ~293 (619 → 912) |
+| Phase 2 exit criterion met | 60 fps at 100 nodes (100-node wallclock gate, `ea13fd0`) |
+
+**What the agent-team structure enabled in this resumed session:**
+- Developer shipped the five remaining advanced-layer operations back-to-back; the tester followed each block immediately with cross-engine fixtures. The docs-writer docs catch-up was a single sweep rather than per-block interruptions.
+- The la.svd U-orthogonality bug (rank-deficient input `[[1,1],[1,1]]` failing the property test) was caught before the block could ship. The tester's fast-check counterexample identified the defect; the developer patched the Gram-Schmidt completion in the same session. The property test flagged the regression at the component level, not in a later integration test — validating the "tests-first" discipline in `CLAUDE.md`.
+- Each agent committed atomically and pushed immediately; `main` remained reviewable at every step and the test count was monotonically increasing except during the brief svd-fix cycle.
+
+**Phase 2 status at close of this retrospective:**
+
+| Area | Status |
+|---|---|
+| All 17 operation blocks | Complete |
+| `viz.unit-grid-3d` (3D matrix transform) | Complete |
+| Eigenvector highlighting on `la.eigen` output | Pending (in-progress, developer task #10) |
+| Determinant area/volume animation | Pending |
+| SymPy cross-engine tests (all 17 ops + matmul/matvec) | Complete |
+| 100-node performance gate | Complete — Phase 2 exit criterion met |
+
+Phase 2 is feature-complete once the two remaining visualization items ship. Exit criteria for the phase formally close when eigenvector highlighting and the determinant animation are in `main`.
+
 ---
 
 ## Phase 3 — Statistics (target: 3–4 weeks)
