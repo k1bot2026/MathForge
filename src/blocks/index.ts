@@ -12,11 +12,13 @@
 import * as common from "./common";
 import * as linearAlgebra from "./linear-algebra";
 import { BlockRegistry } from "./registry";
+import * as statistics from "./statistics";
 
 export function buildRegistry(): BlockRegistry {
   const registry = new BlockRegistry();
   common.register(registry);
   linearAlgebra.register(registry);
+  statistics.register(registry);
   return registry;
 }
 
