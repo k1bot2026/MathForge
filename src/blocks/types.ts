@@ -120,4 +120,13 @@ export type BlockDefinition = {
     inputs: ResolvedInputs;
     output: MathValue | undefined;
   }>;
+  /**
+   * Optional inspector preview. When set and the node has a value result,
+   * InspectorPanel renders this between the explanation tabs and the value
+   * strip. Used for blocks whose output has a natural geometric rendering
+   * (e.g. la.eigen eigenvector rays).
+   */
+  previewRenderer?: ComponentType<{
+    value: MathValue;
+  }>;
 };

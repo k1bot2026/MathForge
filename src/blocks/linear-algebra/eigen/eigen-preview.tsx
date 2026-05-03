@@ -174,7 +174,14 @@ function Arrow3d({ to, color, opacity = 1 }: Arrow3dProps) {
   );
 }
 
+type EigenVec3 = { ev: number; to: [number, number, number]; colorIdx: number };
+
 function EigenScene3d({ eigenvalues, eigenvectors }: EigenPayload) {
+  const arrows: EigenVec3[] = eigenvalues.map((ev, k) => ({
+    ev,
+    to: [eigenvectors[0]?.[k] ?? 0, eigenvectors[1]?.[k] ?? 0, eigenvectors[2]?.[k] ?? 0],
+    colorIdx: k,
+  }));
   return (
     <>
       <ambientLight intensity={0.6} />
@@ -184,12 +191,9 @@ function EigenScene3d({ eigenvalues, eigenvectors }: EigenPayload) {
       <Arrow3d to={[1.2, 0, 0]} color="#555" opacity={0.3} />
       <Arrow3d to={[0, 1.2, 0]} color="#555" opacity={0.3} />
       <Arrow3d to={[0, 0, 1.2]} color="#555" opacity={0.3} />
-      {eigenvalues.map((ev, k) => {
-        const v0 = eigenvectors[0]?.[k] ?? 0;
-        const v1 = eigenvectors[1]?.[k] ?? 0;
-        const v2 = eigenvectors[2]?.[k] ?? 0;
-        return <Arrow3d key={`ev${fmtNum(ev)}`} to={[v0, v1, v2]} color={eigenColor(k)} />;
-      })}
+      {arrows.map(({ ev, to, colorIdx }) => (
+        <Arrow3d key={`ev${fmtNum(ev)}`} to={to} color={eigenColor(colorIdx)} />
+      ))}
     </>
   );
 }
@@ -225,11 +229,12 @@ export function EigenPreviewRenderer({ value }: { value: MathValue }) {
   }
 
   // For other sizes render a compact eigenvalue list
+  const evPairs = eigenvalues.map((ev, k) => ({ ev, label: k + 1 }));
   return (
     <div data-testid="eigen-preview-text" className="font-mono text-xs text-fg-muted">
-      {eigenvalues.map((ev, k) => (
+      {evPairs.map(({ ev, label }) => (
         <div key={`ev${fmtNum(ev)}`}>
-          λ{k + 1} = {fmtNum(ev)}
+          λ{label} = {fmtNum(ev)}
         </div>
       ))}
     </div>

@@ -191,4 +191,58 @@ describe("InspectorPanel", () => {
     render(<InspectorPanel />);
     expect(screen.getByTestId("inspector-value-strip")).toBeInTheDocument();
   });
+
+  // ── New: previewRenderer ──────────────────────────────────────────────────
+
+  test("inspector-preview section renders for la.eigen with a 2×2 value result", () => {
+    useGraphStore.getState().addNode({
+      id: "eigen-test",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: { blockId: "la.eigen", params: {} },
+    });
+    useGraphStore.getState().setSelectedNodeId("eigen-test");
+    useGraphStore.getState().setResults(
+      new Map([
+        [
+          "eigen-test",
+          {
+            kind: "value" as const,
+            value: {
+              type: {
+                kind: "Tuple" as const,
+                elements: [
+                  { kind: "Vector" as const, n: 2, field: "real" as const },
+                  { kind: "Matrix" as const, m: 2, n: 2, field: "real" as const },
+                ],
+              },
+              payload: {
+                eigenvalues: [1, -1],
+                eigenvectors: [
+                  [1, 0],
+                  [0, 1],
+                ],
+              } as unknown as number[][],
+              provenance: {
+                blockId: "la.eigen",
+                inputs: [],
+                computedAt: 0,
+                engine: "mathjs" as const,
+              },
+            },
+          },
+        ],
+      ]),
+    );
+    render(<InspectorPanel />);
+    expect(screen.getByTestId("inspector-preview")).toBeInTheDocument();
+    expect(screen.getByTestId("eigen-preview-2d")).toBeInTheDocument();
+  });
+
+  test("inspector-preview is absent for blocks without previewRenderer", () => {
+    useGraphStore.getState().setSelectedNodeId("constant-1");
+    useGraphStore.getState().setResults(valueResult("constant-1", 42));
+    render(<InspectorPanel />);
+    expect(screen.queryByTestId("inspector-preview")).toBeNull();
+  });
 });

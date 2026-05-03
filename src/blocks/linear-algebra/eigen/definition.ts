@@ -1,5 +1,6 @@
 import type { BlockDefinition } from "~/blocks/types";
 import { computeEigen } from "./compute";
+import { EigenPreviewRenderer } from "./eigen-preview";
 
 export const EigenBlock: BlockDefinition = {
   id: "la.eigen",
@@ -36,6 +37,7 @@ export const EigenBlock: BlockDefinition = {
     },
   ],
   compute: (inputs) => computeEigen(inputs),
+  previewRenderer: EigenPreviewRenderer,
   explain: {
     what: "Computes the eigendecomposition of a square matrix: returns eigenvalues λ and a matrix V whose columns are the corresponding eigenvectors.",
     why: "Eigendecomposition diagonalises a matrix (A = VΛV⁻¹ for diagonalisable A), revealing the directions along which the transformation only scales, not rotates. It underpins PCA, Markov chains, Google PageRank, and quantum mechanics.",

@@ -105,6 +105,21 @@ export function InspectorPanel() {
         )}
       </div>
 
+      {state === "value" && def?.previewRenderer !== undefined && result?.kind === "value" ? (
+        <div
+          data-testid="inspector-preview"
+          className="-mx-4 border-t border-border px-4 pt-3 pb-1"
+        >
+          <span className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-fg-muted">
+            preview
+          </span>
+          {(() => {
+            const Preview = def.previewRenderer;
+            return <Preview value={result.value} />;
+          })()}
+        </div>
+      ) : null}
+
       {state === "value" ? <ValueStrip result={result} /> : null}
     </aside>
   );
