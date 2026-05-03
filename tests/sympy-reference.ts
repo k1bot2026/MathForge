@@ -542,3 +542,47 @@ export type PoissonFixture = {
 export function loadPoissonFixture(): PoissonFixture {
   return loadJson<PoissonFixture>("stats-poisson");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.beta fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type BetaDistCase = {
+  family: "Beta";
+  parameters: { alpha: number; beta: number };
+  moments: { mean: number; variance: number };
+  /** CDF at x=0, x=0.5, x=1 */
+  cdf: DistSample[];
+};
+
+export type BetaDistFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: BetaDistCase[];
+};
+
+export function loadBetaDistFixture(): BetaDistFixture {
+  return loadJson<BetaDistFixture>("stats-beta");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.gamma fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type GammaDistCase = {
+  family: "Gamma";
+  parameters: { alpha: number; beta: number };
+  moments: { mean: number; variance: number };
+};
+
+export type GammaDistFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: GammaDistCase[];
+};
+
+export function loadGammaDistFixture(): GammaDistFixture {
+  return loadJson<GammaDistFixture>("stats-gamma");
+}

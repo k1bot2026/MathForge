@@ -2150,6 +2150,129 @@ json.dumps({
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// stats.beta — moments and PDF/CDF samples
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference moments and density/CDF samples for Beta(alpha, beta).
+ * Uses sympy.stats Beta (not to be confused with sympy.stats.Beta which is
+ * the shape-rate parameterisation — this is the standard [0,1] Beta dist).
+ */
+async function generateBetaCases(py) {
+  const params = [
+    { alpha: "1", beta: "1", aF: 1, bF: 1 },
+    { alpha: "2", beta: "2", aF: 2, bF: 2 },
+    { alpha: "2", beta: "5", aF: 2, bF: 5 },
+    { alpha: "5", beta: "2", aF: 5, bF: 2 },
+    { alpha: "Rational(1, 2)", beta: "Rational(1, 2)", aF: 0.5, bF: 0.5 },
+    { alpha: "Rational(1, 2)", beta: "Rational(3, 2)", aF: 0.5, bF: 1.5 },
+    { alpha: "3", beta: "7", aF: 3, bF: 7 },
+  ];
+
+  const cases = [];
+  for (const { alpha, beta, aF, bF } of params) {
+    const result = py.runPython(`
+from sympy import Rational, N
+from sympy.stats import Beta, E, variance, density, P
+import json
+
+a_val = ${alpha}
+b_val = ${beta}
+X = Beta('X', a_val, b_val)
+
+mean_val = float(E(X))
+var_val  = float(variance(X))
+
+# CDF: F(0)=0, F(0.5)=midpoint, F(1)=1
+cdf_0   = float(N(P(X <= 0)))
+cdf_half = float(N(P(X <= Rational(1, 2))))
+cdf_1   = float(N(P(X <= 1)))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val,
+  "cdf": [
+    {"x": 0,   "value": cdf_0},
+    {"x": 0.5, "value": cdf_half},
+    {"x": 1,   "value": cdf_1}
+  ]
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Beta",
+      parameters: { alpha: aF, beta: bF },
+      moments: { mean: parsed.mean, variance: parsed.variance },
+      cdf: parsed.cdf,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments and CDF samples for Beta(alpha,beta) from sympy.stats. " +
+      "Support [0,1]. Invariants: mean=alpha/(alpha+beta), CDF(0)=0, CDF(1)=1.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.gamma — moments and PDF/CDF samples
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference moments for Gamma(alpha, beta) using shape/rate.
+ * SymPy's Gamma(name, k, theta) uses shape k, scale theta; beta (rate) = 1/theta.
+ */
+async function generateGammaCases(py) {
+  const params = [
+    { alpha: "1", beta: "1", aF: 1, bF: 1 },
+    { alpha: "2", beta: "1", aF: 2, bF: 1 },
+    { alpha: "3", beta: "2", aF: 3, bF: 2 },
+    { alpha: "Rational(1, 2)", beta: "1", aF: 0.5, bF: 1 },
+    { alpha: "5", beta: "Rational(1, 2)", aF: 5, bF: 0.5 },
+    { alpha: "Rational(3, 2)", beta: "2", aF: 1.5, bF: 2 },
+  ];
+
+  const cases = [];
+  for (const { alpha, beta, aF, bF } of params) {
+    const result = py.runPython(`
+from sympy import Rational, N
+from sympy.stats import Gamma, E, variance, P
+import json
+
+k_val     = ${alpha}     # shape = alpha
+theta_val = 1 / (${beta})  # scale = 1/beta (rate)
+X = Gamma('X', k_val, theta_val)
+
+mean_val = float(E(X))
+var_val  = float(variance(X))
+
+json.dumps({
+  "mean": mean_val,
+  "variance": var_val
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      family: "Gamma",
+      parameters: { alpha: aF, beta: bF },
+      moments: { mean: parsed.mean, variance: parsed.variance },
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference moments for Gamma(alpha,beta) using shape/rate parameterisation from sympy.stats. " +
+      "Invariants: mean=alpha/beta, variance=alpha/beta^2.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -2244,6 +2367,14 @@ async function main() {
   console.log("\nGenerating stats.poisson fixtures…");
   const poissonFixture = await generatePoissonCases(py);
   writeFixture("stats-poisson", poissonFixture);
+
+  console.log("\nGenerating stats.beta fixtures…");
+  const betaFixture = await generateBetaCases(py);
+  writeFixture("stats-beta", betaFixture);
+
+  console.log("\nGenerating stats.gamma fixtures…");
+  const gammaFixture = await generateGammaCases(py);
+  writeFixture("stats-gamma", gammaFixture);
 
   console.log("\nDone.");
 }

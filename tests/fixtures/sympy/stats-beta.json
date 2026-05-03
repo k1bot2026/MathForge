@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T14:30:17.387Z",
+  "description": "Reference moments and CDF samples for Beta(alpha,beta) from sympy.stats. Support [0,1]. Invariants: mean=alpha/(alpha+beta), CDF(0)=0, CDF(1)=1.",
+  "cases": [
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 1,
+        "beta": 1
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.08333333333333333
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 2,
+        "beta": 2
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.05
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 2,
+        "beta": 5
+      },
+      "moments": {
+        "mean": 0.2857142857142857,
+        "variance": 0.025510204081632654
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.890625
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 5,
+        "beta": 2
+      },
+      "moments": {
+        "mean": 0.7142857142857143,
+        "variance": 0.025510204081632654
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.109375
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 0.5,
+        "beta": 0.5
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.125
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.5
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 0.5,
+        "beta": 1.5
+      },
+      "moments": {
+        "mean": 0.25,
+        "variance": 0.0625
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.8183098861837906
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    },
+    {
+      "family": "Beta",
+      "parameters": {
+        "alpha": 3,
+        "beta": 7
+      },
+      "moments": {
+        "mean": 0.3,
+        "variance": 0.019090909090909092
+      },
+      "cdf": [
+        {
+          "x": 0,
+          "value": 0
+        },
+        {
+          "x": 0.5,
+          "value": 0.91015625
+        },
+        {
+          "x": 1,
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

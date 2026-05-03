@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T14:30:17.552Z",
+  "description": "Reference moments for Gamma(alpha,beta) using shape/rate parameterisation from sympy.stats. Invariants: mean=alpha/beta, variance=alpha/beta^2.",
+  "cases": [
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 1,
+        "beta": 1
+      },
+      "moments": {
+        "mean": 1,
+        "variance": 1
+      }
+    },
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 2,
+        "beta": 1
+      },
+      "moments": {
+        "mean": 2,
+        "variance": 2
+      }
+    },
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 3,
+        "beta": 2
+      },
+      "moments": {
+        "mean": 1.5,
+        "variance": 0.75
+      }
+    },
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 0.5,
+        "beta": 1
+      },
+      "moments": {
+        "mean": 0.5,
+        "variance": 0.5
+      }
+    },
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 5,
+        "beta": 0.5
+      },
+      "moments": {
+        "mean": 10,
+        "variance": 20
+      }
+    },
+    {
+      "family": "Gamma",
+      "parameters": {
+        "alpha": 1.5,
+        "beta": 2
+      },
+      "moments": {
+        "mean": 0.75,
+        "variance": 0.375
+      }
+    }
+  ]
+}
