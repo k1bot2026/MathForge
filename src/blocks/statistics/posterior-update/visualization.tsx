@@ -1,16 +1,14 @@
 "use client";
 
-// Posterior update visualization for Beta-Bernoulli conjugate prior.
+// Posterior update visualization — pure renderer.
 //
-// Displays the prior PDF, likelihood contribution, and posterior PDF
-// side-by-side on a [0,1] axis. Uses Framer Motion for the smooth
-// curve-morph transition when parameters change.
-//
-// Supports: Beta prior + Bernoulli/Binomial likelihood (conjugate).
-// Falls back to showing only the prior if the distribution is not Beta.
+// Displays the prior PDF and posterior PDF overlaid on a [0,1] axis.
+// Both curves come from input ports (prior: Beta, posterior: Beta),
+// computed upstream by stats.posterior. Framer Motion animates the
+// curve morph when the posterior recomputes.
 
 import { motion } from "framer-motion";
-import type { ResolvedInputs, ResolvedParams } from "~/blocks/types";
+import type { ResolvedInputs } from "~/blocks/types";
 import type { MathValue } from "~/math/types";
 import type { DistributionPayload } from "../distribution-payload";
 import { betaPdf } from "../viz-math";
@@ -95,13 +93,12 @@ function AreaUnderCurve({ alpha, beta, color, yMax }: Omit<CurveProps, "label">)
 
 export function PosteriorUpdateVisualization({
   inputs,
-  params,
 }: {
   inputs: ResolvedInputs;
   output: MathValue | undefined;
-  params?: ResolvedParams;
 }) {
   const prior = inputs.prior;
+  const posteriorVal = inputs.posterior;
 
   if (prior === undefined || prior.type.kind !== "Distribution") {
     return (
@@ -109,31 +106,51 @@ export function PosteriorUpdateVisualization({
         data-testid="posterior-update-placeholder"
         className="flex h-[80px] items-center justify-center text-center text-xs text-fg-faint"
       >
-        Connect a Beta Distribution to prior.
+        Connect a Beta prior and wire stats.posterior to the posterior port.
       </div>
     );
   }
 
-  const payload = prior.payload as unknown as DistributionPayload;
-  if (payload.parameters.family !== "Beta") {
+  const priorPayload = prior.payload as unknown as DistributionPayload;
+  if (priorPayload.parameters.family !== "Beta") {
     return (
       <div
         data-testid="posterior-update-non-beta"
         className="flex h-[80px] items-center justify-center text-center text-xs text-fg-faint"
       >
-        Only Beta priors are supported for conjugate update. Connect a Beta distribution.
+        Only Beta priors are supported. Connect a Beta distribution.
       </div>
     );
   }
 
-  const { alpha: priorAlpha, beta: priorBeta } = payload.parameters;
-  const n = typeof params?.n_obs === "number" ? Math.round(Math.max(0, params.n_obs)) : 0;
-  const k =
-    typeof params?.k_hits === "number" ? Math.round(Math.max(0, Math.min(n, params.k_hits))) : 0;
+  const { alpha: priorAlpha, beta: priorBeta } = priorPayload.parameters;
 
-  // Beta-Bernoulli conjugate update: posterior = Beta(alpha + k, beta + n - k)
-  const postAlpha = priorAlpha + k;
-  const postBeta = priorBeta + (n - k);
+  // Posterior comes from stats.posterior via the posterior input port.
+  // Show a waiting state if not yet connected.
+  if (posteriorVal === undefined || posteriorVal.type.kind !== "Distribution") {
+    return (
+      <div
+        data-testid="posterior-update-waiting"
+        className="flex h-[80px] items-center justify-center text-center text-xs text-fg-faint"
+      >
+        Wire stats.posterior → posterior port to see the update.
+      </div>
+    );
+  }
+
+  const postPayload = posteriorVal.payload as unknown as DistributionPayload;
+  if (postPayload.parameters.family !== "Beta") {
+    return (
+      <div
+        data-testid="posterior-update-non-beta"
+        className="flex h-[80px] items-center justify-center text-center text-xs text-fg-faint"
+      >
+        Only Beta posteriors are supported. Use a Beta prior with stats.posterior.
+      </div>
+    );
+  }
+
+  const { alpha: postAlpha, beta: postBeta } = postPayload.parameters;
 
   // Find shared y-axis max for both curves
   const xArr = xs();
@@ -141,7 +158,6 @@ export function PosteriorUpdateVisualization({
   const postYs = xArr.map((x) => betaPdf(x, postAlpha, postBeta));
   const yMax = Math.max(...priorYs, ...postYs, 1e-10);
 
-  // X-axis ticks
   type Tick = { val: number; px: number };
   const xTicks: Tick[] = [0, 0.25, 0.5, 0.75, 1].map((v) => ({
     val: v,
@@ -157,7 +173,7 @@ export function PosteriorUpdateVisualization({
         viewBox={`0 0 ${W} ${H}`}
         style={{ display: "block", width: W, height: H }}
         role="img"
-        aria-label={`Posterior update: Beta(${priorAlpha},${priorBeta}) + ${k}/${n} → Beta(${postAlpha},${postBeta})`}
+        aria-label={`Posterior update: Beta(${priorAlpha},${priorBeta}) → Beta(${postAlpha},${postBeta})`}
       >
         {/* Plot border */}
         <rect
@@ -255,11 +271,10 @@ export function PosteriorUpdateVisualization({
         </g>
       </svg>
 
-      {/* Observation summary */}
+      {/* Summary */}
       <div className="px-2 text-xs text-fg-muted">
-        {n === 0
-          ? "Adjust n_obs and k_hits to see the posterior update."
-          : `${k} successes in ${n} trials → p̂ = ${(k / n).toFixed(3)}`}
+        E[θ] shifted from {(priorAlpha / (priorAlpha + priorBeta)).toFixed(3)} →{" "}
+        {(postAlpha / (postAlpha + postBeta)).toFixed(3)}
       </div>
     </div>
   );

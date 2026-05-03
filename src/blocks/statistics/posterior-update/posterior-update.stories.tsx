@@ -34,24 +34,30 @@ function betaValue(alpha: number, beta: number): MathValue {
   };
 }
 
-const uniformPrior = betaValue(1, 1);
-
-function story(id: string, prior: MathValue): Story {
+function story(id: string, prior: MathValue, posterior: MathValue): Story {
   return {
     render: (args) => (
       <>
         <ResultPrimer
           results={[
-            { id: "story-upstream-prior", result: { kind: "value", value: prior } },
-            { id: (args as { id: string }).id, result: { kind: "value", value: prior } },
+            { id: "story-prior", result: { kind: "value", value: prior } },
+            { id: "story-posterior", result: { kind: "value", value: posterior } },
+            { id: (args as { id: string }).id, result: { kind: "value", value: posterior } },
           ]}
           upstreamEdges={[
             {
-              id: "story-edge",
-              source: "story-upstream-prior",
+              id: "edge-prior",
+              source: "story-prior",
               target: (args as { id: string }).id,
               sourceHandle: "prior",
               targetHandle: "prior",
+            },
+            {
+              id: "edge-posterior",
+              source: "story-posterior",
+              target: (args as { id: string }).id,
+              sourceHandle: "posterior",
+              targetHandle: "posterior",
             },
           ]}
         />
@@ -62,8 +68,23 @@ function story(id: string, prior: MathValue): Story {
   };
 }
 
-export const UniformPriorTenTrials: Story = story("posterior-update-uniform", uniformPrior);
+// Uniform prior Beta(1,1) + 7/10 → Beta(8,4)
+export const UniformPriorTenTrials: Story = story(
+  "posterior-update-uniform",
+  betaValue(1, 1),
+  betaValue(8, 4),
+);
+
+// Informative prior Beta(2,5) + 15/20 → Beta(17,10)
 export const InformativePriorAlpha2Beta5: Story = story(
   "posterior-update-informative",
   betaValue(2, 5),
+  betaValue(17, 10),
+);
+
+// Strong prior Beta(10,10) + 3/5 → Beta(13,12) — posterior barely moves
+export const StrongPrior: Story = story(
+  "posterior-update-strong-prior",
+  betaValue(10, 10),
+  betaValue(13, 12),
 );

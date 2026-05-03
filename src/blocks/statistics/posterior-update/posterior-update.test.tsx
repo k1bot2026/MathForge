@@ -37,13 +37,14 @@ function normalValue(): MathValue {
 }
 
 const uniformPrior = betaValue(1, 1);
-const weakPrior = betaValue(2, 2);
+const posterior8_4 = betaValue(8, 4);
+const posterior15_15 = betaValue(15, 15);
 
 describe("viz.posterior-update definition", () => {
-  test("Beta-Bernoulli conjugate update: uniform prior + 7/10 → Beta(8,4)", () => {
+  test("passthrough: returns the posterior input unchanged", () => {
     const result = PosteriorUpdateBlock.compute(
-      { prior: uniformPrior },
-      { n_obs: 10, k_hits: 7 },
+      { prior: uniformPrior, posterior: posterior8_4 },
+      {},
       { signal },
     ) as MathValue;
     const p = result.payload as unknown as DistributionPayload;
@@ -54,55 +55,29 @@ describe("viz.posterior-update definition", () => {
     }
   });
 
-  test("no observations leaves prior unchanged", () => {
+  test("passthrough preserves provenance", () => {
     const result = PosteriorUpdateBlock.compute(
-      { prior: weakPrior },
-      { n_obs: 0, k_hits: 0 },
+      { prior: uniformPrior, posterior: posterior15_15 },
+      {},
       { signal },
     ) as MathValue;
-    const p = result.payload as unknown as DistributionPayload;
-    expect(p.parameters.family).toBe("Beta");
-    if (p.parameters.family === "Beta") {
-      expect(p.parameters.alpha).toBeCloseTo(2, 10);
-      expect(p.parameters.beta).toBeCloseTo(2, 10);
-    }
+    expect(result.provenance.blockId).toBe("test");
   });
 
-  test("k_hits is clamped to n_obs", () => {
-    const result = PosteriorUpdateBlock.compute(
-      { prior: uniformPrior },
-      { n_obs: 5, k_hits: 100 },
-      { signal },
-    ) as MathValue;
-    const p = result.payload as unknown as DistributionPayload;
-    expect(p.parameters.family).toBe("Beta");
-    if (p.parameters.family === "Beta") {
-      expect(p.parameters.alpha).toBeCloseTo(6, 10);
-      expect(p.parameters.beta).toBeCloseTo(1, 10);
-    }
-  });
-
-  test("throws when prior is missing", () => {
-    expect(() => PosteriorUpdateBlock.compute({}, { n_obs: 5, k_hits: 3 }, { signal })).toThrow(
-      /requires a Beta Distribution/,
+  test("throws when posterior is missing", () => {
+    expect(() => PosteriorUpdateBlock.compute({ prior: uniformPrior }, {}, { signal })).toThrow(
+      /posterior input/,
     );
   });
 
-  test("throws when prior is not Beta", () => {
+  test("throws when posterior is not Beta", () => {
     expect(() =>
-      PosteriorUpdateBlock.compute({ prior: normalValue() }, { n_obs: 5, k_hits: 3 }, { signal }),
-    ).toThrow(/Beta prior/);
-  });
-
-  test("posterior E[theta] = (alpha+k)/(alpha+beta+n)", () => {
-    // Beta(3,7) + k=12 of n=20 → Beta(15, 15), E = 15/30 = 0.5
-    const result = PosteriorUpdateBlock.compute(
-      { prior: betaValue(3, 7) },
-      { n_obs: 20, k_hits: 12 },
-      { signal },
-    ) as MathValue;
-    const p = result.payload as unknown as DistributionPayload;
-    expect(p.moments.mean).toBeCloseTo(15 / 30, 10);
+      PosteriorUpdateBlock.compute(
+        { prior: uniformPrior, posterior: normalValue() },
+        {},
+        { signal },
+      ),
+    ).toThrow(/Beta posterior/);
   });
 });
 
@@ -113,35 +88,48 @@ describe("PosteriorUpdateVisualization", () => {
   });
 
   test("renders non-beta notice when prior is Normal", () => {
-    render(<PosteriorUpdateVisualization inputs={{ prior: normalValue() }} output={undefined} />);
+    render(
+      <PosteriorUpdateVisualization
+        inputs={{ prior: normalValue(), posterior: posterior8_4 }}
+        output={undefined}
+      />,
+    );
     expect(screen.getByTestId("posterior-update-non-beta")).toBeInTheDocument();
   });
 
-  test("renders chart when prior is Beta", () => {
+  test("renders waiting state when posterior not yet connected", () => {
+    render(<PosteriorUpdateVisualization inputs={{ prior: uniformPrior }} output={undefined} />);
+    expect(screen.getByTestId("posterior-update-waiting")).toBeInTheDocument();
+  });
+
+  test("renders chart when both prior and posterior are Beta", () => {
     render(
       <PosteriorUpdateVisualization
-        inputs={{ prior: uniformPrior }}
-        output={uniformPrior}
-        params={{ n_obs: 10, k_hits: 7 }}
+        inputs={{ prior: uniformPrior, posterior: posterior8_4 }}
+        output={posterior8_4}
       />,
     );
     expect(screen.getByTestId("posterior-update-root")).toBeInTheDocument();
   });
 
-  test("renders with default params (no params passed)", () => {
-    render(<PosteriorUpdateVisualization inputs={{ prior: weakPrior }} output={weakPrior} />);
-    expect(screen.getByTestId("posterior-update-root")).toBeInTheDocument();
-  });
-
-  test("renders with n_obs=0 (no observations)", () => {
+  test("legend shows prior and posterior parameters", () => {
     render(
       <PosteriorUpdateVisualization
-        inputs={{ prior: uniformPrior }}
-        output={uniformPrior}
-        params={{ n_obs: 0, k_hits: 0 }}
+        inputs={{ prior: betaValue(2, 5), posterior: betaValue(9, 8) }}
+        output={betaValue(9, 8)}
       />,
     );
     expect(screen.getByTestId("posterior-update-root")).toBeInTheDocument();
-    expect(screen.getByText(/Adjust n_obs/)).toBeInTheDocument();
+  });
+
+  test("summary line shows E[theta] shift", () => {
+    render(
+      <PosteriorUpdateVisualization
+        inputs={{ prior: betaValue(1, 1), posterior: betaValue(8, 4) }}
+        output={betaValue(8, 4)}
+      />,
+    );
+    // E[theta] for Beta(1,1) = 0.5, for Beta(8,4) = 8/12 ≈ 0.667
+    expect(screen.getByText(/0\.500.*0\.667|0\.667.*0\.500/)).toBeInTheDocument();
   });
 });
