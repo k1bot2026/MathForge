@@ -239,7 +239,7 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 - `stats.bernoulli` [shipped] — Bernoulli(p); output port `dist: Distribution(Bernoulli)`. `DistributionPayload` with `parameters: { family: "Bernoulli", p }`, eager closed-form moments (`mean=p`, `variance=p(1-p)`), `support: { kind: "discrete", values: [0,1] }`. Establishes the `DistributionPayload` pattern for all Phase 3 blocks. (`7fed327`)
 - `stats.binomial` [shipped] — Binomial(n, p); output port `dist: Distribution(Binomial)`. Params: `n ∈ ℕ₀` (integer), `p ∈ [0,1]` (number slider). `E[X]=n·p`, `Var[X]=n·p·(1-p)`. Bernoulli-as-Binomial(1,p) consistency verified. (`96b7fd7`)
-- `stats.normal` [shipped] — Normal(μ, σ); output port `dist: Distribution(Normal)`. Params `μ` (mean), `σ > 0` (std dev). E[X]=μ, Var[X]=σ², skewness=0, excess kurtosis=0. (pre-existing)
+- `stats.normal` [shipped] — Normal(μ, σ); output port `dist: Distribution(Normal)`. Params `μ` (mean), `σ > 0` (std dev). E[X]=μ, Var[X]=σ², skewness=0, excess kurtosis=0. (`8630ce9`)
 - `stats.uniform` [shipped] — Uniform(a, b) continuous distribution; output port `dist: Distribution(Uniform)`. Params `a < b` (validated). E[X]=(a+b)/2, Var[X]=(b-a)²/12, skewness=0, excess kurtosis=−1.2. (`66d0e3b`)
 - `stats.poisson` [shipped] — Poisson(λ); output port `dist: Distribution(Poisson)`. Param `λ > 0`. E[X]=Var[X]=λ (equidispersion). Discrete support 0..⌈λ+6√λ⌉. 7 property tests. (`d8c5069`)
 - `stats.beta` [shipped] — Beta(α, β); output port `dist: Distribution(Beta)`. Params `α, β > 0`. Support [0,1]. E[X]=α/(α+β), Var[X]=αβ/((α+β)²(α+β+1)). Closed-form skewness + excess kurtosis. Beta(1,1)=Uniform(0,1). Conjugate prior for Bernoulli/Binomial. (`180ceff`)

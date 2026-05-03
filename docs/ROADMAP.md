@@ -222,7 +222,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 - [x] `stats.bernoulli` — Bernoulli(p). (`7fed327`)
 - [x] `stats.binomial` — Binomial(n, p). (`96b7fd7`)
-- [x] `stats.normal` — Normal(μ, σ). (pre-existing)
+- [x] `stats.normal` — Normal(μ, σ). (`8630ce9`)
 - [x] `stats.uniform` — Uniform(a, b). (`66d0e3b`)
 - [x] `stats.poisson` — Poisson(λ); E[X]=Var[X]=λ (equidispersion). (`d8c5069`)
 - [x] `stats.beta` — Beta(α, β); support [0,1]; conjugate prior for Bernoulli/Binomial. (`180ceff`)
