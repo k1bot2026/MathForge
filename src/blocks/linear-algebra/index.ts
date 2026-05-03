@@ -8,7 +8,9 @@ import { AddBlock } from "./add/definition";
 import { BasisChangeBlock } from "./basis-change/definition";
 import { DetBlock } from "./det/definition";
 import { EigenBlock } from "./eigen/definition";
+import { ImageBlock } from "./image/definition";
 import { InverseBlock } from "./inverse/definition";
+import { KernelBlock } from "./kernel/definition";
 import { LuBlock } from "./lu/definition";
 import { MatMulBlock } from "./matmul/definition";
 import { MatrixBlock } from "./matrix/definition";
@@ -36,6 +38,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(DetBlock);
   registry.register(EigenBlock);
   registry.register(InverseBlock);
+  registry.register(KernelBlock);
   registry.register(LuBlock);
   registry.register(QrBlock);
   registry.register(RrefBlock);
@@ -43,5 +46,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(SolveBlock);
   registry.register(SvdBlock);
   registry.register(BasisChangeBlock);
+  registry.register(ImageBlock);
   registry.register(UnitGridBlock);
 }
