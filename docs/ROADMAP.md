@@ -209,7 +209,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 | Area | Shipped | Pending |
 |---|---|---|
 | **Foundation** | `Distribution` and `RandomVariable` types defined in `src/math/types.ts`; `DistributionFamily` type covers all Phase 3 distributions | Distribution payload conventions (TYPES.md §); Supabase wiring; Auth; persistent graph URLs |
-| **Distributions** | `stats.bernoulli`, `stats.binomial` | `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical` |
+| **Distributions** | `stats.bernoulli`, `stats.binomial`, `stats.uniform` | `stats.normal`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical` |
 | **Operations** | — | `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior` |
 | **Composite** | — | `stats.bayes-net` |
 | **Visualization** | — | `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`, `viz.posterior-update` |
@@ -223,7 +223,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - [x] `stats.bernoulli` — Bernoulli(p). (`7fed327`)
 - [x] `stats.binomial` — Binomial(n, p). (`96b7fd7`)
 - [ ] `stats.normal`
-- [ ] `stats.uniform`
+- [x] `stats.uniform` — Uniform(a, b). (`66d0e3b`)
 - [ ] `stats.poisson`
 - [ ] `stats.beta`
 - [ ] `stats.gamma`
@@ -253,6 +253,7 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 **Testing**
 
 - [x] SymPy `sympy.stats` fixture pattern established (`stats-bernoulli.json`, `loadBernoulliFixture()`). (`6470cf5`)
+- [x] `stats.bernoulli` cross-engine test (`bernoulli-sympy.test.ts`) (`66d0e3b`)
 - [ ] Cross-engine tests for remaining distributions
 
 **Docs**
