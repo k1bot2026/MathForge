@@ -2,7 +2,7 @@
 
 Vertical slices over horizontal completeness. Each phase ends with a working, demonstrable artifact. Active phase is marked at the top; advance only after exit criteria are met.
 
-> **Active phase: Phase 2 — Linear algebra full.** (Phase 1 shipped.)
+> **Active phase: Phase 3 — Statistics.** (Phase 1 shipped. Phase 2 shipped.)
 
 ---
 
