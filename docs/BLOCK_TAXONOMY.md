@@ -222,8 +222,8 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.lu` [shipped] — LU decomposition with partial pivoting; outputs `L`, `U`, `P`. Property tests: `P·A = L·U`, L lower-triangular with unit diagonal, U upper-triangular. (`9f0fcea`)
 - `la.qr` [shipped] — QR decomposition via Householder reflections; outputs `Q`, `R`. Property tests: `A = Q·R`, `Qᵀ·Q = I`, R upper-triangular. (`f654d61`)
 - `la.svd` — singular value decomposition; outputs `U`, `Σ`, `Vᵀ`.
-- `la.eigen` — eigenvalues and eigenvectors; outputs `values` (Vector), `vectors` (Matrix, column-ordered).
-- `la.solve` — solve `Ax = b`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`.
+- `la.eigen` [shipped] — eigendecomposition (real eigenvalues only); single `Tuple` output port `eigenpairs` wrapping `EigenPayload { eigenvalues: Vector<n>, eigenvectors: Matrix<n,n> }` (column k is eigenvector for eigenvalues[k]). Throws `EigenError` for complex eigenvalues. (`5809167` + `d03f9ad`)
+- `la.solve` [shipped] — solve `Ax = b` via math.js `lusolve`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`. Throws `SolveError` for singular A (`|det A| < 1e-10`). (`fd1a9ec`)
 - `la.basis-change` — express a vector in a new basis.
 - `la.kernel` — null space of a matrix.
 - `la.image` — column space of a matrix.
