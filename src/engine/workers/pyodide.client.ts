@@ -37,6 +37,10 @@ export async function isReady(): Promise<boolean> {
   return proxy.isReady();
 }
 
+export async function mgf(family: string, parameters: Record<string, number>): Promise<string> {
+  return ensureProxy().mgf(family, parameters);
+}
+
 // Test-only: reset module state. Vitest can call this between tests
 // to ensure the lazy-spawn invariant is checked from a clean slate.
 export function __resetForTests(): void {
