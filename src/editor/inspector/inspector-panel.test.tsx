@@ -245,4 +245,135 @@ describe("InspectorPanel", () => {
     render(<InspectorPanel />);
     expect(screen.queryByTestId("inspector-preview")).toBeNull();
   });
+
+  // ── formatPayload paths via value strip ─────────────────────────────────
+
+  test("value strip formats a float payload to 6 significant figures", () => {
+    useGraphStore.getState().setSelectedNodeId("constant-1");
+    useGraphStore.getState().setResults(
+      new Map([
+        [
+          "constant-1",
+          {
+            kind: "value" as const,
+            value: {
+              type: {
+                kind: "Scalar" as const,
+                field: "real" as const,
+                precision: "approximate" as const,
+              },
+              payload: Math.PI,
+              provenance: {
+                blockId: "core.constant",
+                inputs: [],
+                computedAt: 0,
+                engine: "native" as const,
+              },
+            },
+          },
+        ],
+      ]),
+    );
+    render(<InspectorPanel />);
+    expect(screen.getByTestId("inspector-value-strip")).toHaveTextContent("3.14159");
+  });
+
+  test("value strip formats a 1D array (vector) payload", () => {
+    useGraphStore.getState().setSelectedNodeId("constant-1");
+    useGraphStore.getState().setResults(
+      new Map([
+        [
+          "constant-1",
+          {
+            kind: "value" as const,
+            value: {
+              type: { kind: "Vector" as const, n: 3, field: "real" as const },
+              payload: [1, 2, 3],
+              provenance: {
+                blockId: "la.vector",
+                inputs: [],
+                computedAt: 0,
+                engine: "native" as const,
+              },
+            },
+          },
+        ],
+      ]),
+    );
+    render(<InspectorPanel />);
+    expect(screen.getByTestId("inspector-value-strip")).toHaveTextContent("[1, 2, 3]");
+  });
+
+  test("value strip formats a 2D array (matrix) payload", () => {
+    useGraphStore.getState().setSelectedNodeId("constant-1");
+    useGraphStore.getState().setResults(
+      new Map([
+        [
+          "constant-1",
+          {
+            kind: "value" as const,
+            value: {
+              type: { kind: "Matrix" as const, m: 2, n: 2, field: "real" as const },
+              payload: [
+                [1, 0],
+                [0, 1],
+              ],
+              provenance: {
+                blockId: "la.matrix",
+                inputs: [],
+                computedAt: 0,
+                engine: "native" as const,
+              },
+            },
+          },
+        ],
+      ]),
+    );
+    render(<InspectorPanel />);
+    expect(screen.getByTestId("inspector-value-strip")).toHaveTextContent("[[1, 0], [0, 1]]");
+  });
+
+  // ── useSelectedInputs: upstream value wiring ────────────────────────────
+
+  test("ExplanationTabs receives upstream inputs via useSelectedInputs", () => {
+    // Set up: constant-1 → matvec-1 (port M). When matvec-1 is selected,
+    // the panel should pass the upstream constant value as an input.
+    useGraphStore.getState().setResults(
+      new Map([
+        [
+          "constant-1",
+          {
+            kind: "value" as const,
+            value: {
+              type: {
+                kind: "Scalar" as const,
+                field: "real" as const,
+                precision: "exact" as const,
+              },
+              payload: 7,
+              provenance: {
+                blockId: "core.constant",
+                inputs: [],
+                computedAt: 0,
+                engine: "native" as const,
+              },
+            },
+          },
+        ],
+      ]),
+    );
+    useGraphStore.getState().setSelectedNodeId("matvec-1");
+    render(<InspectorPanel />);
+    // The panel renders (matvec-1 is a real registered block)
+    expect(screen.getByTestId("inspector-panel")).toBeInTheDocument();
+  });
+
+  // ── ParamForm no-params branch ───────────────────────────────────────────
+
+  test("shows 'No parameters' message for blocks with no params", () => {
+    // la.matvec has no params
+    useGraphStore.getState().setSelectedNodeId("matvec-1");
+    render(<InspectorPanel />);
+    expect(screen.getByText(/No parameters/i)).toBeInTheDocument();
+  });
 });

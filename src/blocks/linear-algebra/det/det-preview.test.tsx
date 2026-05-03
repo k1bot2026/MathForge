@@ -24,16 +24,19 @@ describe("DetPreviewRenderer", () => {
     render(
       <DetPreviewRenderer
         value={scalarValue(2)}
-        inputs={{ A: matrixValue([[2, 0], [0, 1]]) }}
+        inputs={{
+          A: matrixValue([
+            [2, 0],
+            [0, 1],
+          ]),
+        }}
       />,
     );
     expect(screen.getByTestId("det-preview-2d")).toBeInTheDocument();
   });
 
   test("renders nothing when A input is absent", () => {
-    const { container } = render(
-      <DetPreviewRenderer value={scalarValue(5)} inputs={{}} />,
-    );
+    const { container } = render(<DetPreviewRenderer value={scalarValue(5)} inputs={{}} />);
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -41,7 +44,12 @@ describe("DetPreviewRenderer", () => {
     render(
       <DetPreviewRenderer
         value={scalarValue(-1)}
-        inputs={{ A: matrixValue([[-1, 0], [0, 1]]) }}
+        inputs={{
+          A: matrixValue([
+            [-1, 0],
+            [0, 1],
+          ]),
+        }}
       />,
     );
     expect(screen.getByText(/orientation flipped/i)).toBeInTheDocument();
@@ -51,7 +59,12 @@ describe("DetPreviewRenderer", () => {
     render(
       <DetPreviewRenderer
         value={scalarValue(0)}
-        inputs={{ A: matrixValue([[0, 0], [0, 0]]) }}
+        inputs={{
+          A: matrixValue([
+            [0, 0],
+            [0, 0],
+          ]),
+        }}
       />,
     );
     expect(screen.getByText(/collapsed/i)).toBeInTheDocument();
