@@ -268,7 +268,32 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `viz.posterior-update` [shipped] — overlaid Beta prior + posterior curves; inputs `prior: Distribution(Beta)`, `posterior: Distribution(Beta)`; passthrough output `posterior: Distribution(Beta)`. Stats.posterior does the Bayesian math; this block is pure visualizer. Stability: beta. (`cc75e44`, refactored `427a2ac`)
 
 ### Phase 4 (Calculus)
-`calc.function`, `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve`, `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`.
+
+**Foundation note:** The SymPy Pyodide worker RPC pattern and `ExpressionPayload` type are pre-existing from Phase 3 (`stats.mgf`, `13a1760`). All calc.* operation blocks use `engine: "sympy"`.
+
+**Function blocks** _(source role, function color)_
+
+- `calc.function` — symbolic function entry via MathLive; param `expr` (LaTeX string); output `f: Expression`. The root block for all Phase 4 pipelines.
+
+**Operation blocks** _(operation role, sympy engine, function color unless noted)_
+
+- `calc.derivative` — d/dx of a symbolic expression; inputs `f: Expression`, `x: Expression` (variable); output `df: Expression`. Engine: sympy.
+- `calc.partial` — ∂/∂xᵢ of a multivariate expression; inputs `f: Expression`, `xi: Expression` (variable); output `∂f: Expression`. Engine: sympy.
+- `calc.gradient` — ∇f; inputs `f: Expression`, variable list; output `grad: Vector<Expression>`. Engine: sympy.
+- `calc.integrate` — indefinite integral ∫f dx; inputs `f: Expression`, `x: Expression` (variable); output `F: Expression` (antiderivative + constant C omitted). Engine: sympy.
+- `calc.definite-integrate` — ∫ₐᵇ f(x) dx; inputs `f: Expression`, `x: Expression`, `a: Scalar`, `b: Scalar`; output `result: Scalar(real)`. Engine: sympy.
+- `calc.limit` — lim_{x→c} f(x); inputs `f: Expression`, `x: Expression`, `c: Scalar`; output `L: Expression or Scalar`. Engine: sympy.
+- `calc.series` — Taylor/Maclaurin series expansion to order n; inputs `f: Expression`, `x: Expression`, `a: Scalar` (expansion point), `n: integer`; output `s: Expression`. Engine: sympy.
+- `calc.taylor` — Taylor polynomial at point a to degree n (truncated series, no big-O term); inputs `f: Expression`, `x: Expression`, `a: Scalar`, `n: integer`; output `p: Expression`. Engine: sympy.
+- `calc.ode-solve` — solve first-order ODE y′ = f(x, y) symbolically; inputs `f: Expression`, `x: Expression`, `y: Expression`; output `sol: Expression`. Engine: sympy.
+
+**Visualization** _(visualizer role, emerald color)_
+
+- `viz.tangent` — Mafs-rendered curve with movable tangent point and tangent line; inputs `f: Expression`, `x0: Scalar`.
+- `viz.riemann` — Observable Plot Riemann sum bars for ∫ₐᵇ f dx; inputs `f: Expression`, `a: Scalar`, `b: Scalar`; param `n` (slider, number of subdivisions); method left/right/midpoint.
+- `viz.epsilon-delta` — ε–δ limit visualisation; inputs `f: Expression`, `c: Scalar`, `L: Scalar`; sliders for ε and δ.
+- `viz.taylor` — incremental Taylor polynomial animation; inputs `f: Expression`, `x0: Scalar`; slider for degree n; each term animates in.
+- `viz.vector-field` — 2D vector field (∇f or custom); inputs `fx: Expression`, `fy: Expression`; grid density param.
 
 ### Phase 5 (Composites)
 `core.subgraph`, `core.assert`, `core.benchmark`.
