@@ -2733,6 +2733,107 @@ str(_s)
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// calc.definite-integrate — definiteIntegrate() numeric reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { expression, variable, integVar, a, b, result } objects for
+ * calc.definite-integrate cross-engine tests. Returns exact floats for
+ * clean closed-form cases.
+ */
+async function generateCalcDefiniteIntegrateCases(py) {
+  const inputs = [
+    { expr: "x**2", variable: "x", integVar: "x", a: 0, b: 1 },
+    { expr: "x**2", variable: "x", integVar: "x", a: 0, b: 3 },
+    { expr: "sin(x)", variable: "x", integVar: "x", a: 0, b: 3.141592653589793 },
+    { expr: "exp(x)", variable: "x", integVar: "x", a: 0, b: 1 },
+    { expr: "cos(x)", variable: "x", integVar: "x", a: 0, b: 1.5707963267948966 },
+    { expr: "1 / (1 + x**2)", variable: "x", integVar: "x", a: 0, b: 1 },
+    { expr: "x * exp(-x)", variable: "x", integVar: "x", a: 0, b: 5 },
+    { expr: "x**3", variable: "x", integVar: "x", a: -1, b: 1 },
+  ];
+
+  const cases = [];
+  for (const { expr, variable, integVar, a, b } of inputs) {
+    const result = py.runPython(`
+from sympy import symbols, sympify, integrate, N, pi
+${variable} = symbols('${variable}')
+_expr = sympify(${JSON.stringify(expr)})
+_result = integrate(_expr, (${integVar}, ${a}, ${b}))
+float(N(_result))
+`.trim());
+    cases.push({ expression: expr, variable, integVar, a, b, result });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy definite integral numeric reference values for calc.definite-integrate cross-engine tests.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.series — partial sum reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates { expression, index, from, to, result } objects for
+ * calc.series cross-engine tests. Covers geometric series, arithmetic,
+ * factorial (converging), and symbolic forms that evaluate to numbers.
+ */
+async function generateCalcSeriesCases(py) {
+  const inputs = [
+    // Arithmetic sum: sum_{n=1}^{10} n = 55
+    { expr: "n", index: "n", from: 1, to: 10 },
+    // Sum of squares: sum_{n=1}^{5} n^2 = 55
+    { expr: "n**2", index: "n", from: 1, to: 5 },
+    // Geometric: sum_{n=0}^{4} 2^n = 31
+    { expr: "2**n", index: "n", from: 0, to: 4 },
+    // Geometric: sum_{n=0}^{9} (1/2)^n ≈ 1.998...
+    { expr: "(1/2)**n", index: "n", from: 0, to: 9 },
+    // Harmonic partial sum: sum_{n=1}^{5} 1/n = 137/60
+    { expr: "1/n", index: "n", from: 1, to: 5 },
+    // sum_{n=0}^{3} (n+1) = 10
+    { expr: "n + 1", index: "n", from: 0, to: 3 },
+    // sum_{n=1}^{4} n*(n+1) = 40
+    { expr: "n * (n + 1)", index: "n", from: 1, to: 4 },
+    // sum_{n=0}^{5} (-1)^n = 1
+    { expr: "(-1)**n", index: "n", from: 0, to: 5 },
+  ];
+
+  const cases = [];
+  for (const { expr, index, from, to } of inputs) {
+    const resultStr = py.runPython(`
+from sympy import symbols, sympify, Sum
+${index} = symbols('${index}')
+_a = sympify(${JSON.stringify(expr)})
+_s = Sum(_a, (${index}, ${from}, ${to})).doit()
+str(_s)
+`.trim());
+    // Determine if numeric
+    const numeric = Number(resultStr);
+    cases.push({
+      expression: expr,
+      index,
+      from,
+      to,
+      result: resultStr,
+      numericResult: Number.isFinite(numeric) ? numeric : null,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy Sum().doit() partial sum reference values for calc.series cross-engine tests.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -2863,6 +2964,14 @@ async function main() {
   console.log("\nGenerating calc.taylor fixtures…");
   const calcTaylorFixture = await generateCalcTaylorCases(py);
   writeFixture("calc-taylor", calcTaylorFixture);
+
+  console.log("\nGenerating calc.definite-integrate fixtures…");
+  const calcDefIntFixture = await generateCalcDefiniteIntegrateCases(py);
+  writeFixture("calc-definite-integrate", calcDefIntFixture);
+
+  console.log("\nGenerating calc.series fixtures…");
+  const calcSeriesFixture = await generateCalcSeriesCases(py);
+  writeFixture("calc-series", calcSeriesFixture);
 
   console.log("\nDone.");
 }

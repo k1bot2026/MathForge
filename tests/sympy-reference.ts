@@ -749,3 +749,51 @@ export type CalcTaylorFixture = {
 export function loadCalcTaylorFixture(): CalcTaylorFixture {
   return loadJson<CalcTaylorFixture>("calc-taylor");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.definite-integrate fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcDefiniteIntegrateCase = {
+  expression: string;
+  variable: string;
+  integVar: string;
+  a: number;
+  b: number;
+  result: number;
+};
+
+export type CalcDefiniteIntegrateFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcDefiniteIntegrateCase[];
+};
+
+export function loadCalcDefiniteIntegrateFixture(): CalcDefiniteIntegrateFixture {
+  return loadJson<CalcDefiniteIntegrateFixture>("calc-definite-integrate");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.series fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcSeriesCase = {
+  expression: string;
+  index: string;
+  from: number;
+  to: number;
+  result: string;
+  numericResult: number | null;
+};
+
+export type CalcSeriesFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcSeriesCase[];
+};
+
+export function loadCalcSeriesFixture(): CalcSeriesFixture {
+  return loadJson<CalcSeriesFixture>("calc-series");
+}

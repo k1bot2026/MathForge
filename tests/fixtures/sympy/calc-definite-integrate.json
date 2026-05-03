@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T17:22:50.827Z",
+  "description": "SymPy definite integral numeric reference values for calc.definite-integrate cross-engine tests.",
+  "cases": [
+    {
+      "expression": "x**2",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 1,
+      "result": 0.3333333333333333
+    },
+    {
+      "expression": "x**2",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 3,
+      "result": 9
+    },
+    {
+      "expression": "sin(x)",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 3.141592653589793,
+      "result": 2
+    },
+    {
+      "expression": "exp(x)",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 1,
+      "result": 1.7182818284590453
+    },
+    {
+      "expression": "cos(x)",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 1.5707963267948966,
+      "result": 1
+    },
+    {
+      "expression": "1 / (1 + x**2)",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 1,
+      "result": 0.7853981633974483
+    },
+    {
+      "expression": "x * exp(-x)",
+      "variable": "x",
+      "integVar": "x",
+      "a": 0,
+      "b": 5,
+      "result": 0.9595723180054871
+    },
+    {
+      "expression": "x**3",
+      "variable": "x",
+      "integVar": "x",
+      "a": -1,
+      "b": 1,
+      "result": 0
+    }
+  ]
+}
