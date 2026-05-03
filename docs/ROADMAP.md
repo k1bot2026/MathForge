@@ -204,6 +204,18 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 **Goal**: cover IB0602 statistics fully. Bayesian inference works as a composable pipeline.
 
+### Phase 3 status snapshot
+
+| Area | Shipped | Pending |
+|---|---|---|
+| **Foundation** | `Distribution` and `RandomVariable` types defined in `src/math/types.ts`; `DistributionFamily` type covers all Phase 3 distributions | Distribution payload conventions (TYPES.md §); Supabase wiring; Auth; persistent graph URLs |
+| **Distributions** | — | `stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical` |
+| **Operations** | — | `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior` |
+| **Composite** | — | `stats.bayes-net` |
+| **Visualization** | — | `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`, `viz.posterior-update` |
+| **Testing** | — | SymPy `sympy.stats` cross-engine fixtures per distribution; moments + parametric property tests |
+| **Docs** | ROADMAP.md Phase 3 section | TYPES.md Distribution payload conventions; BLOCK_TAXONOMY.md stats rows (pending entries added); BLOCK_AUTHORING_GUIDE.md stochastic-block worked example |
+
 ### Blocks
 - Distributions: `stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`.
 - Operations: `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`.
