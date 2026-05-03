@@ -2273,6 +2273,248 @@ json.dumps({
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// stats.posterior — conjugate posterior moments
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates SymPy-verified posterior parameters and moments for all 4 conjugate pairs.
+ * SymPy computes E[X] and Var[X] for the analytically-known posterior distribution.
+ */
+async function generatePosteriorCases(py) {
+  const cases = [];
+
+  // Beta–Bernoulli: Beta(α,β) prior + k successes in n trials → Beta(α+k, β+n-k)
+  const betaBernoulliCases = [
+    { alpha: "Rational(1,1)", beta: "Rational(1,1)", k: 7, n: 10, aF: 1, bF: 1 },
+    { alpha: "Rational(2,1)", beta: "Rational(5,1)", k: 3, n: 5, aF: 2, bF: 5 },
+    { alpha: "Rational(3,1)", beta: "Rational(7,1)", k: 12, n: 20, aF: 3, bF: 7 },
+    { alpha: "Rational(1,2)", beta: "Rational(1,2)", k: 0, n: 5, aF: 0.5, bF: 0.5 },
+  ];
+  for (const { alpha, beta, k, n, aF, bF } of betaBernoulliCases) {
+    const result = py.runPython(`
+from sympy import Rational, N
+from sympy.stats import Beta as SympyBeta, E, variance
+import json
+a_post = ${alpha} + ${k}
+b_post = ${beta} + ${n - k}
+X = SympyBeta('X', a_post, b_post)
+mean_val = float(E(X))
+var_val  = float(variance(X))
+json.dumps({"mean": mean_val, "variance": var_val, "alpha_post": float(a_post), "beta_post": float(b_post)})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      conjugatePair: "Beta-Bernoulli",
+      prior: { family: "Beta", alpha: aF, beta: bF },
+      evidence: { k_hits: k, n_obs: n },
+      posterior: {
+        family: "Beta",
+        alpha: parsed.alpha_post,
+        beta: parsed.beta_post,
+        moments: { mean: parsed.mean, variance: parsed.variance },
+      },
+    });
+  }
+
+  // Beta–Binomial: same update rule
+  const betaBinomialCases = [
+    { alpha: "Rational(1,1)", beta: "Rational(1,1)", k: 7, n: 10, aF: 1, bF: 1 },
+    { alpha: "Rational(2,1)", beta: "Rational(3,1)", k: 0, n: 5, aF: 2, bF: 3 },
+  ];
+  for (const { alpha, beta, k, n, aF, bF } of betaBinomialCases) {
+    const result = py.runPython(`
+from sympy import Rational, N
+from sympy.stats import Beta as SympyBeta, E, variance
+import json
+a_post = ${alpha} + ${k}
+b_post = ${beta} + ${n - k}
+X = SympyBeta('X', a_post, b_post)
+mean_val = float(E(X))
+var_val  = float(variance(X))
+json.dumps({"mean": mean_val, "variance": var_val, "alpha_post": float(a_post), "beta_post": float(b_post)})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      conjugatePair: "Beta-Binomial",
+      prior: { family: "Beta", alpha: aF, beta: bF },
+      evidence: { k_hits: k, n_obs: n },
+      posterior: {
+        family: "Beta",
+        alpha: parsed.alpha_post,
+        beta: parsed.beta_post,
+        moments: { mean: parsed.mean, variance: parsed.variance },
+      },
+    });
+  }
+
+  // Normal–Normal: σ_post² = 1/(1/σ₀² + n/σ_lik²), μ_post = σ_post²*(μ₀/σ₀² + n*x̄/σ_lik²)
+  const normalNormalCases = [
+    { mu0: "0", sigma0: "1", sigmaLik: "2", xObs: "3", n: 5, mu0F: 0, s0F: 1, sLF: 2, xF: 3 },
+    { mu0: "1", sigma0: "2", sigmaLik: "1", xObs: "0", n: 10, mu0F: 1, s0F: 2, sLF: 1, xF: 0 },
+  ];
+  for (const { mu0, sigma0, sigmaLik, xObs, n, mu0F, s0F, sLF, xF } of normalNormalCases) {
+    const result = py.runPython(`
+from sympy import Rational, N, sqrt
+from sympy.stats import Normal as SympyNormal, E, variance
+import json
+mu0 = ${mu0}; sigma0 = ${sigma0}; sigmaLik = ${sigmaLik}; xObs = ${xObs}; n = ${n}
+var0 = sigma0**2; varLik = sigmaLik**2
+varPost = 1 / (1/var0 + n/varLik)
+muPost  = varPost * (mu0/var0 + n*xObs/varLik)
+sigmaPost = sqrt(varPost)
+X = SympyNormal('X', muPost, sigmaPost)
+mean_val = float(E(X))
+var_val  = float(variance(X))
+json.dumps({"mean": mean_val, "variance": var_val, "mu_post": float(muPost), "sigma_post": float(sigmaPost)})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      conjugatePair: "Normal-Normal",
+      prior: { family: "Normal", mu: mu0F, sigma: s0F },
+      likelihood: { family: "Normal", sigma: sLF },
+      evidence: { x_obs: xF, n_obs: n },
+      posterior: {
+        family: "Normal",
+        mu: parsed.mu_post,
+        sigma: parsed.sigma_post,
+        moments: { mean: parsed.mean, variance: parsed.variance },
+      },
+    });
+  }
+
+  // Gamma–Poisson: Gamma(α,β) + k events in n periods → Gamma(α+k, β+n)
+  const gammaPoissonCases = [
+    { alpha: "Rational(2,1)", beta: "Rational(1,1)", k: 8, n: 4, aF: 2, bF: 1 },
+    { alpha: "Rational(3,1)", beta: "Rational(2,1)", k: 9, n: 6, aF: 3, bF: 2 },
+  ];
+  for (const { alpha, beta, k, n, aF, bF } of gammaPoissonCases) {
+    const result = py.runPython(`
+from sympy import Rational, N
+from sympy.stats import Gamma as SympyGamma, E, variance
+import json
+a_post = ${alpha} + ${k}
+b_post = ${beta} + ${n}
+# sympy.stats.Gamma uses shape k, scale theta; beta (rate) = 1/theta → theta = 1/b_post
+X = SympyGamma('X', a_post, 1/b_post)
+mean_val = float(E(X))
+var_val  = float(variance(X))
+json.dumps({"mean": mean_val, "variance": var_val, "alpha_post": float(a_post), "beta_post": float(b_post)})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      conjugatePair: "Gamma-Poisson",
+      prior: { family: "Gamma", alpha: aF, beta: bF },
+      evidence: { k_hits: k, n_obs: n },
+      posterior: {
+        family: "Gamma",
+        alpha: parsed.alpha_post,
+        beta: parsed.beta_post,
+        moments: { mean: parsed.mean, variance: parsed.variance },
+      },
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy-verified posterior parameters and moments for all 4 conjugate pairs. " +
+      "Beta-Bernoulli, Beta-Binomial, Normal-Normal (known σ), Gamma-Poisson.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.mgf — MGF string expressions from SymPy
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates SymPy MGF string representations for each supported distribution family.
+ * The strings are used to verify the pyodide.worker buildMgfCode output.
+ */
+async function generateMgfCases(py) {
+  const cases = [];
+
+  const specs = [
+    {
+      family: "Bernoulli",
+      params: { p: "Rational(3, 10)" },
+      pFloat: { p: 0.3 },
+      code: `
+from sympy import symbols, Rational, exp, expand
+t = symbols('t')
+p = Rational(3, 10)
+mgf = 1 - p + p * exp(t)
+str(expand(mgf))
+`,
+    },
+    {
+      family: "Binomial",
+      params: { n: 5, p: "Rational(1, 3)" },
+      pFloat: { n: 5, p: 1 / 3 },
+      code: `
+from sympy import symbols, Rational, exp, expand
+t = symbols('t')
+n = 5
+p = Rational(1, 3)
+mgf = (1 - p + p * exp(t))**n
+str(mgf)
+`,
+    },
+    {
+      family: "Poisson",
+      params: { lambda: 2 },
+      pFloat: { lambda: 2 },
+      code: `
+from sympy import symbols, exp
+t = symbols('t')
+lam = 2
+mgf = exp(lam * (exp(t) - 1))
+str(mgf)
+`,
+    },
+    {
+      family: "Normal",
+      params: { mu: 0, sigma: 1 },
+      pFloat: { mu: 0, sigma: 1 },
+      code: `
+from sympy import symbols, exp
+t = symbols('t')
+mu = 0; sigma = 1
+mgf = exp(mu * t + sigma**2 * t**2 / 2)
+str(mgf)
+`,
+    },
+    {
+      family: "Gamma",
+      params: { alpha: 2, beta: 3 },
+      pFloat: { alpha: 2, beta: 3 },
+      code: `
+from sympy import symbols
+t = symbols('t')
+alpha = 2; beta = 3
+mgf = (1 - t/beta)**(-alpha)
+str(mgf)
+`,
+    },
+  ];
+
+  for (const { family, pFloat, code } of specs) {
+    const sympyStr = py.runPython(code.trim());
+    cases.push({ family, parameters: pFloat, sympyStr });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "SymPy MGF string representations for Bernoulli, Binomial, Poisson, Normal, Gamma. " +
+      "Used to verify pyodide.worker buildMgfCode output matches SymPy str() form.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -2375,6 +2617,14 @@ async function main() {
   console.log("\nGenerating stats.gamma fixtures…");
   const gammaFixture = await generateGammaCases(py);
   writeFixture("stats-gamma", gammaFixture);
+
+  console.log("\nGenerating stats.posterior fixtures…");
+  const posteriorFixture = await generatePosteriorCases(py);
+  writeFixture("stats-posterior", posteriorFixture);
+
+  console.log("\nGenerating stats.mgf fixtures…");
+  const mgfFixture = await generateMgfCases(py);
+  writeFixture("stats-mgf", mgfFixture);
 
   console.log("\nDone.");
 }

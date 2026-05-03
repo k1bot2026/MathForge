@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T15:09:50.549Z",
+  "description": "SymPy-verified posterior parameters and moments for all 4 conjugate pairs. Beta-Bernoulli, Beta-Binomial, Normal-Normal (known σ), Gamma-Poisson.",
+  "cases": [
+    {
+      "conjugatePair": "Beta-Bernoulli",
+      "prior": {
+        "family": "Beta",
+        "alpha": 1,
+        "beta": 1
+      },
+      "evidence": {
+        "k_hits": 7,
+        "n_obs": 10
+      },
+      "posterior": {
+        "family": "Beta",
+        "alpha": 8,
+        "beta": 4,
+        "moments": {
+          "mean": 0.6666666666666666,
+          "variance": 0.017094017094017096
+        }
+      }
+    },
+    {
+      "conjugatePair": "Beta-Bernoulli",
+      "prior": {
+        "family": "Beta",
+        "alpha": 2,
+        "beta": 5
+      },
+      "evidence": {
+        "k_hits": 3,
+        "n_obs": 5
+      },
+      "posterior": {
+        "family": "Beta",
+        "alpha": 5,
+        "beta": 7,
+        "moments": {
+          "mean": 0.4166666666666667,
+          "variance": 0.018696581196581196
+        }
+      }
+    },
+    {
+      "conjugatePair": "Beta-Bernoulli",
+      "prior": {
+        "family": "Beta",
+        "alpha": 3,
+        "beta": 7
+      },
+      "evidence": {
+        "k_hits": 12,
+        "n_obs": 20
+      },
+      "posterior": {
+        "family": "Beta",
+        "alpha": 15,
+        "beta": 15,
+        "moments": {
+          "mean": 0.5,
+          "variance": 0.008064516129032258
+        }
+      }
+    },
+    {
+      "conjugatePair": "Beta-Bernoulli",
+      "prior": {
+        "family": "Beta",
+        "alpha": 0.5,
+        "beta": 0.5
+      },
+      "evidence": {
+        "k_hits": 0,
+        "n_obs": 5
+      },
+      "posterior": {
+        "family": "Beta",
+        "alpha": 0.5,
+        "beta": 5.5,
+        "moments": {
+          "mean": 0.08333333333333333,
+          "variance": 0.010912698412698412
+        }
+      }
+    },
+    {
+      "conjugatePair": "Beta-Binomial",
+      "prior": {
+        "family": "Beta",
+        "alpha": 1,
+        "beta": 1
+      },
+      "evidence": {
+        "k_hits": 7,
+        "n_obs": 10
+      },
+      "posterior": {
+        "family": "Beta",
+        "alpha": 8,
+        "beta": 4,
+        "moments": {
+          "mean": 0.6666666666666666,
+          "variance": 0.017094017094017096
+        }
+      }
+    },
+    {
+      "conjugatePair": "Beta-Binomial",
+      "prior": {
+        "family": "Beta",
+        "alpha": 2,
+        "beta": 3
+      },
+      "evidence": {
+        "k_hits": 0,
+        "n_obs": 5
+      },
+      "posterior": {
+        "family": "Beta",
+        "alpha": 2,
+        "beta": 8,
+        "moments": {
+          "mean": 0.2,
+          "variance": 0.014545454545454545
+        }
+      }
+    },
+    {
+      "conjugatePair": "Normal-Normal",
+      "prior": {
+        "family": "Normal",
+        "mu": 0,
+        "sigma": 1
+      },
+      "likelihood": {
+        "family": "Normal",
+        "sigma": 2
+      },
+      "evidence": {
+        "x_obs": 3,
+        "n_obs": 5
+      },
+      "posterior": {
+        "family": "Normal",
+        "mu": 1.6666666666666665,
+        "sigma": 0.6666666666666666,
+        "moments": {
+          "mean": 1.6666666666666665,
+          "variance": 0.4444444444444442
+        }
+      }
+    },
+    {
+      "conjugatePair": "Normal-Normal",
+      "prior": {
+        "family": "Normal",
+        "mu": 1,
+        "sigma": 2
+      },
+      "likelihood": {
+        "family": "Normal",
+        "sigma": 1
+      },
+      "evidence": {
+        "x_obs": 0,
+        "n_obs": 10
+      },
+      "posterior": {
+        "family": "Normal",
+        "mu": 0.024390243902439025,
+        "sigma": 0.31234752377721214,
+        "moments": {
+          "mean": 0.024390243902439025,
+          "variance": 0.0975609756097561
+        }
+      }
+    },
+    {
+      "conjugatePair": "Gamma-Poisson",
+      "prior": {
+        "family": "Gamma",
+        "alpha": 2,
+        "beta": 1
+      },
+      "evidence": {
+        "k_hits": 8,
+        "n_obs": 4
+      },
+      "posterior": {
+        "family": "Gamma",
+        "alpha": 10,
+        "beta": 5,
+        "moments": {
+          "mean": 2,
+          "variance": 0.4
+        }
+      }
+    },
+    {
+      "conjugatePair": "Gamma-Poisson",
+      "prior": {
+        "family": "Gamma",
+        "alpha": 3,
+        "beta": 2
+      },
+      "evidence": {
+        "k_hits": 9,
+        "n_obs": 6
+      },
+      "posterior": {
+        "family": "Gamma",
+        "alpha": 12,
+        "beta": 8,
+        "moments": {
+          "mean": 1.5,
+          "variance": 0.1875
+        }
+      }
+    }
+  ]
+}

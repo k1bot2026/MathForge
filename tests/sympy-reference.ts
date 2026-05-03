@@ -586,3 +586,54 @@ export type GammaDistFixture = {
 export function loadGammaDistFixture(): GammaDistFixture {
   return loadJson<GammaDistFixture>("stats-gamma");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.posterior fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type PosteriorCase = {
+  conjugatePair: "Beta-Bernoulli" | "Beta-Binomial" | "Normal-Normal" | "Gamma-Poisson";
+  prior: { family: string; alpha?: number; beta?: number; mu?: number; sigma?: number };
+  likelihood?: { family: string; sigma?: number };
+  evidence: { k_hits?: number; n_obs: number; x_obs?: number };
+  posterior: {
+    family: string;
+    alpha?: number;
+    beta?: number;
+    mu?: number;
+    sigma?: number;
+    moments: { mean: number; variance: number };
+  };
+};
+
+export type PosteriorFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: PosteriorCase[];
+};
+
+export function loadPosteriorFixture(): PosteriorFixture {
+  return loadJson<PosteriorFixture>("stats-posterior");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// stats.mgf fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type MgfCase = {
+  family: string;
+  parameters: Record<string, number>;
+  sympyStr: string;
+};
+
+export type MgfFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: MgfCase[];
+};
+
+export function loadMgfFixture(): MgfFixture {
+  return loadJson<MgfFixture>("stats-mgf");
+}
