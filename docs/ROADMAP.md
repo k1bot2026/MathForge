@@ -74,10 +74,10 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 | Area | Shipped | Pending |
 |---|---|---|
 | **Foundation** | `la.vector`, `la.matrix`, `la.matvec` (updated), `la.matmul` (updated), seed graph migration, 3 template migrations, URL schemaVersion 1→2 migrator, `la.vector2`/`la.matrix2x2` retired | — |
-| **Operations** | `la.transpose`, `la.add`, `la.sub`, `la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`, `la.qr`, `la.eigen`, `la.solve` | `la.svd`, `la.basis-change`, `la.kernel`, `la.image`, `la.project` |
-| **Visualization** | — | `viz.unit-grid-3d`, eigenvector highlighting, det area/volume animation |
+| **Operations** | `la.transpose`, `la.add`, `la.sub`, `la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`, `la.qr`, `la.eigen`, `la.solve`, `la.svd`, `la.basis-change`, `la.kernel`, `la.image`, `la.project` | — |
+| **Visualization** | `viz.unit-grid-3d` | eigenvector highlighting, det area/volume animation |
 | **Canvas / infra** | React Flow event-handler wiring (user drags/deletions captured in replay log) | — |
-| **Testing** | SymPy fixture infrastructure, cross-engine tests for 8 ops, `invertibleMatrix` / `orthogonalMatrix` / `singularMatrix` arbitraries | SymPy fixtures for `la.lu` + remaining ops |
+| **Testing** | SymPy fixture infrastructure, cross-engine tests for all 17 ops + matmul/matvec, `invertibleMatrix` / `orthogonalMatrix` / `singularMatrix` arbitraries, 100-node perf gate | — |
 | **Docs** | TYPES.md, BLOCK_TAXONOMY.md, TESTING.md, ARCHITECTURE.md, BLOCK_AUTHORING_GUIDE.md, AGENT_TEAM_WORKFLOW.md, README.md, CHANGELOG.md | Update per-op as remainder ships |
 
 ### Blocks
@@ -108,17 +108,17 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - [x] `la.rref`
 - [x] `la.lu`
 - [x] `la.qr`
-- [ ] `la.svd`
+- [x] `la.svd`
 - [x] `la.eigen`
 - [x] `la.solve`
-- [ ] `la.basis-change`
-- [ ] `la.kernel`
-- [ ] `la.image`
-- [ ] `la.project`
+- [x] `la.basis-change`
+- [x] `la.kernel`
+- [x] `la.image`
+- [x] `la.project`
 
 **Visualization**
 
-- [ ] `viz.unit-grid-3d` (react-three-fiber)
+- [x] `viz.unit-grid-3d` (react-three-fiber)
 - [ ] Eigenvector highlighting on `la.eigen` output
 - [ ] Determinant area/volume animation
 

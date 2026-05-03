@@ -221,13 +221,17 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `la.rank` [shipped] — matrix rank via non-zero row count of RREF. (`74a34d0`)
 - `la.lu` [shipped] — LU decomposition with partial pivoting; outputs `L`, `U`, `P`. Property tests: `P·A = L·U`, L lower-triangular with unit diagonal, U upper-triangular. (`9f0fcea`)
 - `la.qr` [shipped] — QR decomposition via Householder reflections; outputs `Q`, `R`. Property tests: `A = Q·R`, `Qᵀ·Q = I`, R upper-triangular. (`f654d61`)
-- `la.svd` — singular value decomposition; outputs `U`, `Σ`, `Vᵀ`.
-- `la.eigen` [shipped] — eigendecomposition (real eigenvalues only); single `Tuple` output port `eigenpairs` wrapping `EigenPayload { eigenvalues: Vector<n>, eigenvectors: Matrix<n,n> }` (column k is eigenvector for eigenvalues[k]). Throws `EigenError` for complex eigenvalues. (`5809167` + `d03f9ad`)
+- `la.svd` [shipped] — singular value decomposition via `eigs(AᵀA)`; single `Tuple` output port `USV` wrapping `SvdPayload { U: Matrix<m,m>, S: Vector<min(m,n)>, V: Matrix<n,n> }`. U and V are orthogonal; S holds singular values in descending order. Reconstruction: `U·diag(S)·Vᵀ ≈ A`. Throws `SvdError`. Supports rectangular and rank-deficient inputs. (`d9d84cd`)
+- `la.eigen` [shipped] — eigendecomposition (real eigenvalues only); single `Tuple` output port `eigenpairs` wrapping `EigenPayload { eigenvalues: number[], eigenvectors: number[][] }` (column k is eigenvector for eigenvalues[k]). Throws `EigenError` for complex eigenvalues. Square input only. (`5809167` + `d03f9ad`)
 - `la.solve` [shipped] — solve `Ax = b` via math.js `lusolve`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`. Throws `SolveError` for singular A (`|det A| < 1e-10`). (`fd1a9ec`)
-- `la.basis-change` — express a vector in a new basis.
-- `la.kernel` — null space of a matrix.
-- `la.image` — column space of a matrix.
-- `la.project` — orthogonal projection of a vector onto a subspace.
+- `la.basis-change` [shipped] — change of basis `P⁻¹·T·P`; inputs `T: Matrix<n,n>` (transformation), `P: Matrix<n,n>` (invertible basis); output `TPrime: Matrix<n,n>`. Similarity invariants preserved: `trace(T′) = trace(T)`, `det(T′) = det(T)`. Throws `BasisChangeError` for singular P. (`552f5b4`)
+- `la.kernel` [shipped] — null space basis via RREF; input `A: Matrix<m,n>`; output `K: Matrix<n,k>` where k = nullity (columns are basis vectors of ker(A)). Returns `n×0` matrix when A has trivial null space. Engine: native. (`0f2db97`)
+- `la.image` [shipped] — column space basis via RREF pivot columns; input `A: Matrix<m,n>`; output `B: Matrix<m,r>` where r = rank(A). Returns `m×0` matrix for zero map. Engine: native. (`5b0f444`)
+- `la.project` [shipped] — orthogonal projection `A·(AᵀA)⁻¹·Aᵀ·v`; inputs `A: Matrix<m,n>`, `v: Vector<m>`; output `Pv: Vector<m>`. Requires A to have full column rank. Throws if `AᵀA` is singular. (`e34f2c3`)
+
+**Visualization**
+
+- `viz.unit-grid-3d` [shipped] — renders unit cube [0,1]³ and its image under a 3×3 matrix M as an interactive 3D wireframe (react-three-fiber + drei, OrbitControls). Basis arrows M·e₁/e₂/e₃ in distinct colors. Input `M: Matrix<3,3>`; passthrough output. Dependencies added: `three@0.184.0`, `@react-three/fiber@9.6.1`, `@react-three/drei@10.7.7`. (`cb64ca3`)
 
 ### Phase 3 (Statistics)
 `stats.bernoulli`, `stats.binomial`, `stats.normal`, `stats.uniform`, `stats.poisson`, `stats.beta`, `stats.gamma`, `stats.empirical`, `stats.sample`, `stats.expect`, `stats.var`, `stats.cov`, `stats.cor`, `stats.mgf`, `stats.posterior`, `stats.bayes-net`, `viz.pdf-cdf`, `viz.histogram`, `viz.joint-heatmap`.
