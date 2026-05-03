@@ -9,10 +9,11 @@ Versions map to phase milestones, not calendar releases.
 
 Shape polymorphism foundation shipped. `la.vector` and `la.matrix` replace the
 fixed-size Phase 1 blocks. URL schema is at version 2 with a v1→v2 migrator for
-old shared links. Ten operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
-`la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`, `la.qr`. SymPy fixture
-infrastructure in place with cross-engine tests. React Flow event-handler wiring closes
-the Phase-1 gap where user drags/deletions were not captured by the Construction Protocol.
+old shared links. Twelve operation blocks shipped: `la.transpose`, `la.add`, `la.sub`,
+`la.trace`, `la.det`, `la.inverse`, `la.rref`, `la.rank`, `la.lu`, `la.qr`, `la.eigen`,
+`la.solve`. SymPy fixture infrastructure in place with cross-engine tests. React Flow
+event-handler wiring closes the Phase-1 gap where user drags/deletions were not captured
+by the Construction Protocol.
 See `docs/ROADMAP.md` Phase 2 progress tracker.
 
 ### Operations (Phase 2)
@@ -27,6 +28,8 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **`la.rank`** — matrix rank via non-zero row count of RREF output. (`74a34d0`)
 - **`la.lu`** — LU decomposition with partial pivoting; outputs `L`, `U`, `P`. Property tests: `P·A = L·U`, L lower-triangular with unit diagonal, U upper-triangular. (`9f0fcea`)
 - **`la.qr`** — QR decomposition via Householder reflections; outputs `Q`, `R`. Property tests: `A = Q·R`, `Qᵀ·Q = I`, R upper-triangular. (`f654d61`)
+- **`la.eigen`** — eigendecomposition (real eigenvalues only); single `Tuple` output port `eigenpairs` wrapping `EigenPayload { eigenvalues: number[], eigenvectors: number[][] }`. Column k of the eigenvector matrix is the eigenvector for `eigenvalues[k]` (column-major layout, eigenvector-highlight-friendly). Throws `EigenError` for complex eigenvalues or eigenvector components. Square input only. (`5809167` + compute fix `d03f9ad`)
+- **`la.solve`** — solves the linear system `Ax = b` via math.js `lusolve`; inputs `A: Matrix<n,n>`, `b: Vector<n>`, output `x: Vector<n>`. Throws `SolveError` if `|det(A)| < 1e-10` (singular guard) or if the system is otherwise inconsistent. (`fd1a9ec`)
 
 ### Bug fixes / Phase-1 gap closures
 
@@ -48,6 +51,7 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - **SymPy fixture infrastructure** — `scripts/generate-sympy-fixtures.mjs` drives Pyodide offline and writes JSON to `tests/fixtures/sympy/`. `tests/sympy-reference.ts` provides typed loaders. `pnpm generate:fixtures` regenerates on demand. (`31ca46b`)
 - **`la.vector` cross-engine tests** — `vector-sympy.test.ts` (46 cases): dot product and squared norm against `la-vector.json` SymPy fixtures; Cauchy-Schwarz property; perpendicular-pair check. (`31ca46b`)
 - **`la.matrix` cross-engine tests** — `matrix-sympy.test.ts` (41 cases): A·B, A·v, Aᵀ, tr(A), det(A) for 1×1 through 4×4 square inputs and 2×3·3×2 non-square inputs. Involution, det(I)=1, trace linearity. (`31ca46b`)
+- **Canvas event-handler e2e tests** — four Playwright tests (`e2e/canvas-event-wiring.spec.ts`) verify that node drags flow through `onNodesChange` into the Construction Protocol: URL hash updates after drag, scrubber max exceeds seed count, last step description contains "moved". Adds `data-testid="replay-step-description"` to `<ReplayBar />` as a stable test anchor. (`13fef11`)
 
 ### Documentation
 
@@ -61,6 +65,8 @@ See `docs/ROADMAP.md` Phase 2 progress tracker.
 - `docs/ARCHITECTURE.md` — `useUiStore` workspace-scoped UI state pattern documented: UiState type, lifecycle distinction from graph/history stores, why workspace-scoped. (`199fc14`)
 - `README.md` — updated to Phase 2 status with shipped block table and links to new docs. (`9e0c892`)
 - `CHANGELOG.md` — initialized (this file). (`12f7cf3`)
+- `docs/TESTING.md` — evaluator-perf wallclock guards documented: 25-node and 50-node wallclock fixtures, 16 ms/frame budget rationale, how to add a new threshold tier. (`fde5b82`)
+- `docs/BLOCK_AUTHORING_GUIDE.md` — §3a Tuple convention table updated to confirm `la.qr` and `la.eigen` output port names and payload types; la.eigen `eigenpairs` port name reflected. (`97b6117`)
 
 ---
 
