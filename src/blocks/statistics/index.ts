@@ -16,6 +16,7 @@ import { JointHeatmapBlock } from "./joint-heatmap/definition";
 import { NormalBlock } from "./normal/definition";
 import { PdfCdfBlock } from "./pdf-cdf/definition";
 import { PoissonBlock } from "./poisson/definition";
+import { PosteriorBlock } from "./posterior/definition";
 import { PosteriorUpdateBlock } from "./posterior-update/definition";
 import { SampleBlock } from "./sample/definition";
 import { UniformBlock } from "./uniform/definition";
@@ -35,6 +36,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(NormalBlock);
   registry.register(PdfCdfBlock);
   registry.register(PoissonBlock);
+  registry.register(PosteriorBlock);
   registry.register(PosteriorUpdateBlock);
   registry.register(SampleBlock);
   registry.register(UniformBlock);
