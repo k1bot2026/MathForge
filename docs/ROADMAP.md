@@ -332,30 +332,30 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 | Area | Shipped | Pending |
 |---|---|---|
-| **Foundation** | SymPy Pyodide worker RPC pattern (`stats.mgf`, `13a1760`); `ExpressionPayload` type (`src/blocks/statistics/expression-payload.ts`) | `calc.function` input UI (MathLive expression entry) |
-| **Function blocks** | — | `calc.function` (symbolic expression entry) |
-| **Operation blocks** | — | `calc.derivative`, `calc.partial`, `calc.gradient`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.ode-solve` |
+| **Foundation** | SymPy Pyodide worker RPC pattern (`stats.mgf`, `13a1760`); `FunctionPayload` + `ExpressionPayload` in `src/math/types.ts`; Pyodide client extended with sympify/diff/integrate/definiteIntegrate/limit/taylor RPCs (`calc.function`, `02b5512`) | — |
+| **Function blocks** | `calc.function` (`02b5512`) | — |
+| **Operation blocks** | `calc.derivative` (`cc3542d`), `calc.integrate` (`8d41219`), `calc.definite-integrate` (`5cbf696`), `calc.limit` (`3ceb98f`), `calc.taylor` (`99b529f`) | `calc.partial`, `calc.gradient`, `calc.series`, `calc.ode-solve` |
 | **Visualization** | — | `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`, `viz.taylor`, `viz.vector-field` |
-| **Testing** | — | SymPy cross-engine fixtures per calculus operation |
-| **Docs** | ROADMAP.md Phase 4 section | BLOCK_TAXONOMY.md calc.* section; BLOCK_AUTHORING_GUIDE.md SymPy-engine worked example |
+| **Testing** | Calc fixture infra: 5 fixture sets + loaders + `function-sympy.test.ts` (`679fcd0`); Pyodide client error-path coverage (`3ad4736`) | Cross-engine tests for calc.derivative through calc.taylor |
+| **Docs** | ROADMAP.md Phase 4 section; BLOCK_TAXONOMY.md calc.* section | BLOCK_AUTHORING_GUIDE.md SymPy-engine worked example |
 
 ### Phase 4 progress
 
 **Function blocks**
 
-- [ ] `calc.function` — symbolic function entry via MathLive; output `Expression`
+- [x] `calc.function` — symbolic expression entry via SymPy sympify(); params `expression` (string), `variable` (string); output port `fn: Function(arity=1)`. Establishes `FunctionPayload` convention; extends Pyodide client with all Phase 4 RPCs. (`02b5512`)
 
 **Operation blocks (SymPy engine)**
 
-- [ ] `calc.derivative` — d/dx of Expression; output `Expression`
-- [ ] `calc.partial` — ∂/∂xᵢ of multivariate Expression; output `Expression`
-- [ ] `calc.gradient` — ∇f; inputs `Expression + variable list`; output `Vector<Expression>`
-- [ ] `calc.integrate` — indefinite integral ∫f dx; output `Expression`
-- [ ] `calc.definite-integrate` — ∫ₐᵇ f dx; inputs `Expression + a + b`; output `Scalar`
-- [ ] `calc.limit` — lim_{x→c} f(x); output `Scalar or Expression`
-- [ ] `calc.series` — Taylor/Maclaurin series expansion to order n; output `Expression`
-- [ ] `calc.taylor` — Taylor polynomial at point a to degree n; output `Expression`
-- [ ] `calc.ode-solve` — solve y′ = f(x, y) symbolically; output `Expression`
+- [x] `calc.derivative` — d/dx of Function; input `fn: Function`, param `variable` (blank = infer); output port `fn: Function`. Throws `DerivativeError`. Chain for higher-order. (`cc3542d`)
+- [ ] `calc.partial` — ∂/∂xᵢ of multivariate Function; output `fn: Function`
+- [ ] `calc.gradient` — ∇f; inputs `fn: Function + variable list`; output `Vector<Function>`
+- [x] `calc.integrate` — ∫f dx (indefinite); input `fn: Function`, param `variable`; output port `fn: Function` (antiderivative, no constant of integration). Throws `IntegrateError`. (`8d41219`)
+- [x] `calc.definite-integrate` — ∫ₐᵇ f dx; inputs `fn: Function`, optional `a: Scalar`, optional `b: Scalar`; params `a`, `b`, `variable`; output port `value: Scalar(real, approximate)` via SymPy N(). Bound inputs override params. Throws `DefiniteIntegrateError`. (`5cbf696`)
+- [x] `calc.limit` — lim_{x→c} f(x); inputs `fn: Function`, optional `point: Scalar`; param `point`, `variable`; output port `value: Expression(freeVars=[])`. Returns `Scalar` for finite numeric results; `Expression` for symbolic answers (oo, zoo). Throws `LimitError`. (`3ceb98f`)
+- [ ] `calc.series` — Taylor/Maclaurin series expansion to order n; output `fn: Function`
+- [x] `calc.taylor` — degree-n Taylor polynomial of f around x=a via SymPy series().removeO(); inputs `fn: Function`, optional `center: Scalar`, optional `order: Scalar`; params `center`, `order` (1–20), `variable`; output port `fn: Function` (polynomial). Throws `TaylorError`. Phase 4 exit-criterion centerpiece. (`99b529f`)
+- [ ] `calc.ode-solve` — solve y′ = f(x, y) symbolically; output `fn: Function`
 
 **Visualization**
 
@@ -367,12 +367,14 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 
 **Testing**
 
-- [ ] SymPy cross-engine fixtures per calculus operation
+- [x] Calc fixture infrastructure: 5 fixture sets (`calc-function.json`, `calc-derivative.json`, `calc-integrate.json`, `calc-limit.json`, `calc-taylor.json`) + 5 typed loaders + `function-sympy.test.ts` (22 tests). (`679fcd0`)
+- [x] Pyodide client error-path coverage for all new RPCs (sympify, diff, integrate, definiteIntegrate, limit, taylor). (`3ad4736`)
+- [ ] Cross-engine tests for calc.derivative, calc.integrate, calc.definite-integrate, calc.limit, calc.taylor
 
 **Docs**
 
 - [x] ROADMAP.md Phase 4 section
-- [ ] BLOCK_TAXONOMY.md calc.* section
+- [x] BLOCK_TAXONOMY.md calc.* section
 - [ ] BLOCK_AUTHORING_GUIDE.md SymPy-engine worked example (e.g. calc.derivative)
 
 ### Blocks

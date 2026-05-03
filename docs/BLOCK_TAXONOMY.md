@@ -269,31 +269,31 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 ### Phase 4 (Calculus)
 
-**Foundation note:** The SymPy Pyodide worker RPC pattern and `ExpressionPayload` type are pre-existing from Phase 3 (`stats.mgf`, `13a1760`). All calc.* operation blocks use `engine: "sympy"`.
+**Foundation note:** `FunctionPayload` (`{ expression: string, variables: ReadonlyArray<string> }`) and `ExpressionPayload` are defined in `src/math/types.ts`. The Pyodide client was extended in `02b5512` with sympify/diff/integrate/definiteIntegrate/limit/taylor RPCs covering all Phase 4 blocks. All calc.* blocks use `engine: "sympy"`, `stability: "beta"`, `color: "function"`.
 
 **Function blocks** _(source role, function color)_
 
-- `calc.function` — symbolic function entry via MathLive; param `expr` (LaTeX string); output `f: Expression`. The root block for all Phase 4 pipelines.
+- `calc.function` [shipped] — symbolic expression entry; params `expression` (string, default "sin(x)"), `variable` (string, default "x"); output port `fn: Function(arity=1, real→real)`. SymPy sympify() validates and normalises the expression. `FunctionPayload.expression` holds canonical SymPy str() form. Throws `FunctionError`. Establishes `FunctionPayload` convention for Phase 4. (`02b5512`)
 
-**Operation blocks** _(operation role, sympy engine, function color unless noted)_
+**Operation blocks** _(operation role, sympy engine, function color)_
 
-- `calc.derivative` — d/dx of a symbolic expression; inputs `f: Expression`, `x: Expression` (variable); output `df: Expression`. Engine: sympy.
-- `calc.partial` — ∂/∂xᵢ of a multivariate expression; inputs `f: Expression`, `xi: Expression` (variable); output `∂f: Expression`. Engine: sympy.
-- `calc.gradient` — ∇f; inputs `f: Expression`, variable list; output `grad: Vector<Expression>`. Engine: sympy.
-- `calc.integrate` — indefinite integral ∫f dx; inputs `f: Expression`, `x: Expression` (variable); output `F: Expression` (antiderivative + constant C omitted). Engine: sympy.
-- `calc.definite-integrate` — ∫ₐᵇ f(x) dx; inputs `f: Expression`, `x: Expression`, `a: Scalar`, `b: Scalar`; output `result: Scalar(real)`. Engine: sympy.
-- `calc.limit` — lim_{x→c} f(x); inputs `f: Expression`, `x: Expression`, `c: Scalar`; output `L: Expression or Scalar`. Engine: sympy.
-- `calc.series` — Taylor/Maclaurin series expansion to order n; inputs `f: Expression`, `x: Expression`, `a: Scalar` (expansion point), `n: integer`; output `s: Expression`. Engine: sympy.
-- `calc.taylor` — Taylor polynomial at point a to degree n (truncated series, no big-O term); inputs `f: Expression`, `x: Expression`, `a: Scalar`, `n: integer`; output `p: Expression`. Engine: sympy.
-- `calc.ode-solve` — solve first-order ODE y′ = f(x, y) symbolically; inputs `f: Expression`, `x: Expression`, `y: Expression`; output `sol: Expression`. Engine: sympy.
+- `calc.derivative` [shipped] — symbolic d/dx via SymPy diff(); input `fn: Function`; param `variable` (blank = infer from payload); output port `fn: Function`. Chainable for higher-order derivatives. Throws `DerivativeError`. (`cc3542d`)
+- `calc.partial` — ∂/∂xᵢ of multivariate Function; output `fn: Function`. [pending]
+- `calc.gradient` — ∇f; output `grad: Vector<Function>`. [pending]
+- `calc.integrate` [shipped] — indefinite integral ∫f dx via SymPy integrate(); input `fn: Function`; param `variable` (blank = infer); output port `fn: Function` (antiderivative; constant of integration omitted). Throws `IntegrateError`. (`8d41219`)
+- `calc.definite-integrate` [shipped] — ∫ₐᵇ f dx via SymPy N(integrate(f,(x,a,b))); inputs `fn: Function`, optional `a: Scalar(real)`, optional `b: Scalar(real)`; params `a` (default 0), `b` (default 1), `variable`; output port `value: Scalar(real, approximate)`. Bound inputs override params. Throws `DefiniteIntegrateError`. (`5cbf696`)
+- `calc.limit` [shipped] — lim_{x→c} f(x) via SymPy limit(); inputs `fn: Function`, optional `point: Scalar(real)`; params `point` (default 0), `variable`; output port `value: Expression(freeVars=[])`. Scalar for finite numeric results; Expression for symbolic answers (oo, zoo). Throws `LimitError`. (`3ceb98f`)
+- `calc.series` — series expansion to order n; output `fn: Function`. [pending]
+- `calc.taylor` [shipped] — degree-n Taylor polynomial via SymPy series().removeO(); inputs `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`; params `center` (default 0), `order` (1–20, default 5), `variable`; output port `fn: Function` (polynomial, no O() term). Throws `TaylorError`. Phase 4 exit-criterion centerpiece. (`99b529f`)
+- `calc.ode-solve` — first-order ODE y′ = f(x,y) via SymPy dsolve(); output `fn: Function`. [pending]
 
 **Visualization** _(visualizer role, emerald color)_
 
-- `viz.tangent` — Mafs-rendered curve with movable tangent point and tangent line; inputs `f: Expression`, `x0: Scalar`.
-- `viz.riemann` — Observable Plot Riemann sum bars for ∫ₐᵇ f dx; inputs `f: Expression`, `a: Scalar`, `b: Scalar`; param `n` (slider, number of subdivisions); method left/right/midpoint.
-- `viz.epsilon-delta` — ε–δ limit visualisation; inputs `f: Expression`, `c: Scalar`, `L: Scalar`; sliders for ε and δ.
-- `viz.taylor` — incremental Taylor polynomial animation; inputs `f: Expression`, `x0: Scalar`; slider for degree n; each term animates in.
-- `viz.vector-field` — 2D vector field (∇f or custom); inputs `fx: Expression`, `fy: Expression`; grid density param.
+- `viz.tangent` — Mafs curve with movable tangent point + tangent line; input `fn: Function`. [pending]
+- `viz.riemann` — Observable Plot Riemann sum bars; input `fn: Function`; params `a`, `b`, `n` (slider). [pending]
+- `viz.epsilon-delta` — ε–δ limit visualisation; inputs `fn: Function`, `c: Scalar`, `L: Scalar`. [pending]
+- `viz.taylor` — original function + Taylor polynomial overlay; inputs `fn: Function` (original), `poly: Function` (from calc.taylor). [pending]
+- `viz.vector-field` — 2D vector field; inputs `fx: Function`, `fy: Function`; grid density param. [pending]
 
 ### Phase 5 (Composites)
 `core.subgraph`, `core.assert`, `core.benchmark`.
