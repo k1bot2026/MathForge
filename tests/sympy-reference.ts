@@ -341,3 +341,26 @@ export type BasisChangeFixture = {
 export function loadBasisChangeFixture(): BasisChangeFixture {
   return loadJson<BasisChangeFixture>("la-basis-change");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.kernel fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type KernelCase = {
+  A: number[][];
+  rank: number;
+  nullity: number;
+  /** K columns form a basis for ker(A). Empty array when nullity = 0. */
+  K: number[][];
+};
+
+export type KernelFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: KernelCase[];
+};
+
+export function loadKernelFixture(): KernelFixture {
+  return loadJson<KernelFixture>("la-kernel");
+}

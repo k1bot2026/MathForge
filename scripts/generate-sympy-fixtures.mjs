@@ -1528,6 +1528,87 @@ json.dumps({
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
+// ──────────────────────────────────────────────────────────────────────────
+// la.kernel — null space basis
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference values for la.kernel (null space basis).
+ *
+ * For each matrix A, SymPy computes the null space basis vectors.
+ * We store: A, the rank, the nullity (= n - rank), and the kernel
+ * matrix K (columns = basis vectors) as floats.
+ *
+ * Key invariants the test will verify:
+ *   1. nullity(A) = n - rank(A)  (rank-nullity theorem)
+ *   2. A · K ≈ 0  (each column of K is in the null space)
+ *   3. number of columns of K matches nullity
+ *
+ * Matrices use small integers. We include full-rank, rank-deficient,
+ * and zero-rank (all-zero) cases, plus rectangular matrices.
+ */
+async function generateKernelCases(py) {
+  const matrices = [
+    // Full-rank square (trivial null space)
+    { A: [[1, 0], [0, 1]], label: "2×2 identity" },
+    { A: [[1, 2], [3, 4]], label: "2×2 invertible" },
+    { A: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], label: "3×3 identity" },
+    // Rank-deficient square
+    { A: [[1, 2], [2, 4]], label: "2×2 rank-1" },
+    { A: [[1, 1, 1], [2, 2, 2], [3, 3, 3]], label: "3×3 rank-1" },
+    { A: [[1, 2, 3], [4, 5, 6], [7, 8, 9]], label: "3×3 rank-2" },
+    // All-zero
+    { A: [[0, 0], [0, 0]], label: "2×2 zero" },
+    // Wide rectangular (more columns than rows — always has non-trivial kernel)
+    { A: [[1, 0, 2], [0, 1, 3]], label: "2×3 full row rank" },
+    { A: [[1, 2, 3, 4], [5, 6, 7, 8]], label: "2×4 rank-2" },
+    // Tall rectangular
+    { A: [[1, 0], [0, 1], [1, 1]], label: "3×2 full column rank" },
+    { A: [[1, 2], [2, 4], [3, 6]], label: "3×2 rank-1" },
+  ];
+
+  const cases = [];
+  for (const { A } of matrices) {
+    const result = py.runPython(`
+from sympy import Matrix
+import json
+A = Matrix(${JSON.stringify(A)})
+rank = A.rank()
+ns = A.nullspace()
+# Normalise to float — nullspace() returns rational exact vectors
+def vec_to_floats(v):
+    return [float(v[i]) for i in range(v.rows)]
+kernel_cols = [vec_to_floats(v) for v in ns]
+# Transpose to row-major matrix (n rows x nullity cols)
+n = A.cols
+nullity = n - rank
+if nullity == 0:
+    kernel_matrix = []
+else:
+    kernel_matrix = [[kernel_cols[j][i] for j in range(nullity)] for i in range(n)]
+json.dumps({
+    "rank": rank,
+    "nullity": nullity,
+    "K": kernel_matrix
+})
+`);
+    const parsed = JSON.parse(result);
+    cases.push({
+      A,
+      rank: parsed.rank,
+      nullity: parsed.nullity,
+      K: parsed.K,
+    });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description: "Reference null space bases from SymPy A.nullspace(). K columns form a basis for ker(A). Invariants: A·K ≈ 0, nullity = n - rank.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -1590,6 +1671,10 @@ async function main() {
   console.log("\nGenerating la.basis-change fixtures…");
   const basisChangeFixture = await generateBasisChangeCases(py);
   writeFixture("la-basis-change", basisChangeFixture);
+
+  console.log("\nGenerating la.kernel fixtures…");
+  const kernelFixture = await generateKernelCases(py);
+  writeFixture("la-kernel", kernelFixture);
 
   console.log("\nDone.");
 }
