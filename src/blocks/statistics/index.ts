@@ -12,6 +12,7 @@ import { EmpiricalBlock } from "./empirical/definition";
 import { ExpectBlock } from "./expect/definition";
 import { GammaBlock } from "./gamma/definition";
 import { HistogramBlock } from "./histogram/definition";
+import { JointHeatmapBlock } from "./joint-heatmap/definition";
 import { NormalBlock } from "./normal/definition";
 import { PdfCdfBlock } from "./pdf-cdf/definition";
 import { PoissonBlock } from "./poisson/definition";
@@ -29,6 +30,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(ExpectBlock);
   registry.register(GammaBlock);
   registry.register(HistogramBlock);
+  registry.register(JointHeatmapBlock);
   registry.register(NormalBlock);
   registry.register(PdfCdfBlock);
   registry.register(PoissonBlock);
