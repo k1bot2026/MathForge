@@ -9,6 +9,7 @@
 // Note: this is a plugin-entry index.ts (one register() call per
 // domain), not a barrel re-export — see CLAUDE.md.
 
+import * as calculus from "./calculus";
 import * as common from "./common";
 import * as linearAlgebra from "./linear-algebra";
 import { BlockRegistry } from "./registry";
@@ -19,6 +20,7 @@ export function buildRegistry(): BlockRegistry {
   common.register(registry);
   linearAlgebra.register(registry);
   statistics.register(registry);
+  calculus.register(registry);
   return registry;
 }
 

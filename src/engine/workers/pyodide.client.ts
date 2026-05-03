@@ -37,6 +37,55 @@ export async function isReady(): Promise<boolean> {
   return proxy.isReady();
 }
 
+export async function sympify(expression: string, variables: string[]): Promise<string> {
+  return ensureProxy().sympify(expression, variables);
+}
+
+export async function diff(
+  expression: string,
+  variables: string[],
+  diffVar: string,
+): Promise<string> {
+  return ensureProxy().diff(expression, variables, diffVar);
+}
+
+export async function integrate(
+  expression: string,
+  variables: string[],
+  integVar: string,
+): Promise<string> {
+  return ensureProxy().integrate(expression, variables, integVar);
+}
+
+export async function definiteIntegrate(
+  expression: string,
+  variables: string[],
+  integVar: string,
+  a: number,
+  b: number,
+): Promise<number> {
+  return ensureProxy().definiteIntegrate(expression, variables, integVar, a, b);
+}
+
+export async function limit(
+  expression: string,
+  variables: string[],
+  limitVar: string,
+  point: number | string,
+): Promise<string> {
+  return ensureProxy().limit(expression, variables, limitVar, point);
+}
+
+export async function taylor(
+  expression: string,
+  variables: string[],
+  seriesVar: string,
+  center: number,
+  order: number,
+): Promise<string> {
+  return ensureProxy().taylor(expression, variables, seriesVar, center, order);
+}
+
 export async function mgf(family: string, parameters: Record<string, number>): Promise<string> {
   return ensureProxy().mgf(family, parameters);
 }

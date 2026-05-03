@@ -64,6 +64,21 @@ export type ExpressionPayload = {
   freeVars: ReadonlyArray<string>;
 };
 
+/**
+ * Payload for a Function value (calc.function and downstream calc.* blocks).
+ *
+ * Design: the function is stored as its SymPy-validated string form
+ * (canonical SymPy str() output after sympify + str round-trip).
+ * Single-variable: variables = ["x"]. Multivariate: ["x", "y", ...].
+ * `arity` mirrors MathType.Function.arity for runtime convenience.
+ */
+export type FunctionPayload = {
+  /** SymPy str() of the expression body, e.g. "sin(x) + x**2" */
+  expression: string;
+  /** Variable names in definition order, e.g. ["x"] or ["x", "y"] */
+  variables: ReadonlyArray<string>;
+};
+
 export type Payload<T extends MathType> = T extends { kind: "Scalar" }
   ? ScalarPayload
   : T extends { kind: "Vector" }
@@ -72,7 +87,9 @@ export type Payload<T extends MathType> = T extends { kind: "Scalar" }
       ? MatrixPayload
       : T extends { kind: "Expression" }
         ? ExpressionPayload
-        : unknown;
+        : T extends { kind: "Function" }
+          ? FunctionPayload
+          : unknown;
 
 export type Provenance = {
   blockId: string;
