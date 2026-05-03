@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-02T23:11:51.157Z",
+  "generated": "2026-05-03T07:04:05.778Z",
   "description": "Reference rref(A) and rank(A) values computed by SymPy 1.13.x. Covers full-rank, rank-deficient, non-square, and zero matrices.",
   "cases": [
     {

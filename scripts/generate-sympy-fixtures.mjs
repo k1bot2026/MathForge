@@ -1279,6 +1279,113 @@ json.dumps({
 }
 
 // ──────────────────────────────────────────────────────────────────────────
+// la.svd — singular value decomposition reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference (A, singularValues) pairs for la.svd cross-engine tests.
+ *
+ * Strategy: store only sorted singular values (σ₁ ≥ σ₂ ≥ … ≥ 0). U and V are
+ * not stored because sign conventions differ between implementations; the
+ * reconstruction property (U·Σ·Vᵀ ≈ A) is verified by the property-based
+ * tests in svd.test.ts. The cross-engine test here confirms σ values match.
+ *
+ * We compute σᵢ = √(λᵢ(AᵀA)) numerically via SymPy to avoid irrational sqrt
+ * serialisation issues.  Covers square (1×1 – 4×4), non-square (2×3, 3×2),
+ * and rank-deficient matrices.
+ */
+async function generateSvdCases(py) {
+  const matrices = [
+    // 1×1
+    [[3]],
+    [[-5]],
+    // 2×2 — full rank
+    [
+      [1, 2],
+      [3, 4],
+    ],
+    // 2×2 — diagonal
+    [
+      [3, 0],
+      [0, 2],
+    ],
+    // 2×2 — rank 1 (one zero singular value)
+    [
+      [1, 2],
+      [2, 4],
+    ],
+    // 2×2 — zero matrix
+    [
+      [0, 0],
+      [0, 0],
+    ],
+    // 3×3 — full rank
+    [
+      [1, 2, 3],
+      [0, 1, 4],
+      [5, 6, 0],
+    ],
+    // 3×3 — rank 2
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ],
+    // 3×3 — identity
+    [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    // 2×3 non-square (m < n)
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+    ],
+    // 3×2 non-square (m > n)
+    [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+    ],
+    // 4×4 — general
+    [
+      [1, 0, 0, 1],
+      [0, 2, 0, 0],
+      [0, 0, 3, 0],
+      [1, 0, 0, 4],
+    ],
+  ];
+
+  const cases = [];
+  for (const A of matrices) {
+    const Ajs = JSON.stringify(A);
+    const result = py.runPython(
+      "from sympy import Matrix, re, im, N\n" +
+        "import json, math\n" +
+        `A = Matrix(${Ajs})\n` +
+        "AtA = A.T * A\n" +
+        "# eigenvals() may return symbolic complex for PSD matrices; take real part.\n" +
+        "raw = AtA.eigenvals(multiple=True)\n" +
+        "lambdas = sorted([float(re(N(ev))) for ev in raw], reverse=True)\n" +
+        "k = min(A.rows, A.cols)\n" +
+        "sigmas = [math.sqrt(max(0.0, lam)) for lam in lambdas[:k]]\n" +
+        'json.dumps({"singularValues": sigmas})',
+    );
+    const parsed = JSON.parse(result);
+    cases.push({ A, singularValues: parsed.singularValues });
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference singular values computed by SymPy 1.13.x for la.svd cross-engine tests. σᵢ = √(λᵢ(AᵀA)) evaluated numerically via N(). Values in descending order. Covers square (1×1 – 4×4), non-square (2×3, 3×2), and rank-deficient matrices.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
 // Main
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -1336,6 +1443,10 @@ async function main() {
   console.log("\nGenerating la.solve fixtures…");
   const solveFixture = await generateSolveCases(py);
   writeFixture("la-solve", solveFixture);
+
+  console.log("\nGenerating la.svd fixtures…");
+  const svdFixture = await generateSvdCases(py);
+  writeFixture("la-svd", svdFixture);
 
   console.log("\nDone.");
 }

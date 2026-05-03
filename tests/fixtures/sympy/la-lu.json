@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-03T03:26:08.885Z",
+  "generated": "2026-05-03T07:04:05.785Z",
   "description": "Reference LU decomposition values (L, U, P) computed by SymPy 1.13.x. P·A = L·U holds exactly. Covers 1×1 through 4×4 integer matrices including pivot-swap cases.",
   "cases": [
     {

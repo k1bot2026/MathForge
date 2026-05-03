@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-03T03:26:08.992Z",
+  "generated": "2026-05-03T07:04:05.888Z",
   "description": "Reference eigenvalues and unit eigenvectors computed by SymPy 1.13.x for cherry-picked matrices with real rational eigenvalues. A·v = λ·v verified per case.",
   "cases": [
     {

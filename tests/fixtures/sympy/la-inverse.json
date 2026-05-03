@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-02T23:11:51.152Z",
+  "generated": "2026-05-03T07:04:05.773Z",
   "description": "Reference A⁻¹ values computed by SymPy 1.13.x. Uses unimodular (|det|=1) and |det|=2 matrices so inverse entries are exact floats. Covers 1×1, 2×2, 3×3, 4×4.",
   "cases": [
     {

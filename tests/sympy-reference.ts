@@ -296,3 +296,23 @@ export type SolveFixture = {
 export function loadSolveFixture(): SolveFixture {
   return loadJson<SolveFixture>("la-solve");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// la.svd fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type SvdCase = {
+  A: number[][];
+  singularValues: number[];
+};
+
+export type SvdFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: SvdCase[];
+};
+
+export function loadSvdFixture(): SvdFixture {
+  return loadJson<SvdFixture>("la-svd");
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-02T23:06:39.838Z",
+  "generated": "2026-05-03T07:04:05.767Z",
   "description": "Reference values for A+B, A-B, and tr(A) computed by SymPy 1.13.x with exact integer arithmetic. Covers 1×1, 2×2, 2×3, 3×3, 4×4 integer matrices.",
   "cases": [
     {

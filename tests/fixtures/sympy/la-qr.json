@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-03T03:26:08.973Z",
+  "generated": "2026-05-03T07:04:05.871Z",
   "description": "Reference QR decomposition values (Q, R) computed by SymPy 1.13.x. Q·R = A, Qᵀ·Q = I. Covers square, rectangular, and rank-deficient integer matrices.",
   "cases": [
     {

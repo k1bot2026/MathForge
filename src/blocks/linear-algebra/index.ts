@@ -17,6 +17,7 @@ import { RankBlock } from "./rank/definition";
 import { RrefBlock } from "./rref/definition";
 import { SolveBlock } from "./solve/definition";
 import { SubBlock } from "./sub/definition";
+import { SvdBlock } from "./svd/definition";
 import { TraceBlock } from "./trace/definition";
 import { TransposeBlock } from "./transpose/definition";
 import { UnitGridBlock } from "./unit-grid/definition";
@@ -39,5 +40,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(RrefBlock);
   registry.register(RankBlock);
   registry.register(SolveBlock);
+  registry.register(SvdBlock);
   registry.register(UnitGridBlock);
 }

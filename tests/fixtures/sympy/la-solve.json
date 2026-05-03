@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generated": "2026-05-03T03:26:09.000Z",
+  "generated": "2026-05-03T07:04:05.896Z",
   "description": "Reference solutions x to Ax=b computed by SymPy 1.13.x using exact arithmetic. Uses unimodular and |det|=2 matrices so solutions are exact floats. Covers 1×1 through 4×4.",
   "cases": [
     {
