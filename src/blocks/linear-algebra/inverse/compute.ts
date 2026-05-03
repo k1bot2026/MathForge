@@ -9,6 +9,8 @@ export class InverseError extends Error {
   }
 }
 
+const EPS = 1e-10;
+
 export function computeInverse(inputs: ResolvedInputs): MathValue {
   const A = inputs.A;
   if (A === undefined) {
@@ -21,7 +23,7 @@ export function computeInverse(inputs: ResolvedInputs): MathValue {
     throw new InverseError(`Inverse is only defined for square matrices; got ${m}×${n}`);
   }
   const d = det(rows as number[][]) as number;
-  if (Math.abs(d) < 1e-10) {
+  if (Math.abs(d) < EPS) {
     throw new InverseError(
       `Matrix is singular (det ≈ ${d.toExponential(2)}); inverse does not exist`,
     );
