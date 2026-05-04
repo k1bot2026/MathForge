@@ -197,4 +197,16 @@ describe("calc.ode-solve definition explain", () => {
     };
     expect(effect({}, output)).toMatch(/^\[implicit\]/);
   });
+
+  test("effect returns fallback string for unexpected output type", async () => {
+    const { OdeSolveBlock } = await import("./definition");
+    const { effect } = OdeSolveBlock.explain;
+    if (effect === undefined) throw new Error("effect is undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "calc.ode-solve", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(effect({}, output)).toBe("ODE solution");
+  });
 });
