@@ -2,7 +2,7 @@
 
 Vertical slices over horizontal completeness. Each phase ends with a working, demonstrable artifact. Active phase is marked at the top; advance only after exit criteria are met.
 
-> **Active phase: Phase 4 — Calculus.** (Phase 1 shipped. Phase 2 shipped. Phase 3 shipped.)
+> **Active phase: Phase 5 — Composite blocks & ecosystem.** (Phase 4 shipped.)
 
 ---
 
