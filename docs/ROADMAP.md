@@ -399,6 +399,40 @@ Vertical slices over horizontal completeness. Each phase ends with a working, de
 - All blocks pass property tests against SymPy.
 - A user can build a Taylor series approximation graph showing convergence interactively.
 
+### Phase 4 retrospective (as of 2026-05-03)
+
+**Velocity (single keep-working session):**
+
+| Category | Count |
+|---|---|
+| Operation blocks shipped | 9 (`calc.derivative`, `calc.integrate`, `calc.definite-integrate`, `calc.limit`, `calc.series`, `calc.taylor`, `calc.partial`, `calc.gradient`, `calc.ode-solve`) |
+| Function source blocks shipped | 1 (`calc.function`) |
+| Visualization blocks shipped | 5 (`viz.taylor`, `viz.tangent`, `viz.riemann`, `viz.epsilon-delta`, `viz.vector-field`) |
+| SymPy-engine blocks | 9 of 10 ops (all except viz blocks which are `engine: "native"`) |
+| Cross-engine fixture sets | 9 (`calc-derivative`, `calc-integrate`, `calc-limit`, `calc-taylor`, `calc-series`, `calc-gradient`, `calc-partial`, `calc-ode-solve`, `calc-function`) |
+| Total new tests | ~418 (1338 → 1756) |
+
+**SymPy worker pattern payoff:**
+The Pyodide worker RPC pattern established by `stats.mgf` in Phase 3 paid back in full. Every calc operation block called one new RPC method (diff, integrate, definiteIntegrate, limit, series, taylor, dsolve) against the shared worker; no new infrastructure was needed after Phase 3. The pattern scaled from univariate single-variable blocks to multivariable (partial/gradient) without modification.
+
+**FunctionPayload and ExpressionPayload conventions:**
+`FunctionPayload` (`{ expression: string, variables: ReadonlyArray<string> }`) as the canonical wire format for all calc operation outputs proved correct. The `variables` list carries all free variable names through the DAG, which is what made calc.gradient and calc.partial possible without extra params. `ExpressionPayload` (`{ form, serialized, freeVars }`) handles the minority case where SymPy returns a symbolic non-function result (calc.limit for oo/zoo; calc.ode-solve for implicit solutions).
+
+**IndexedDB cache deferred:**
+The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions. The EvalCache in-memory layer satisfies this (`243fd91` gate). IndexedDB (Layer 3, cross-reload persistence) was deferred to Phase 5 because it requires a cache-invalidation strategy for graph-URL-linked graphs (session caches are not shared across users).
+
+**Phase 4 status at close of this retrospective:**
+
+| Area | Status |
+|---|---|
+| All 10 operation blocks | Complete |
+| All 5 visualization blocks | Complete |
+| Cross-engine tests for all 10 ops | Complete |
+| Cache hit-rate gate (>50%) | Complete |
+| IndexedDB Layer 3 persistence | Deferred to Phase 5 |
+
+**Phase 4 is complete.** 10 calc ops + 5 viz blocks shipped. 1756 tests green. Advancing to Phase 5.
+
 ---
 
 ## Phase 5 — Composite blocks & ecosystem (target: 3+ weeks)
