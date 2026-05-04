@@ -123,4 +123,51 @@ describe("stats.mgf definition explain", () => {
     );
     expect(placeholder).toMatch(/Connect a distribution/);
   });
+
+  test("effect shows M_X(t) = expression when distribution is connected", async () => {
+    const { MgfBlock } = await import("./definition");
+    const effect = MgfBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect is undefined");
+    const exprPayload: ExpressionPayload = {
+      form: "sympy",
+      serialized: "exp(t**2/2)",
+      freeVars: ["t"],
+    };
+    const output: MathValue = {
+      type: { kind: "Expression", freeVars: ["t"] },
+      payload: exprPayload as unknown as number,
+      provenance: { blockId: "stats.mgf", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    const msg = effect({ distribution: normalInput() }, output);
+    expect(msg).toMatch(/M_X\(t\)/);
+    expect(msg).toMatch(/exp\(t\*\*2\/2\)/);
+  });
+
+  test("impact shows expression and differentiating hint", async () => {
+    const { MgfBlock } = await import("./definition");
+    const impact = MgfBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact is undefined");
+    const exprPayload: ExpressionPayload = {
+      form: "sympy",
+      serialized: "exp(t**2/2)",
+      freeVars: ["t"],
+    };
+    const output: MathValue = {
+      type: { kind: "Expression", freeVars: ["t"] },
+      payload: exprPayload as unknown as number,
+      provenance: { blockId: "stats.mgf", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    const msg = impact({}, output);
+    expect(msg).toMatch(/exp\(t\*\*2\/2\)/);
+    expect(msg).toMatch(/moment/i);
+  });
+
+  test("block definition compute delegates to computeMgf", async () => {
+    const { mgf } = await import("~/engine/workers/pyodide.client");
+    vi.mocked(mgf).mockResolvedValue("exp(t**2/2)");
+    const { MgfBlock } = await import("./definition");
+    const ctx = { signal: new AbortController().signal };
+    const result = await MgfBlock.compute({ distribution: normalInput() }, {}, ctx);
+    expect((result as MathValue).type.kind).toBe("Expression");
+  });
 });
