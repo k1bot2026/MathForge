@@ -103,11 +103,11 @@ Each block declares which engine it wants in its manifest. The router can fall b
 
 Three layers:
 
-1. **In-memory memoization** (engine evaluator) — fast, reset on reload.
-2. **Block-level cache** (Zustand → sessionStorage on idle) — survives accidental refresh.
-3. **Heavy-compute cache** (IndexedDB via idb-keyval) — for SymPy results, persists across sessions.
+1. **In-memory memoization** (`EvalCache` in `src/engine/cache.ts`) — fast, reset on reload. Used by every `evaluate()` call.
+2. **Block-level cache** (Zustand → sessionStorage on idle) — survives accidental refresh. Deferred to Phase 6.
+3. **IndexedDB persistence** (`IndexedDBCache` in `src/engine/cache.ts`, **live as of Phase 5**) — extends `EvalCache` with write-through to `idb-keyval` (`mathforge:eval-cache` store). Call `await cache.hydrate()` once at startup to warm from IDB, then pass the instance to `evaluate()` as normal. `set()` writes through asynchronously; the evaluator hot-path stays synchronous.
 
-Cache keys include engine version hashes; bumping a version invalidates correctly.
+Cache keys are prefixed with `v${ENGINE_VERSION}:`. Bumping `ENGINE_VERSION` (in `cache.ts`) orphans old IDB entries, which become unreachable. A cleanup sweep is deferred to Phase 6.
 
 ## Plugin architecture (domains as plugins)
 

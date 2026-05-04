@@ -1,12 +1,18 @@
-// In-memory memoization cache for evaluator results.
+// Caching layers for evaluator results.
 //
-// Layer 1 of the three documented in docs/ARCHITECTURE.md (in-memory →
-// session storage → IndexedDB). Phase 1 implements only this layer;
-// the disk-backed layers land alongside SymPy in Phase 4 once they
-// have something heavy enough to be worth caching.
+// Layer 1 — EvalCache: in-memory memoization, reset on reload.
+// Layer 3 — IndexedDBCache: extends EvalCache with IDB write-through and
+//   async hydrate(), so hot results survive page reloads without touching
+//   the synchronous evaluator hot-path.
 
+import { createStore, clear as idbClear, entries as idbEntries, set as idbSet } from "idb-keyval";
 import type { MathValue } from "~/math/types";
 import { stableStringify } from "./hash";
+
+// Bumping this constant orphans all existing IDB entries (they become
+// unreachable via any key that includes the version prefix). A cleanup
+// sweep is deferred to Phase 6.
+export const ENGINE_VERSION = "1";
 
 export type CacheKey = string;
 
@@ -63,4 +69,49 @@ export function buildCacheKey(
 
 export function hashInput(value: unknown): string {
   return stableStringify(value);
+}
+
+// Prefix applied to every IDB key so that an ENGINE_VERSION bump makes
+// all previously-written entries unreachable without an explicit clear.
+function idbKey(key: CacheKey): string {
+  return `v${ENGINE_VERSION}:${key}`;
+}
+
+/**
+ * Layer 3 cache: extends EvalCache with IndexedDB write-through persistence.
+ *
+ * Usage:
+ *   const cache = new IndexedDBCache();
+ *   await cache.hydrate();   // call once at startup to warm from IDB
+ *   // pass cache to evaluate() as normal — set() writes through to IDB
+ */
+export class IndexedDBCache extends EvalCache {
+  private readonly idbStore = createStore("mathforge:eval-cache", "entries");
+
+  /**
+   * Reads all version-matching entries from IDB into the in-memory store.
+   * Call once at startup before the first evaluate() call.
+   */
+  async hydrate(): Promise<void> {
+    const prefix = `v${ENGINE_VERSION}:`;
+    const all = await idbEntries<string, MathValue>(this.idbStore);
+    for (const [k, v] of all) {
+      if (typeof k === "string" && k.startsWith(prefix)) {
+        const memKey = k.slice(prefix.length);
+        super.set(memKey, v);
+      }
+    }
+  }
+
+  /** Write-through: sets in memory and schedules an async IDB write. */
+  override set(key: CacheKey, value: MathValue): void {
+    super.set(key, value);
+    void idbSet(idbKey(key), value, this.idbStore);
+  }
+
+  /** Clears both the in-memory store and all IDB entries in this store. */
+  override clear(): void {
+    super.clear();
+    void idbClear(this.idbStore);
+  }
 }
