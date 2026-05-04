@@ -1,4 +1,5 @@
 import fc from "fast-check";
+import { det } from "mathjs";
 import { describe, expect, test } from "vitest";
 import { computeDet } from "~/blocks/linear-algebra/det/compute";
 import { computeTrace } from "~/blocks/linear-algebra/trace/compute";
@@ -17,20 +18,14 @@ function mvalue(payload: number[][]): MathValue {
 
 const PREC = 1e-6;
 
-/** Generate random invertible n×n integer matrices using lower-triangular with ±1 diagonals. */
+/** Generate random invertible n×n integer matrices. Uses the same det threshold as computeBasisChange. */
 const invertibleMatrix = (n: number) =>
   fc
     .array(fc.array(fc.integer({ min: -3, max: 3 }), { minLength: n, maxLength: n }), {
       minLength: n,
       maxLength: n,
     })
-    .filter((rows) => {
-      // Reject if determinant is near zero via a simple diagonal product heuristic.
-      // Fast-check will try enough samples.
-      let diagProd = 1;
-      for (let i = 0; i < n; i++) diagProd *= rows[i]?.[i] ?? 0;
-      return Math.abs(diagProd) > 0;
-    });
+    .filter((rows) => Math.abs(det(rows as number[][]) as number) > 1e-10);
 
 const anySquareMatrix = (n: number) =>
   fc.array(fc.array(fc.integer({ min: -4, max: 4 }), { minLength: n, maxLength: n }), {
@@ -147,7 +142,7 @@ describe("la.basis-change compute", () => {
           }
           const trT = computeTrace({ A: mvalue(T) }).payload as number;
           const trTPrime = computeTrace({ A: result }).payload as number;
-          expect(Math.abs(trT - trTPrime)).toBeLessThan(1e-5);
+          expect(Math.abs(trT - trTPrime)).toBeLessThan(1e-9);
         },
       ),
     );
@@ -168,7 +163,7 @@ describe("la.basis-change compute", () => {
           }
           const detT = computeDet({ A: mvalue(T) }).payload as number;
           const detTPrime = computeDet({ A: result }).payload as number;
-          expect(Math.abs(detT - detTPrime)).toBeLessThan(1e-5);
+          expect(Math.abs(detT - detTPrime)).toBeLessThan(1e-9);
         },
       ),
     );
@@ -192,7 +187,7 @@ describe("la.basis-change compute", () => {
           }
           const trT = computeTrace({ A: mvalue(T) }).payload as number;
           const trResult = computeTrace({ A: step2 }).payload as number;
-          expect(Math.abs(trT - trResult)).toBeLessThan(1e-4);
+          expect(Math.abs(trT - trResult)).toBeLessThan(1e-9);
         },
       ),
     );
