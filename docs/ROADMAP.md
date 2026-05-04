@@ -444,10 +444,10 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 | Area | Shipped | Pending |
 |---|---|---|
 | **Composite core foundation** | `core.input-proxy` (`5400d37`), `core.output-proxy` (`5400d37`), `BlockRegistry.registerOrReplace` (`e1159c4`), `core.assert` (`209c4cf`), `core.subgraph` (`6eb1bd6`), `core.benchmark` (`8758c79`) | — |
-| **Deferred from Phase 3** | — | `stats.bayes-net` (requires `core.subgraph`) |
-| **Deferred from Phase 4** | — | IndexedDB Layer 3 cache persistence (requires cache-invalidation strategy for URL-linked graphs) |
-| **Ecosystem** | — | Community block library; block versioning |
-| **Backend** | — | Supabase wiring; auth; persistent graph URLs at `/g/<slug>` |
+| **Deferred from Phase 3** | `stats.bayes-net` (`60e234b`) — closes Phase 3 deferral | — |
+| **Deferred from Phase 4** | IndexedDB Layer 3 cache persistence (`ee43548`) — closes Phase 4 deferral | — |
+| **Ecosystem** | Block versioning + save/load UI (`f887afc`); Phase 5 exit criterion walkthrough (`53db869`) | Community block library |
+| **Backend** | — | Supabase wiring — **Deferred to Phase 5b — Cloud sharing** (user-approved 2026-05-05) |
 
 ### Phase 5 progress
 
@@ -465,14 +465,15 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 
 **Deferred Phase 3 blocks**
 
-- [ ] `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. Requires `core.subgraph`.
+- [x] `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals; ships as a `core.subgraph` instance pre-configured with Beta prior + Binomial likelihood + Poisson–Gamma conjugate pair. Closes Phase 3 deferral. (`60e234b`)
 
 **Infrastructure / platform**
 
-- [ ] IndexedDB Layer 3 cache — cross-reload EvalCache persistence via idb-keyval; requires cache-invalidation strategy for URL-linked graphs (tag cache entries with graph hash).
-- [ ] Supabase wiring — Postgres + Supabase Auth (magic link); persistent graphs at `/g/<slug>`.
+- [x] IndexedDB Layer 3 cache — cross-reload `EvalCache` persistence via idb-keyval write-through; cache entries tagged with graph hash for invalidation. Adds `IndexedDBCache` class to `src/engine/cache.ts`; `hydrateFromIDB()` on startup; 146-test suite. Closes Phase 4 deferral. (`ee43548`)
+- [x] Block versioning + save/load UI — `saveUserBlock` / `loadUserBlocks` / `deleteUserBlock` / `hydrateUserBlocks` backed by idb-keyval store `"mathforge:user-blocks"`; `SaveAsBlockButton` in inspector panel for `SubgraphDefinition` nodes; `hydrateUserBlocksIntoRegistry()` wired on canvas mount; graph-codec v3 (optional `subgraph` field on `SerializedNode.data` for URL portability). (`f887afc`)
+- [x] Phase 5 exit criterion walkthrough — §9 "End-to-end composite walkthrough" in `docs/BLOCK_AUTHORING_GUIDE.md`: build → save → share → use flow demonstrating the full Phase 5 exit criterion. (`53db869`)
+- [ ] Supabase wiring — Postgres + Supabase Auth (magic link); persistent graphs at `/g/<slug>`. **Deferred to Phase 5b — Cloud sharing.** User-approved 2026-05-05.
 - [ ] Community block library — browse, fork, and install blocks from other users.
-- [ ] Block versioning — semver for user-defined composite blocks; import pinning.
 
 ### Features
 - `core.subgraph`: select N blocks, package as a custom block with named inputs/outputs.

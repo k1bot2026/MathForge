@@ -312,13 +312,13 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `core.assert` [shipped] — asserts that `actual ≈ expected` within an optional `tolerance` param; inputs `actual: Scalar(real, approximate)`, `expected: Scalar(real, approximate)`; output port `pass: Scalar(boolean, exact)`; param `tolerance: number` (default 0). `computeAssert` handles Scalar, Vector, Matrix (element-wise), and Expression (serialized string) equality; kind mismatch returns false. Engine: native; stability: stable. 192 tests. (`209c4cf`)
 - `core.benchmark` [shipped] — wall-clock profiler for a `Function`; inputs `fn: Function(arity=1, real→real)`, optional `x: Scalar(real)` (eval point, default 0); output port `ms_per_call: Scalar(real, approximate)`; params `samples` (default 10, min 1), `warmup` (default 2, min 0); runs warmup evals then measures `samples` timed evals returning mean ms/call; determinism: stochastic; stability: experimental; throws `BenchmarkError`. 17 tests. (`8758c79`)
 
-**Deferred from Phase 3**
+**Deferred from Phase 3 (now shipped)**
 
-- `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. **Deferred from Phase 3.** Requires `core.subgraph` to be available first.
+- `stats.bayes-net` [shipped] — user-assembled Bayesian network implemented as a `core.subgraph` instance; pre-configured with Beta prior + Binomial likelihood + Poisson–Gamma conjugate pair; registered via `BlockRegistry.registerOrReplace()`. Closes Phase 3 deferral. (`60e234b`)
 
 **Infrastructure (Phase 5)**
 
-- IndexedDB Layer 3 cache — cross-reload EvalCache persistence; entries tagged with graph hash for correct invalidation. **Deferred from Phase 4.**
-- Supabase backend — Postgres + Auth (magic link); persistent graphs at `/g/<slug>`.
-- Community block library — browse, fork, install blocks authored by other users.
-- Block versioning — semver tags on composite blocks; import pinning for stable references.
+- IndexedDB Layer 3 cache [shipped] — cross-reload `EvalCache` persistence via idb-keyval write-through; cache entries tagged with graph hash; `IndexedDBCache` class in `src/engine/cache.ts`; `hydrateFromIDB()` on startup; 146-test suite. Closes Phase 4 deferral. (`ee43548`)
+- Block versioning + save/load [shipped] — `saveUserBlock` / `loadUserBlocks` / `deleteUserBlock` / `hydrateUserBlocks` in `src/lib/user-blocks.ts`; `SaveAsBlockButton` in inspector panel; `hydrateUserBlocksIntoRegistry()` wired on canvas mount; graph-codec v3 with optional `subgraph` field on `SerializedNode.data`. (`f887afc`)
+- Supabase backend — Postgres + Auth (magic link); persistent graphs at `/g/<slug>`. **Deferred to Phase 5b — Cloud sharing** (user-approved 2026-05-05).
+- Community block library — browse, fork, install blocks authored by other users. Pending.
