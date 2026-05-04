@@ -811,3 +811,74 @@ import { buildSubgraphDefinition, SubgraphError } from "~/blocks/common/subgraph
 - [ ] `pnpm format && pnpm typecheck && pnpm lint && pnpm test && pnpm build` all pass.
 - [ ] Commit is atomic (one block = one commit).
 - [ ] `git push origin main`.
+
+---
+
+## 9. Phase 5 exit criterion: save, share, and reuse a composite block
+
+This walkthrough verifies the full composite block lifecycle end-to-end.
+
+### Prerequisites
+
+- App running locally (`pnpm dev`).
+- At least two built-in blocks that can be wired together (e.g. `la.vector` → `la.matvec`).
+
+### Step 1 — Build an inner graph
+
+On the canvas, create a small graph of blocks representing the inner logic you want to encapsulate:
+
+1. Add source blocks (e.g. `la.vector`).
+2. Add an operation block (e.g. `la.matvec`).
+3. Connect them and verify the result appears in the inspector.
+
+### Step 2 — Wrap it as a subgraph (programmatic, Phase 5)
+
+In `src/blocks/index.ts` or a one-off script, call `buildSubgraphDefinition()` with the
+`SubgraphPayload` matching your inner graph, and register it with `registerOrReplace()`.
+A UI affordance for this step is planned for Phase 6.
+
+### Step 3 — Save as block via the inspector
+
+1. Select a node whose block definition is a `SubgraphDefinition` (has an embedded `.subgraph` payload).
+2. The inspector shows a **Save as block** section at the bottom.
+3. Edit the name field if desired (default is the block label).
+4. Click **save**. The button briefly shows "saved" on success.
+5. The record is now in IndexedDB under `mathforge:user-blocks`.
+
+### Step 4 — Reload the page
+
+Reload the browser tab. On mount, `EditorCanvas` calls `hydrateUserBlocksIntoRegistry(blockRegistry)`,
+which reads all `mathforge:user-blocks` entries and calls `registerOrReplace()` for each.
+Your saved block is now registered in the same registry as built-in blocks.
+
+### Step 5 — Drag the saved block into a fresh graph
+
+The block is now available in the registry. It can be instantiated programmatically:
+
+```ts
+import { blockRegistry } from "~/blocks";
+const def = blockRegistry.get("user.my-chain");
+// def is a SubgraphDefinition — it has .subgraph with the inner graph
+```
+
+A palette UI for user blocks is planned for Phase 6. For now, blocks saved via the
+inspector can be loaded from the registry and wired into graphs via code or
+`useGraphStore.addNode()`.
+
+### Step 6 — Share via URL (v3 schema)
+
+When a graph containing a user-block node is encoded via `encodeGraph()`, the
+`SerializedNode.data.subgraph` field carries the full `SubgraphPayload` inline.
+The recipient decodes the URL, gets the subgraph data, calls `buildSubgraphDefinition()`
+and `registerOrReplace()` to reconstitute the block, and the graph evaluates normally.
+
+`decodeGraph()` handles v1/v2 payloads automatically (v1→v2→v3 migration chain).
+
+### Acceptance criteria
+
+| Check | Expected result |
+|---|---|
+| Block saved in Step 3 | `loadUserBlocks()` returns a record with the correct `id` and `label` |
+| After reload (Step 4) | `blockRegistry.has("user.my-chain")` is `true` |
+| Block evaluates | Node produces a `MathValue` of the expected type |
+| URL round-trip | `decodeGraph(encodeGraph(nodes, []))` preserves the `.subgraph` field |
