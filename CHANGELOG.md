@@ -13,8 +13,8 @@ Phase 4 deferral), user-defined block save/load UI, and Phase 5 exit criterion c
 2047 tests green.
 
 Phase 6 in progress: MathValue extended with Permutation/Combination/Graph/Modular kinds.
-21 discrete blocks shipped (set ops, combinatorics, number theory, sequences); graph theory
-blocks untracked (in progress); 4 viz blocks pending.
+27 discrete blocks shipped (set ops, combinatorics, number theory, sequences, graph theory);
+4 viz blocks pending (viz.graph-2d, viz.set-venn, viz.permutation-cycles, viz.modular-clock).
 
 ### Foundation (Phase 6)
 
@@ -66,6 +66,21 @@ Nine number-theory blocks shipped together in `52d4fc8`. All share the `number-t
 - **Binomial cross-engine tests** — `d7cd6b3` adds SymPy fixture-driven tests for `discrete.binomial` against `discrete-binomial.json` (40 cases, includes Pascal's identity triples).
 - **Set-op property invariants** — union associativity + identity (`8731b1f`), intersection associativity + distributivity (`5dc811d`), cartesian-product annihilation + pair-membership (`ede07d9`). Explain.effect callbacks and missing error-path tests added for gcd, lcm, is-prime, union (`b5c05d8`).
 - **Fibonacci SymPy cross-engine + sequence property tests** — `86ca40a` adds SymPy fixture-driven tests for `discrete.fibonacci`; recurrence cross-check (Fibonacci as special case); sum identity (partial-sum of constant-1 sequence = n); monotonicity property for ascending sequences.
+
+### Discrete blocks (Phase 6 / Graph theory)
+
+Six graph-theory blocks shipped in `86ca40a`/`de7d6f4`. All share the `graph-theory.ts` utility module (`GraphError`, `makeGraph`, `dijkstra`, `kruskal`, `connectedComponents`, `greedyColoring`). All use `engine: "native"`, `stability: "experimental"`.
+
+- **`discrete.graph`** — explicit graph source block. No inputs; params `directed: boolean`, `weighted: boolean`, `vertex_count` (0–12), `edge_count` (0–20), per-vertex integer labels, per-edge `from/to/weight` params. Output `G: Graph(directed, weighted)`. Symbol: `G`. (`86ca40a`)
+- **`discrete.adjacency-matrix`** — converts a graph to its n×n adjacency matrix: A[i][j] = edge weight (or 1 for unweighted) if an edge exists, 0 otherwise. Input `G: Graph`; output `A: Matrix<n,n,integer>`. Bridges discrete and linear-algebra domains. (`86ca40a`)
+- **`discrete.shortest-path`** — Dijkstra's algorithm from a source vertex. Input `G: Graph`; param `source: integer` (vertex index); output `distances: Set<Scalar(integer)>` — distance in vertex-index order; unreachable vertices represented as −1. (`86ca40a`)
+- **`discrete.minimum-spanning-tree`** — Kruskal's MST algorithm. Input `G: Graph(weighted)`; output `MST: Graph` (same vertices, minimum-weight spanning edges; n−1 edges for a connected n-vertex graph). (`86ca40a`)
+- **`discrete.connected-components`** — BFS-based connected-component count. Input `G: Graph`; output `k: Scalar(integer)`. (`86ca40a`)
+- **`discrete.coloring`** — greedy graph coloring (Welsh-Powell heuristic). Input `G: Graph`; output `k: Scalar(integer)` — chromatic number upper bound. (`86ca40a`)
+
+### Testing (Phase 6 / Graph theory)
+
+- **Graph-theory unit + smoke tests** — `86ca40a`/`de7d6f4` add 29 tests in `graph-theory.test.ts`: dijkstra (source = 0, nearest neighbor, optimal path, disconnected = Infinity), kruskal (n−1 edges, lightest edges, single vertex), connectedComponents (1/3/0-component, isolated vertices), greedyColoring (triangle = 3 colors, no adjacent same color, empty = 0), and block smoke tests for all six graph-theory blocks.
 
 ### Discrete blocks (Phase 6 / Set operations)
 
