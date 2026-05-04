@@ -540,6 +540,104 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 
 ---
 
+## Phase 6 — Discrete Mathematics & Combinatorics (target: 4+ weeks)
+
+**Goal**: introduce discrete mathematics as a new domain with sets, permutations, combinations, number theory, graph theory, and sequences. Demonstrates the plugin architecture's extensibility into new `MathValue` kinds.
+
+### Phase 6 status snapshot
+
+| Area | Shipped | Pending |
+|---|---|---|
+| **Foundation** | `Permutation`, `Combination`, `Graph`, `Modular` types in `MathType`; `SetPayload`, `PermutationPayload`, `CombinationPayload`, `GraphPayload`, `ModularPayload`; `canConnect` extended for all new kinds (`1008750`); `discrete/index.ts` plugin entry (`a1d2bf7`) | — |
+| **Set blocks** | `discrete.set` (`a1d2bf7`) | `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product` |
+| **Combinatorics** | — | `discrete.permutations`, `discrete.combinations`, `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` |
+| **Number theory** | — | `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse` |
+| **Graph theory** | — | `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring` |
+| **Sequences** | — | `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence` |
+| **Visualization** | — | `viz.graph-2d`, `viz.set-venn`, `viz.permutation-cycles`, `viz.modular-clock` |
+| **Testing** | — | SymPy `discrete-*` fixture sets; cross-engine tests; property invariants (gcd·lcm, Pascal, totient) |
+| **Docs** | ROADMAP.md Phase 6 section (this document); active-phase header advanced | BLOCK_TAXONOMY.md `discrete.*` section; TYPES.md discrete kinds; CHANGELOG entries per block |
+
+### Phase 6 progress
+
+**Foundation**
+
+- [x] `MathValue` extension — `Permutation`, `Combination`, `Graph` (vertices + edges, directed + weighted flags), `Modular` (with modulus) added to `MathType` discriminator in `src/math/types.ts`. New payload types: `SetPayload`, `PermutationPayload`, `CombinationPayload`, `GraphPayload`, `ModularPayload` threaded through `Payload<T>`. `canConnect` in `src/editor/connections.ts` extended with structural checks: Permutation unifies `n` shape, Combination unifies `n` and `k`, Graph checks directed/weighted flags (soft warning on weight mismatch), Modular unifies modulus. (`1008750`)
+- [x] `discrete/index.ts` plugin entry — `register(registry)` function registered in `src/blocks/index.ts`. Establishes the discrete domain plugin pattern. (`a1d2bf7`)
+
+**Set blocks**
+
+- [x] `discrete.set` — explicit integer set; params `count` (1–16) + `e0..e15` integer values; deduplicates and sorts; output `set: Set<Scalar(integer, exact)>`. Property tests: idempotence, order-independence, size invariant, no duplicates. (`a1d2bf7`)
+- [ ] `discrete.union` — `Set × Set → Set`; element-wise union.
+- [ ] `discrete.intersection` — `Set × Set → Set`; shared elements.
+- [ ] `discrete.difference` — `Set × Set → Set`; A minus B.
+- [ ] `discrete.cartesian-product` — `Set × Set → Set<Tuple>`.
+
+**Combinatorics**
+
+- [ ] `discrete.permutations` — `Set × Scalar(integer) → Set<Permutation>`.
+- [ ] `discrete.combinations` — `Set × Scalar(integer) → Set<Combination>`.
+- [ ] `discrete.factorial` — `Scalar(integer) → Scalar(integer)`; n!.
+- [ ] `discrete.binomial` — `Scalar(integer) × Scalar(integer) → Scalar(integer)`; C(n, k).
+- [ ] `discrete.multinomial` — `Vector<k, integer> → Scalar(integer)`; n! / (n₁!·…·nₖ!).
+
+**Number theory**
+
+- [ ] `discrete.gcd` — GCD via Euclidean algorithm; SymPy cross-check.
+- [ ] `discrete.lcm` — LCM = |a·b| / gcd(a, b).
+- [ ] `discrete.modpow` — modular exponentiation aᵇ mod m.
+- [ ] `discrete.is-prime` — primality test; output `Scalar(boolean, exact)`.
+- [ ] `discrete.factor` — prime factorization; output `Vector<k, integer>` (prime factors with multiplicity).
+- [ ] `discrete.totient` — Euler's φ(n); SymPy cross-check.
+- [ ] `discrete.divisors` — all divisors of n; output `Set<Scalar(integer)>`.
+- [ ] `discrete.prime-factorize` — factored form as `Map<prime, exponent>`.
+- [ ] `discrete.modular-inverse` — a⁻¹ mod m (requires gcd(a, m) = 1).
+
+**Graph theory**
+
+- [ ] `discrete.graph` — explicit graph (vertices + weighted edges); output `Graph`.
+- [ ] `discrete.adjacency-matrix` — `Graph → Matrix<n,n>`; bridges discrete + linear-algebra domains.
+- [ ] `discrete.shortest-path` — Dijkstra; inputs `Graph × Scalar(vertex)` → `Vector<path>`.
+- [ ] `discrete.minimum-spanning-tree` — Kruskal/Prim; `Graph → Graph` (spanning tree).
+- [ ] `discrete.connected-components` — `Graph → Scalar(integer)` (component count) + component labelling.
+- [ ] `discrete.coloring` — chromatic number / valid k-coloring via backtracking; stability: experimental.
+
+**Sequences & recurrences**
+
+- [ ] `discrete.fibonacci` — nth Fibonacci number; Binet formula for large n.
+- [ ] `discrete.partial-sum` — Σᵢ₌₀ⁿ aᵢ via input sequence `Vector<n>` → `Scalar`.
+- [ ] `discrete.recurrence` — define and evaluate a recurrence relation up to n; stability: experimental.
+
+**Visualization**
+
+- [ ] `viz.graph-2d` — force-directed graph layout; input `Graph`; react-three-fiber or 2D Canvas.
+- [ ] `viz.set-venn` — Venn diagram for ≤3 sets (Observable Plot or SVG).
+- [ ] `viz.permutation-cycles` — cycle decomposition of a Permutation (SVG arrows).
+- [ ] `viz.modular-clock` — clock-face modular arithmetic visualiser; input `Modular`.
+
+**Testing infrastructure**
+
+- [ ] SymPy `discrete-*` fixture pattern — `scripts/generate-sympy-fixtures.mjs` extended with `generateGcdCases()`, `generatePrimeCases()`, `generateModularCases()`, `generateBinomialCases()`, `generateTotientCases()`.
+- [ ] Cross-engine tests for each number-theory block.
+- [ ] Property invariants: `gcd(a,b) · lcm(a,b) = |a·b|`; Pascal's identity; totient multiplicativity.
+
+### Blocks
+Sets: `discrete.set`, `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product`.
+Combinatorics: `discrete.permutations`, `discrete.combinations`, `discrete.factorial`, `discrete.binomial`, `discrete.multinomial`.
+Number theory: `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse`.
+Graph theory: `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring`.
+Sequences: `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence`.
+
+### Visualization
+`viz.graph-2d`, `viz.set-venn`, `viz.permutation-cycles`, `viz.modular-clock`.
+
+### Exit criteria
+- All blocks pass property tests cross-checked against SymPy.
+- A user can solve a classical discrete-math problem (e.g., Travelling Salesperson on a small graph, computing a chromatic number, expanding a binomial) end-to-end on the canvas.
+- The plugin architecture is demonstrably extensible: the `discrete.*` domain is a self-contained plugin in `src/blocks/discrete/` with no changes to the evaluator or connection validator.
+
+---
+
 ## Cross-phase invariants
 
 These never relax, regardless of phase:
