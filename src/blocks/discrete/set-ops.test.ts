@@ -83,6 +83,37 @@ describe("setUnion", () => {
       }),
     );
   });
+
+  test("property: associativity ((A ∪ B) ∪ C = A ∪ (B ∪ C))", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        (a, b, c) => {
+          const lhs = asSortedSet(
+            getIntegers(setUnion(setUnion(makeSet(a), makeSet(b)), makeSet(c))),
+          );
+          const rhs = asSortedSet(
+            getIntegers(setUnion(makeSet(a), setUnion(makeSet(b), makeSet(c)))),
+          );
+          expect(lhs).toEqual(rhs);
+        },
+      ),
+    );
+  });
+
+  test("property: identity (A ∪ ∅ = A and ∅ ∪ A = A)", () => {
+    fc.assert(
+      fc.property(fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 15 }), (a) => {
+        const s = makeSet(a);
+        const empty = makeSet([]);
+        const original = asSortedSet(getIntegers(s));
+        expect(asSortedSet(getIntegers(setUnion(s, empty)))).toEqual(original);
+        expect(asSortedSet(getIntegers(setUnion(empty, s)))).toEqual(original);
+      }),
+    );
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────
