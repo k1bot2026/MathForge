@@ -91,6 +91,17 @@ const asyncBlock: BlockDefinition = {
   inputs: [{ id: "a", label: "a", type: REAL_EXACT }],
 };
 
+const optionalInputBlock: BlockDefinition = {
+  ...addBlock,
+  id: "test.optional-input",
+  inputs: [
+    { id: "required", label: "required", type: REAL_EXACT },
+    { id: "optional", label: "optional", type: REAL_EXACT, required: false },
+  ],
+  compute: (inputs) =>
+    scalarValue((inputs.required?.payload as number) ?? 0, "test.optional-input"),
+};
+
 function buildRegistry(): BlockRegistry {
   const r = new BlockRegistry();
   r.register(constantBlock);
@@ -99,6 +110,7 @@ function buildRegistry(): BlockRegistry {
   r.register(throwStringBlock);
   r.register(throwObjectBlock);
   r.register(asyncBlock);
+  r.register(optionalInputBlock);
   return r;
 }
 
@@ -357,5 +369,91 @@ describe("evaluate", () => {
     await evaluate({ graph, registry: countedRegistry, signal: controller.signal });
     // Only the first node computed before abort
     expect(computeCount).toBe(1);
+  });
+
+  test("optional input with no edge is skipped — block still evaluates", async () => {
+    const graph: GraphSpec = {
+      nodes: [
+        { id: "c", blockId: "test.constant", params: { value: 7 } },
+        { id: "opt", blockId: "test.optional-input", params: {} },
+      ],
+      edges: [{ id: "e", source: "c", target: "opt", targetPort: "required" }],
+    };
+    const results = await evaluate({ graph, registry: buildRegistry() });
+    const r = results.get("opt");
+    expect(r?.kind).toBe("value");
+    if (r?.kind === "value") expect(r.value.payload).toBe(7);
+  });
+
+  test("edge with no targetPort matches port with id ''", async () => {
+    const noPortBlock: BlockDefinition = {
+      ...addBlock,
+      id: "test.no-port",
+      inputs: [{ id: "", label: "value", type: REAL_EXACT }],
+      compute: (inputs) => scalarValue((inputs[""]?.payload as number) ?? 0, "test.no-port"),
+    };
+    const r = new BlockRegistry();
+    r.register(constantBlock);
+    r.register(noPortBlock);
+    const graph: GraphSpec = {
+      nodes: [
+        { id: "c", blockId: "test.constant", params: { value: 9 } },
+        { id: "n", blockId: "test.no-port", params: {} },
+      ],
+      edges: [{ id: "e", source: "c", target: "n" }],
+    };
+    const results = await evaluate({ graph, registry: r });
+    const result = results.get("n");
+    expect(result?.kind).toBe("value");
+    if (result?.kind === "value") expect(result.value.payload).toBe(9);
+  });
+
+  test("depth parameter is threaded into EvalContext", async () => {
+    let capturedDepth = -1;
+    const depthBlock: BlockDefinition = {
+      ...addBlock,
+      id: "test.depth",
+      inputs: [],
+      compute: (_inputs, _params, ctx) => {
+        capturedDepth = ctx.depth ?? -1;
+        return scalarValue(0, "test.depth");
+      },
+    };
+    const r = new BlockRegistry();
+    r.register(depthBlock);
+    const graph: GraphSpec = {
+      nodes: [{ id: "d", blockId: "test.depth", params: {} }],
+      edges: [],
+    };
+    await evaluate({ graph, registry: r, depth: 3 });
+    expect(capturedDepth).toBe(3);
+  });
+
+  test("initialResults pre-seeds node results and skips their computation", async () => {
+    let computeCount = 0;
+    const countedRegistry = new BlockRegistry();
+    const countedConstant: BlockDefinition = {
+      ...constantBlock,
+      id: "test.counted-seed",
+      compute: (_inputs, params) => {
+        computeCount++;
+        return scalarValue(Number(params.value ?? 0), "test.counted-seed");
+      },
+    };
+    countedRegistry.register(countedConstant);
+    const seedValue = scalarValue(99, "pre-seeded");
+    const initialResults = new Map([["c1", { kind: "value" as const, value: seedValue }]]);
+    const graph: GraphSpec = {
+      nodes: [
+        { id: "c1", blockId: "test.counted-seed", params: { value: 1 } },
+        { id: "c2", blockId: "test.counted-seed", params: { value: 2 } },
+      ],
+      edges: [],
+    };
+    const results = await evaluate({ graph, registry: countedRegistry, initialResults });
+    expect(computeCount).toBe(1);
+    const r1 = results.get("c1");
+    expect(r1?.kind).toBe("value");
+    if (r1?.kind === "value") expect(r1.value.payload).toBe(99);
   });
 });
