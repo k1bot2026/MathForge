@@ -820,3 +820,49 @@ export type CalcGradientFixture = {
 export function loadCalcGradientFixture(): CalcGradientFixture {
   return loadJson<CalcGradientFixture>("calc-gradient");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.partial fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcPartialCase = {
+  expression: string;
+  variables: string[];
+  diffVar: string;
+  partial: string;
+};
+
+export type CalcPartialFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcPartialCase[];
+};
+
+export function loadCalcPartialFixture(): CalcPartialFixture {
+  return loadJson<CalcPartialFixture>("calc-partial");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.ode-solve fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcOdeSolveCase = {
+  ode: string;
+  depVar: string;
+  indepVar: string;
+  ics: { x0: number; y0: number } | null;
+  rhs: string;
+  implicit: boolean;
+};
+
+export type CalcOdeSolveFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcOdeSolveCase[];
+};
+
+export function loadCalcOdeSolveFixture(): CalcOdeSolveFixture {
+  return loadJson<CalcOdeSolveFixture>("calc-ode-solve");
+}

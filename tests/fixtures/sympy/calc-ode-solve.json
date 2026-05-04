@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "SymPy dsolve() ODE solution reference values for calc.ode-solve cross-engine tests.",
+  "cases": [
+    {
+      "ode": "y' - y",
+      "depVar": "y",
+      "indepVar": "x",
+      "ics": null,
+      "rhs": "C1*exp(x)",
+      "implicit": false
+    },
+    {
+      "ode": "y' - y",
+      "depVar": "y",
+      "indepVar": "x",
+      "ics": { "x0": 0, "y0": 1 },
+      "rhs": "exp(x)",
+      "implicit": false
+    },
+    {
+      "ode": "y'' + y",
+      "depVar": "y",
+      "indepVar": "x",
+      "ics": null,
+      "rhs": "C1*sin(x) + C2*cos(x)",
+      "implicit": false
+    },
+    {
+      "ode": "y' + y",
+      "depVar": "y",
+      "indepVar": "x",
+      "ics": null,
+      "rhs": "C1*exp(-x)",
+      "implicit": false
+    },
+    {
+      "ode": "y' - 2*x",
+      "depVar": "y",
+      "indepVar": "x",
+      "ics": null,
+      "rhs": "C1 + x**2",
+      "implicit": false
+    }
+  ]
+}

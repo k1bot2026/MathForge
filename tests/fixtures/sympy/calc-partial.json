@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "SymPy diff() partial derivative reference values for calc.partial cross-engine tests. Each case is a multivariate function with the partial derivative w.r.t. one variable.",
+  "cases": [
+    {
+      "expression": "x**2 + y**2",
+      "variables": ["x", "y"],
+      "diffVar": "x",
+      "partial": "2*x"
+    },
+    {
+      "expression": "x**2 + y**2",
+      "variables": ["x", "y"],
+      "diffVar": "y",
+      "partial": "2*y"
+    },
+    {
+      "expression": "x*y",
+      "variables": ["x", "y"],
+      "diffVar": "x",
+      "partial": "y"
+    },
+    {
+      "expression": "x*y",
+      "variables": ["x", "y"],
+      "diffVar": "y",
+      "partial": "x"
+    },
+    {
+      "expression": "sin(x)*cos(y)",
+      "variables": ["x", "y"],
+      "diffVar": "x",
+      "partial": "cos(x)*cos(y)"
+    },
+    {
+      "expression": "sin(x)*cos(y)",
+      "variables": ["x", "y"],
+      "diffVar": "y",
+      "partial": "-sin(x)*sin(y)"
+    },
+    {
+      "expression": "x**2*y + y**3",
+      "variables": ["x", "y"],
+      "diffVar": "x",
+      "partial": "2*x*y"
+    },
+    {
+      "expression": "x**2*y + y**3",
+      "variables": ["x", "y"],
+      "diffVar": "y",
+      "partial": "x**2 + 3*y**2"
+    },
+    {
+      "expression": "exp(x + y)",
+      "variables": ["x", "y"],
+      "diffVar": "x",
+      "partial": "exp(x + y)"
+    },
+    {
+      "expression": "x + 2*y + 3*z",
+      "variables": ["x", "y", "z"],
+      "diffVar": "z",
+      "partial": "3"
+    }
+  ]
+}
