@@ -109,3 +109,43 @@ describe("calc.gradient compute", () => {
     ).rejects.toThrow(/SymPy gradient computation failed/);
   });
 });
+
+describe("calc.gradient definition explain", () => {
+  test("effect returns connect prompt when fn input is missing", async () => {
+    const { GradientBlock } = await import("./definition");
+    const effect = GradientBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const output: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [2, 6] as unknown as VectorPayload,
+      provenance: { blockId: "calc.gradient", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(effect({}, output)).toMatch(/Connect/);
+  });
+
+  test("effect returns formatted gradient vector when fn is connected", async () => {
+    const { GradientBlock } = await import("./definition");
+    const effect = GradientBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const fnPayload: FunctionPayload = { expression: "x**2 + 3*y", variables: ["x", "y"] };
+    const fnInput: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 2,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: fnPayload as unknown as number,
+      provenance: { blockId: "calc.function", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    const output: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [2, 3] as unknown as VectorPayload,
+      provenance: { blockId: "calc.gradient", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    const msg = effect({ fn: fnInput }, output);
+    expect(msg).toMatch(/∇f\(x, y\)/);
+    expect(msg).toMatch(/2\.000/);
+    expect(msg).toMatch(/3\.000/);
+  });
+});

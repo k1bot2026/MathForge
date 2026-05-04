@@ -92,3 +92,23 @@ describe("calc.partial compute", () => {
     ).rejects.toThrow(/SymPy partial diff failed/);
   });
 });
+
+describe("calc.partial definition explain", () => {
+  test("impact returns partial expression string", async () => {
+    const { PartialBlock } = await import("./definition");
+    const impact = PartialBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const payload: FunctionPayload = { expression: "2*x", variables: ["x"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.partial", inputs: ["fn"], computedAt: 0, engine: "sympy" },
+    };
+    expect(impact({}, output)).toBe("Partial: 2*x");
+  });
+});
