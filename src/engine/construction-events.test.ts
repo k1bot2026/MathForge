@@ -108,6 +108,34 @@ describe("projectGraph", () => {
     expect(projectGraph(events, 1)).toEqual({ nodes: [], edges: [], justAppearedIds: ["ghost"] });
   });
 
+  it("non-last events do not set justAppearedIds", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({ kind: "node-removed", nodeId: "a" }),
+      ev({ kind: "node-moved", nodeId: "b", position: { x: 10, y: 20 } }),
+      ev({ kind: "params-updated", nodeId: "b", params: { v: 1 } }),
+      ev({
+        kind: "edge-added",
+        edge: { id: "e1", source: "a", target: "b" },
+      }),
+      ev({ kind: "edge-removed", edgeId: "e1" }),
+      ev({ kind: "graph-reset", reason: "template" }),
+    ];
+    // Step at 0 — no events processed
+    expect(projectGraph(events, 0).justAppearedIds).toEqual([]);
+    // Step at 1 — node-added "a" is last; justAppearedIds = ["a"]
+    expect(projectGraph(events, 1).justAppearedIds).toEqual(["a"]);
+    // Step at 8 (all) — graph-reset is last; justAppearedIds = []
+    expect(projectGraph(events, 8).justAppearedIds).toEqual([]);
+  });
+
   it("node-moved updates position", () => {
     const events: ConstructionEvent[] = [
       ev({
