@@ -138,4 +138,18 @@ describe("calc.limit definition explain", () => {
     if (impact === undefined) throw new Error("impact undefined");
     expect(impact({}, expressionOutput("oo"))).toBe("Limit: oo");
   });
+
+  test("effect returns numeric limit string for Scalar output", async () => {
+    const { LimitBlock } = await import("./definition");
+    const effect = LimitBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    expect(effect({}, scalarOutput(1))).toBe("lim f = 1");
+  });
+
+  test("effect returns symbolic limit string for Expression output", async () => {
+    const { LimitBlock } = await import("./definition");
+    const effect = LimitBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    expect(effect({}, expressionOutput("oo"))).toBe("lim f = oo");
+  });
 });

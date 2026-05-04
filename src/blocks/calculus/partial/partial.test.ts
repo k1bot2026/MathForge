@@ -111,4 +111,24 @@ describe("calc.partial definition explain", () => {
     };
     expect(impact({}, output)).toBe("Partial: 2*x");
   });
+
+  test("effect returns partial derivative expression with variable info", async () => {
+    const { PartialBlock } = await import("./definition");
+    const effect = PartialBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const payload: FunctionPayload = { expression: "2*x", variables: ["x", "y"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 2,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.partial", inputs: ["fn"], computedAt: 0, engine: "sympy" },
+    };
+    const msg = effect({}, output);
+    expect(msg).toMatch(/∂f\/∂/);
+    expect(msg).toMatch(/2\*x/);
+  });
 });

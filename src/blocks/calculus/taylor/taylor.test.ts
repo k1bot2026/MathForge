@@ -155,4 +155,22 @@ describe("calc.taylor definition explain", () => {
     };
     expect(impact({}, output)).toBe("Polynomial approximation: 1 + x + x**2/2");
   });
+
+  test("effect returns T(x) = expression string", async () => {
+    const { TaylorBlock } = await import("./definition");
+    const effect = TaylorBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const payload: FunctionPayload = { expression: "1 - x**2/2 + x**4/24", variables: ["x"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.taylor", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(effect({}, output)).toBe("T(x) = 1 - x**2/2 + x**4/24");
+  });
 });

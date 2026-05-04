@@ -136,4 +136,34 @@ describe("calc.series definition explain", () => {
     };
     expect(impact({}, output)).toBe("Partial sum: n*(n+1)/2");
   });
+
+  test("effect returns toPrecision(6) string for Scalar output", async () => {
+    const { SeriesBlock } = await import("./definition");
+    const effect = SeriesBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 1.64493,
+      provenance: { blockId: "calc.series", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(effect({}, output)).toMatch(/Σ aₙ = 1\.64493/);
+  });
+
+  test("effect returns expression string for Function output", async () => {
+    const { SeriesBlock } = await import("./definition");
+    const effect = SeriesBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const payload: FunctionPayload = { expression: "n*(n+1)/2", variables: ["n"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.series", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(effect({}, output)).toBe("Σ aₙ = n*(n+1)/2");
+  });
 });
