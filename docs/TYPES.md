@@ -408,6 +408,94 @@ The practical rule: if the result can be evaluated at a point `f(x=a)`, use `Fun
 
 A `Function(arity=1, real→real)` output connects to a `Function(arity=1, real→real)` input. Arity mismatch is rejected with a clear message. Domain/codomain checks use the same field-subtyping rules as Scalar (`boolean ⊂ integer ⊂ rational ⊂ real ⊂ complex`).
 
+## Discrete math types (Phase 6)
+
+Established by `1008750`. Four new `MathType` kinds added to the discriminated union,
+each with a corresponding payload type. All are in `src/math/types.ts`.
+
+### New `MathType` variants
+
+```typescript
+| { kind: "Permutation"; n: Shape }
+| { kind: "Combination"; n: Shape; k: Shape }
+| { kind: "Graph"; directed: boolean; weighted: boolean }
+| { kind: "Modular"; modulus: Shape }
+```
+
+`Set` was already in the union (`kind: "Set"; element: MathType`) from Phase 1. Phase 6
+fills in its payload and first block (`discrete.set`).
+
+### Payload types
+
+```typescript
+/** Permutation in one-line notation: element at index i maps to value[i]. */
+type PermutationPayload = ReadonlyArray<number>;
+
+/** Combination: the chosen elements plus the size parameter. */
+type CombinationPayload = {
+  elements: ReadonlyArray<MathValue>;
+  size: number;
+};
+
+type GraphVertex = { id: string; label?: string };
+type GraphEdgeSpec = { from: string; to: string; weight?: number };
+type GraphPayload = {
+  vertices: ReadonlyArray<GraphVertex>;
+  edges: ReadonlyArray<GraphEdgeSpec>;
+};
+
+/** Element of Z/mZ: value is always in [0, modulus - 1]. */
+type ModularPayload = { value: number; modulus: number };
+
+/** Set payload: deduplicated, ordered collection of MathValues. */
+type SetPayload = ReadonlyArray<MathValue>;
+```
+
+### Set element-type
+
+`Set` is parameterized by its element type: `{ kind: "Set"; element: MathType }`. The
+`element` field is a full `MathType`, so `Set<Scalar(integer, exact)>` and
+`Set<Graph>` are both valid.
+
+`canConnect` for `Set` delegates to `canConnect(out.element, into.element)` — element
+types must be structurally compatible. A `Set<Scalar(integer)>` output flows into a
+`Set<Scalar(real)>` input via field subtyping; it does not flow into a `Set<Vector>`
+input (kind mismatch on the element).
+
+### `canConnect` rules for discrete kinds
+
+| Kind | Rule |
+|---|---|
+| `Permutation` | `unifyShape(out.n, into.n, "n")` — permutation sizes must match |
+| `Combination` | `unifyShape(out.n, into.n, "n")` + `unifyShape(out.k, into.k, "k")` — both n and k must match |
+| `Graph` | `into.directed && !out.directed` → hard rejection; `into.weighted && !out.weighted` → soft warning (block must handle absent weights) |
+| `Modular` | `unifyShape(out.modulus, into.modulus, "modulus")` — moduli must match for arithmetic to be well-defined |
+
+### The `discrete.adjacency-matrix` bridge
+
+`discrete.adjacency-matrix` outputs `Matrix<n,n>` from a `Graph` input. This is the
+canonical bridge from the discrete domain to the linear-algebra domain — the adjacency
+matrix of a graph is a `Matrix<n,n>` value that flows into any `la.*` block expecting
+a matrix. Eigenvalues of the adjacency matrix reveal spectral graph properties; the
+kernel gives the null space, etc. No type-system changes are needed for this bridge;
+the output is a plain `Matrix` kind.
+
+### When to add a new discrete kind vs. reuse existing types
+
+| Situation | Choice |
+|---|---|
+| The value is a collection of scalars with set semantics (dedup, order-independent) | `Set<Scalar>` |
+| The value is an ordered arrangement of n objects from {1..n} | `Permutation` |
+| The value is an unordered selection of k objects from n | `Combination` |
+| The value is a vertex/edge structure with optional weights | `Graph` |
+| The value is an integer residue class modulo m | `Modular` |
+| The value is a count, coefficient, or numeric result of a discrete op | `Scalar(integer, exact)` |
+
+Avoid introducing new kinds for values that are naturally expressible as `Scalar` or
+`Vector`. The four Phase 6 kinds were introduced because they carry structural information
+(element type, directed/weighted flags, modulus) that `canConnect` uses to prevent
+domain errors at edit time — not just to name the value.
+
 ## Notes on extensibility
 
 - Add a new `MathType` kind only via ADR — it cascades to `canConnect`, payloads, serialization, validation, and visualizers.
