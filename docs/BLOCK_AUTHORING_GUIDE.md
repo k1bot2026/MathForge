@@ -646,6 +646,159 @@ Current RPCs available (as of `a569a71`): `sympify`, `diff`, `integrate`, `defin
 
 ---
 
+## 7b. Composite blocks (`core.subgraph`)
+
+> **When to read this section:** You want to package a sub-graph of existing blocks into a
+> single reusable block that appears in the palette with its own typed ports.
+>
+> **Prerequisites:** Read ADR 0004 (`docs/adr/0004-composite-blocks-via-subgraph.md`) for the
+> design rationale. This section is the practitioner how-to that ADR 0004 deliberately omits.
+
+### Concepts in one paragraph
+
+A composite block is a `BlockDefinition` whose `compute()` runs a **sub-evaluator** — a
+second call to `evaluate()` on an inner `GraphSpec`. Two special `stability: "internal"` blocks
+act as the port surface:
+
+- `core.input-proxy` — one per input port on the composite. Each instance has a `portId`
+  param that names the outer input port it represents. The sub-evaluator sees its output as
+  the value arriving from the outer graph.
+- `core.output-proxy` — one per output port on the composite. Each instance reads its input
+  from the inner graph and the outer `compute()` reads its resolved value to populate the
+  composite's output.
+
+Proxy nodes are hidden from the user-facing palette (`stability: "internal"` is filtered out).
+They are ordinary registered blocks — the evaluator has no knowledge of their special role.
+
+### Step 1 — Design the inner graph
+
+Draw (or programmatically construct) a `GraphSpec` as you would any MathForge graph, with
+these additions:
+
+1. Add one `core.input-proxy` node per input you want to expose. Set its `portId` param to
+   the name of the outer input port (e.g., `"fn"`, `"x"`).
+2. Add one `core.output-proxy` node per output you want to expose. Wire its single `value`
+   input to whatever inner node produces the result. Set its `portId` param to the name of
+   the outer output port (e.g., `"result"`).
+3. Everything else is a normal inner block — connect them as you would any graph.
+
+Example inner graph with one input and one output:
+
+```ts
+import type { GraphSpec } from "~/engine/graph-spec";
+
+const innerGraph: GraphSpec = {
+  nodes: [
+    // outer fn → inner computation
+    { id: "ip-fn",     blockId: "core.input-proxy",  params: { portId: "fn" } },
+    { id: "double",    blockId: "calc.derivative",    params: { variable: "x" } },
+    { id: "op-result", blockId: "core.output-proxy",  params: { portId: "result" } },
+  ],
+  edges: [
+    { id: "e1", source: "ip-fn",  sourcePort: "value",  target: "double",    targetPort: "fn"    },
+    { id: "e2", source: "double", sourcePort: "fn",     target: "op-result", targetPort: "value" },
+  ],
+};
+```
+
+### Step 2 — Build the `SubgraphDefinition`
+
+Call `buildSubgraphDefinition()` from `src/blocks/common/subgraph/definition.ts`. It returns
+a fully-formed `BlockDefinition` whose ports, `compute()`, and `explain` are derived from the
+inner graph structure you provide.
+
+```ts
+import { buildSubgraphDefinition } from "~/blocks/common/subgraph/definition";
+
+export const MyCompositeBlock = buildSubgraphDefinition({
+  id: "user.my-composite",        // must not clash with any built-in id
+  label: "My Composite",
+  category: "operation",
+  domain: "common",
+  color: "function",
+  inputs: [
+    { id: "fn", label: "f(x)", type: { kind: "Function", arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" } } },
+  ],
+  outputs: [
+    { id: "result", label: "result", type: { kind: "Function", arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" } } },
+  ],
+  subgraph: {
+    inner: innerGraph,
+    inputProxies:  [{ proxyNodeId: "ip-fn",     portId: "fn"     }],
+    outputProxies: [{ proxyNodeId: "op-result",  portId: "result" }],
+  },
+});
+```
+
+`buildSubgraphDefinition()` injects a `compute()` that:
+
+1. Seeds each input-proxy node's result using the outer `inputs` record.
+2. Calls `evaluate()` on the inner graph with `depth + 1`.
+3. Reads each output-proxy node's resolved value and maps it to the named output port.
+
+You declare `inputs` / `outputs` explicitly — the factory does not infer port types from
+the inner graph, because the inner graph may contain shape variables that only resolve at
+connection time. Keep port types here consistent with what the inner proxy nodes expect.
+
+### Step 3 — Register with `registerOrReplace()`
+
+Use `BlockRegistry.registerOrReplace()` — **not** `register()`. The existing `register()`
+throws on duplicate IDs; `registerOrReplace()` is the upsert path reserved for user-defined
+composites. Built-in block IDs are protected — attempting to overwrite them throws.
+
+```ts
+import { blockRegistry } from "~/blocks/registry";
+blockRegistry.registerOrReplace(MyCompositeBlock);
+```
+
+When a user edits and re-saves a composite, call `registerOrReplace()` again with the updated
+`SubgraphDefinition`. A `console.warn` is emitted on replacement so that unexpected
+re-registrations are visible in the browser console.
+
+### Step 4 — Output port multiplicity
+
+Multi-output composites expose **multiple named output ports** on `def.outputs` — one entry
+per `core.output-proxy` node in the inner graph. Do **not** return a `Tuple` MathValue.
+Tuple is a legacy pattern tolerated in `la.lu` / `la.qr` / `la.svd`; it is not expanded here.
+Named ports let the user wire each output directly without a downstream `core.unpack`.
+
+### Nesting composites
+
+A composite's inner graph may itself contain `core.subgraph` nodes (other composites). The
+sub-evaluator passes `depth + 1` down the call stack. At depth > 8 `compute()` throws
+`SubgraphError("Max subgraph nesting depth exceeded")`. Design your composites so that
+typical usage stays well within this limit. If you genuinely need deeper nesting, raise the
+issue with the team — `MAX_SUBGRAPH_DEPTH` can be increased, but the default is intentionally
+conservative.
+
+### Error handling
+
+`buildSubgraphDefinition()` generates a `compute()` that wraps sub-evaluator errors in a
+`SubgraphError`. Surface these to the user via the block's inspector the same way any other
+block error is displayed — no special casing required.
+
+```ts
+// SubgraphError is exported from the same module:
+import { buildSubgraphDefinition, SubgraphError } from "~/blocks/common/subgraph/definition";
+```
+
+### Checklist for composite blocks
+
+- [ ] Inner graph has exactly one `core.input-proxy` per intended input port and one
+      `core.output-proxy` per intended output port.
+- [ ] `portId` params on proxy nodes match the corresponding `id` values in `inputs` / `outputs`.
+- [ ] All inner edges are connected (no dangling input proxy → no missing input at eval time).
+- [ ] `registerOrReplace()` is used, not `register()`.
+- [ ] Output ports are named, not a single `Tuple` port.
+- [ ] Nesting depth tested: adding a second layer of composites does not exceed 8.
+- [ ] `SubgraphError` is caught and displayed correctly in the block inspector.
+
+---
+
 ## 8. Checklist before TASK DONE
 
 - [ ] `src/blocks/<domain>/<name>/compute.ts` — exported function + typed error class.
