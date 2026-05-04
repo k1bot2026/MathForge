@@ -8,12 +8,15 @@
 // handle on the left edge, slide-in animation, and workspace-scoped
 // active tab persistence (delegated to useUiStore).
 
+import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
+import type { SubgraphDefinition } from "~/blocks/common/subgraph/types";
 import type { BlockDefinition, ResolvedInputs, ResolvedParams } from "~/blocks/types";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import type { EvalResult } from "~/engine/types";
 import { useResizable } from "~/lib/use-resizable";
+import { saveUserBlock } from "~/lib/user-blocks";
 import type { MathValue } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 import { INSPECTOR_WIDTH_LIMITS, useUiStore } from "~/store/ui-store";
@@ -101,6 +104,7 @@ export function InspectorPanel() {
               }}
             />
             <ExplanationTabs def={def} inputs={inputs} result={result} />
+            {"subgraph" in def ? <SaveAsBlockButton def={def as SubgraphDefinition} /> : null}
           </>
         )}
       </div>
@@ -201,6 +205,58 @@ function formatPayload(payload: unknown): string {
   if (typeof payload === "boolean") return String(payload);
   if (payload === null || payload === undefined) return "—";
   return String(payload);
+}
+
+function SaveAsBlockButton({ def }: { def: SubgraphDefinition }) {
+  const [name, setName] = useState(def.label);
+  const [saved, setSaved] = useState(false);
+
+  function handleSave() {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return;
+    const id = `user.${trimmed.toLowerCase().replace(/\s+/g, "-")}`;
+    void saveUserBlock({
+      id,
+      label: trimmed,
+      version: 1,
+      subgraph: def.subgraph,
+      inputPorts: [...def.inputs],
+      outputPorts: [...def.outputs],
+    }).then(() => {
+      blockRegistry.registerOrReplace(def);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-border pt-3">
+      <span className="font-mono text-[10px] uppercase tracking-wider text-fg-muted">
+        save as block
+      </span>
+      <div className="flex gap-1.5">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setSaved(false);
+          }}
+          className="min-w-0 flex-1 rounded border border-border bg-surface-2 px-2 py-1 font-mono text-xs text-fg focus:outline-none focus:ring-1 focus:ring-role-control-border"
+          placeholder="Block name"
+          data-testid="save-as-block-name"
+        />
+        <button
+          type="button"
+          onClick={handleSave}
+          className="shrink-0 rounded bg-role-control-border px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-bg hover:opacity-80"
+          data-testid="save-as-block-btn"
+        >
+          {saved ? "saved" : "save"}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /**

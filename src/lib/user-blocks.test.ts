@@ -1,10 +1,10 @@
 import "fake-indexeddb/auto";
 
 import { beforeEach, describe, expect, test } from "vitest";
-import type { GraphSpec } from "~/engine/graph-spec";
 import { buildRegistry } from "~/blocks";
-import { deleteUserBlock, hydrateUserBlocks, loadUserBlocks, saveUserBlock } from "./user-blocks";
+import type { GraphSpec } from "~/engine/graph-spec";
 import type { UserBlockRecord } from "./user-blocks";
+import { deleteUserBlock, hydrateUserBlocks, loadUserBlocks, saveUserBlock } from "./user-blocks";
 
 // Minimal empty inner graph for testing — no nodes, no edges
 const emptyGraph: GraphSpec = { nodes: [], edges: [] };
@@ -20,7 +20,13 @@ function makeRecord(id: string, label: string): UserBlockRecord {
       outputProxies: [],
     },
     inputPorts: [],
-    outputPorts: [{ id: "out", label: "Output", type: { kind: "Scalar", field: "real", precision: "approximate" } }],
+    outputPorts: [
+      {
+        id: "out",
+        label: "Output",
+        type: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+    ],
   };
 }
 

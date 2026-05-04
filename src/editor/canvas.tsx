@@ -12,8 +12,8 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useMemo } from "react";
-import { blockRegistry } from "~/blocks";
+import { useCallback, useEffect, useMemo } from "react";
+import { blockRegistry, hydrateUserBlocksIntoRegistry } from "~/blocks";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import { useAutoEvaluate } from "~/engine/use-auto-evaluate";
 import { useGraphProjection } from "~/engine/use-graph-projection";
@@ -34,6 +34,9 @@ const nodeTypes: NodeTypes = {
 export function EditorCanvas() {
   useUrlSync();
   useAutoEvaluate();
+  useEffect(() => {
+    void hydrateUserBlocksIntoRegistry(blockRegistry);
+  }, []);
   const liveNodes = useGraphStore((s) => s.nodes);
   const liveEdges = useGraphStore((s) => s.edges);
   const mode = useHistoryStore((s) => s.mode);

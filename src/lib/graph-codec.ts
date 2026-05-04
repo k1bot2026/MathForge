@@ -12,21 +12,24 @@
 //   v1 — Phase 1: la.vector2, la.matrix2x2 block IDs.
 //   v2 — Phase 2: la.vector (dim + c0..cN-1 params),
 //                 la.matrix (rows + cols + r{i}c{j} params).
+//   v3 — Phase 5: SerializedNode.data gains optional `subgraph` field so
+//                 user-defined composite blocks are portable in shared URLs.
 //
 // fflate (pinned 0.8.2) replaces the docs/ARCHITECTURE.md "zstd" choice
 // for Phase 1 — see docs/adr/0002-fflate-for-url-sharing.md.
 
 import type { Edge, Node } from "@xyflow/react";
 import { deflateSync, inflateSync, strFromU8, strToU8 } from "fflate";
+import type { SubgraphPayload } from "~/blocks/common/subgraph/types";
 import type { ResolvedParams } from "~/blocks/types";
 
-export const GRAPH_SCHEMA_VERSION = 2;
+export const GRAPH_SCHEMA_VERSION = 3;
 
 export type SerializedNode = {
   id: string;
   type: string;
   position: { x: number; y: number };
-  data: { blockId: string; params?: ResolvedParams };
+  data: { blockId: string; params?: ResolvedParams; subgraph?: SubgraphPayload };
 };
 
 export type SerializedEdge = {
@@ -101,6 +104,14 @@ function migrateV1toV2(raw: Record<string, unknown>): Record<string, unknown> {
   return { ...raw, schemaVersion: 2, nodes: migratedNodes };
 }
 
+/**
+ * Upgrades a v2 payload to v3. The only structural change is the optional
+ * `subgraph` field on node data; non-subgraph nodes are unchanged.
+ */
+function migrateV2toV3(raw: Record<string, unknown>): Record<string, unknown> {
+  return { ...raw, schemaVersion: 3 };
+}
+
 // ──────────────────────────────────────────────────────────────────────
 // Encode
 // ──────────────────────────────────────────────────────────────────────
@@ -117,7 +128,11 @@ export function encodeGraph(nodes: ReadonlyArray<Node>, edges: ReadonlyArray<Edg
 }
 
 function toSerializedNode(n: Node): SerializedNode {
-  const data = (n.data ?? {}) as { blockId?: string; params?: ResolvedParams };
+  const data = (n.data ?? {}) as {
+    blockId?: string;
+    params?: ResolvedParams;
+    subgraph?: SubgraphPayload;
+  };
   return {
     id: n.id,
     type: n.type ?? "block",
@@ -125,6 +140,7 @@ function toSerializedNode(n: Node): SerializedNode {
     data: {
       blockId: data.blockId ?? "unknown",
       ...(data.params !== undefined ? { params: data.params } : {}),
+      ...(data.subgraph !== undefined ? { subgraph: data.subgraph } : {}),
     },
   };
 }
@@ -160,12 +176,16 @@ export function decodeGraph(encoded: string): DecodeResult {
   } catch (err) {
     return { ok: false, reason: `json parse: ${asMessage(err)}` };
   }
-  // Run v1→v2 migration before validation so old shared links still open.
+  // Run migrations before validation so old shared links still open.
   if (typeof parsed === "object" && parsed !== null) {
-    const v = parsed as Record<string, unknown>;
+    let v = parsed as Record<string, unknown>;
     if (v.schemaVersion === 1) {
-      parsed = migrateV1toV2(v);
+      v = migrateV1toV2(v);
     }
+    if (v.schemaVersion === 2) {
+      v = migrateV2toV3(v);
+    }
+    parsed = v;
   }
   return validateGraph(parsed);
 }
@@ -235,6 +255,12 @@ function validateNode(raw: unknown): ValidateOk<SerializedNode> | ValidateErr {
       return { ok: false, reason: "data.params must be an object when present" };
     }
     node.data.params = data.params as ResolvedParams;
+  }
+  if (data.subgraph !== undefined) {
+    if (typeof data.subgraph !== "object" || data.subgraph === null) {
+      return { ok: false, reason: "data.subgraph must be an object when present" };
+    }
+    node.data.subgraph = data.subgraph as SubgraphPayload;
   }
   return { ok: true, value: node };
 }

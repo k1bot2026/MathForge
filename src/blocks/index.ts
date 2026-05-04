@@ -25,3 +25,15 @@ export function buildRegistry(): BlockRegistry {
 }
 
 export const blockRegistry = buildRegistry();
+
+/**
+ * Asynchronously loads user-defined composite blocks from IndexedDB and
+ * registers them into the given registry. Call once at app startup after
+ * buildRegistry(). No-op in environments without IndexedDB (SSR, tests
+ * that don't import fake-indexeddb).
+ */
+export async function hydrateUserBlocksIntoRegistry(registry: BlockRegistry): Promise<void> {
+  if (typeof indexedDB === "undefined") return;
+  const { hydrateUserBlocks } = await import("~/lib/user-blocks");
+  await hydrateUserBlocks(registry);
+}

@@ -1,5 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 import { describe, expect, test } from "vitest";
+import type { SubgraphPayload } from "~/blocks/common/subgraph/types";
 import { decodeGraph, encodeGraph, GRAPH_SCHEMA_VERSION } from "./graph-codec";
 
 const seedNode = (id: string, blockId: string, params?: Record<string, unknown>): Node => ({
@@ -50,15 +51,16 @@ describe("graph-codec / encode + decode", () => {
     }
   });
 
-  test("v1→v2 migration: old la.vector2/la.matrix2x2 IDs are upgraded on decode", () => {
+  test("v1→v2→v3 migration: old la.vector2/la.matrix2x2 IDs are upgraded on decode", () => {
     // This hash encodes schemaVersion:1 with la.matrix2x2 and la.vector2 nodes.
     // Generated from the Phase-1 codec with the seed graph params.
+    // v1 migrates through v1→v2→v3 automatically; final schemaVersion is 3.
     const v1Hash =
       "jZC9rgIhEEbfZWpyc1mNxT6BFrY2xmKEiW5cFgNo1mx4dwfUFQt_GgLD-eYwDODVngyuyPnGdlBLAZ3V5KFeD9BoqMGAgHA5Em-3rVUHPh6tb0LGB-ih_hdw4TUK0BgwFTO4SOkW_wwG1_RVX6UkOjTcfADm2LXNaZVXxmWMUdy95x-9VfXWfCYVrHv1cm6Sc9PCZb7LJrObTspPg7KxtLFiI4D0rvxQkox4e3Iq6fL3ottReLzjdjXHTrcJWI5AURpfTmm6sVke41OzJ1CU4iZeAQ";
     const decoded = decodeGraph(v1Hash);
     expect(decoded.ok).toBe(true);
     if (decoded.ok) {
-      expect(decoded.graph.schemaVersion).toBe(2);
+      expect(decoded.graph.schemaVersion).toBe(GRAPH_SCHEMA_VERSION);
       const blockIds = decoded.graph.nodes.map((n) => n.data.blockId).sort();
       expect(blockIds).toEqual(["la.matrix", "la.matvec", "la.vector"].sort());
       const matrix = decoded.graph.nodes.find((n) => n.data.blockId === "la.matrix");
@@ -159,6 +161,31 @@ describe("graph-codec / encode + decode", () => {
     const decoded = decodeGraph(encoded);
     expect(decoded.ok).toBe(false);
     if (!decoded.ok) expect(decoded.reason).toMatch(/sourceHandle/);
+  });
+
+  test("round-trips a node with subgraph payload (v3 portable composite)", () => {
+    const subgraph: SubgraphPayload = {
+      inner: { nodes: [], edges: [] },
+      inputProxies: [{ proxyNodeId: "ip1", portId: "x" }],
+      outputProxies: [{ proxyNodeId: "op1", portId: "out" }],
+    };
+    const nodes: Node[] = [
+      {
+        id: "sg1",
+        type: "block",
+        position: { x: 10, y: 20 },
+        data: { blockId: "user.my-chain", subgraph },
+      },
+    ];
+    const encoded = encodeGraph(nodes, []);
+    const decoded = decodeGraph(encoded);
+    expect(decoded.ok).toBe(true);
+    if (decoded.ok) {
+      const n = decoded.graph.nodes[0];
+      expect(n?.data.blockId).toBe("user.my-chain");
+      expect(n?.data.subgraph?.inputProxies[0]?.portId).toBe("x");
+      expect(n?.data.subgraph?.outputProxies[0]?.portId).toBe("out");
+    }
   });
 
   test("decode rejects edge with non-string targetHandle", () => {
