@@ -286,6 +286,40 @@ describe("stats.posterior definition explain.effect", () => {
     expect(out).toMatch(/E\[λ\]/);
   });
 
+  test("effect returns generic fallback for non-Beta/Normal/Gamma output", async () => {
+    const { PosteriorBlock } = await import("./definition");
+    const effect = PosteriorBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    // Construct a dummy output with a family not handled by the effect branches
+    const payload: DistributionPayload = {
+      parameters: { family: "Bernoulli", p: 0.5 },
+      moments: { mean: 0.5, variance: 0.25 },
+      support: { kind: "discrete", values: [0, 1] },
+    };
+    const dummyOutput = {
+      type: { kind: "Distribution" as const, family: "Bernoulli" as const },
+      payload: payload as unknown as number,
+      provenance: {
+        blockId: "test",
+        inputs: [] as string[],
+        computedAt: 0,
+        engine: "native" as const,
+      },
+    };
+    const priorVal = {
+      type: { kind: "Distribution" as const, family: "Beta" as const },
+      payload: {} as unknown as number,
+      provenance: {
+        blockId: "test",
+        inputs: [] as string[],
+        computedAt: 0,
+        engine: "native" as const,
+      },
+    };
+    const msg = effect({ prior: priorVal }, dummyOutput);
+    expect(msg).toBe("Posterior computed.");
+  });
+
   test("impact returns family name and visualization hint", async () => {
     const { PosteriorBlock } = await import("./definition");
     const impact = PosteriorBlock.explain.impact;
@@ -326,5 +360,21 @@ describe("stats.posterior — error cases", () => {
     const { alpha, beta } = payload.parameters as { family: "Beta"; alpha: number; beta: number };
     expect(alpha).toBeCloseTo(6, 10);
     expect(beta).toBeCloseTo(1, 10);
+  });
+
+  test("throws PosteriorError when prior is not a Distribution (scalar input)", () => {
+    const scalar = {
+      type: { kind: "Scalar" as const, field: "real" as const, precision: "exact" as const },
+      payload: 1 as unknown as number,
+      provenance: {
+        blockId: "test",
+        inputs: [] as string[],
+        computedAt: 0,
+        engine: "native" as const,
+      },
+    };
+    expect(() => computePosterior({ prior: scalar, likelihood: bernoulliDist() }, {})).toThrow(
+      /Distribution/,
+    );
   });
 });

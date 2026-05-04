@@ -61,6 +61,8 @@ export type ResolvedInputs = Readonly<Record<string, MathValue>>;
 export type EvalContext = {
   /** Cancellation token. compute() should observe it for long-running work. */
   signal: AbortSignal;
+  /** Current subgraph nesting depth. Incremented by core.subgraph; capped at 8. */
+  depth?: number;
 };
 
 export type InputPort = {

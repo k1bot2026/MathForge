@@ -30,15 +30,20 @@ export type EvaluateArgs = {
   registry: BlockRegistry;
   cache?: EvalCache;
   signal?: AbortSignal;
+  /** Pre-seeded results injected before the topo-walk (used by core.subgraph). */
+  initialResults?: ReadonlyMap<string, EvalResult>;
+  /** Current nesting depth, threaded through ctx. */
+  depth?: number;
 };
 
 export async function evaluate(args: EvaluateArgs): Promise<EvalResults> {
   const { graph, registry } = args;
   const cache = args.cache ?? new EvalCache();
   const signal = args.signal ?? new AbortController().signal;
+  const depth = args.depth ?? 0;
 
   const sort = topoSort(graph);
-  const results = new Map<string, EvalResult>();
+  const results = new Map<string, EvalResult>(args.initialResults);
 
   if (!sort.ok) {
     for (const id of sort.cycle) {
@@ -53,10 +58,11 @@ export async function evaluate(args: EvaluateArgs): Promise<EvalResults> {
   }
 
   const nodeById = new Map(graph.nodes.map((n): [string, NodeSpec] => [n.id, n]));
-  const ctx: EvalContext = { signal };
+  const ctx: EvalContext = { signal, depth };
 
   for (const id of sort.order) {
     if (signal.aborted) break;
+    if (results.has(id)) continue;
     const node = nodeById.get(id);
     if (node === undefined) continue;
     const def = registry.get(node.blockId);
