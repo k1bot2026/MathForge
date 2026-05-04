@@ -1,5 +1,7 @@
+import * as fc from "fast-check";
 import { describe, expect, test } from "vitest";
 import type { GraphPayload, MatrixPayload } from "~/math/types";
+import { smallGraph } from "../../../tests/arbitraries";
 import { AdjacencyMatrixBlock } from "./adjacency-matrix/definition";
 import { ColoringBlock } from "./coloring/definition";
 import { ConnectedComponentsBlock } from "./connected-components/definition";
@@ -172,6 +174,188 @@ describe("greedyColoring", () => {
     const g = makeGraph([], [], false, false);
     const colors = greedyColoring(g.payload as GraphPayload);
     expect(colors.size).toBe(0);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// smallGraph → GraphPayload helper
+// ──────────────────────────────────────────────────────────────────────
+
+function toGraphPayload(g: { vertexCount: number; edges: Array<[number, number]> }): GraphPayload {
+  const vertices = Array.from({ length: g.vertexCount }, (_, i) => ({ id: String(i) }));
+  const edges = g.edges.map(([u, v]) => ({ from: String(u), to: String(v), weight: 1 }));
+  return { vertices, edges };
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// dijkstra property tests
+// ──────────────────────────────────────────────────────────────────────
+
+describe("dijkstra — property tests", () => {
+  test("property: source distance is always 0", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const source = "0";
+        const dist = dijkstra(gp, source);
+        expect(dist.get(source)).toBe(0);
+      }),
+    );
+  });
+
+  test("property: all distances are non-negative", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const dist = dijkstra(gp, "0");
+        for (const [, d] of dist) {
+          expect(d).toBeGreaterThanOrEqual(0);
+        }
+      }),
+    );
+  });
+
+  test("property: triangle inequality d(a,c) ≤ d(a,b) + d(b,c)", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const n = g.vertexCount;
+        // Pick three distinct vertices if possible.
+        if (n < 3) return;
+        const distFromA = dijkstra(gp, "0");
+        const distFromB = dijkstra(gp, "1");
+        for (let c = 2; c < n; c++) {
+          const dAC = distFromA.get(String(c)) ?? Infinity;
+          const dAB = distFromA.get("1") ?? Infinity;
+          const dBC = distFromB.get(String(c)) ?? Infinity;
+          // Only assert when all are finite (reachable).
+          if (Number.isFinite(dAC) && Number.isFinite(dAB) && Number.isFinite(dBC)) {
+            expect(dAC).toBeLessThanOrEqual(dAB + dBC);
+          }
+        }
+      }),
+    );
+  });
+
+  test("property: distances are symmetric on undirected graphs (d(a,b) = d(b,a))", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const n = g.vertexCount;
+        if (n < 2) return;
+        const distFrom0 = dijkstra(gp, "0");
+        for (let b = 1; b < n; b++) {
+          const distFromB = dijkstra(gp, String(b));
+          const d0B = distFrom0.get(String(b)) ?? Infinity;
+          const dB0 = distFromB.get("0") ?? Infinity;
+          expect(d0B).toBe(dB0);
+        }
+      }),
+    );
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// kruskal property tests
+// ──────────────────────────────────────────────────────────────────────
+
+describe("kruskal — property tests", () => {
+  test("property: MST has exactly |V|-1 edges for connected graph", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        // Only assert for connected graphs: check that all vertices reach each other from "0".
+        const dist = dijkstra(gp, "0");
+        const isConnected = gp.vertices.every((v) => Number.isFinite(dist.get(v.id) ?? Infinity));
+        fc.pre(isConnected);
+        const mst = kruskal(gp);
+        expect(mst.length).toBe(gp.vertices.length - 1);
+      }),
+    );
+  });
+
+  test("property: MST has no cycles (forest property — at most |V|-1 edges)", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const mst = kruskal(gp);
+        // A forest on V vertices has at most V-1 edges.
+        expect(mst.length).toBeLessThanOrEqual(gp.vertices.length - 1);
+      }),
+    );
+  });
+
+  test("property: MST edge endpoints are all valid vertex IDs", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const vertexIds = new Set(gp.vertices.map((v) => v.id));
+        const mst = kruskal(gp);
+        for (const e of mst) {
+          expect(vertexIds.has(e.from)).toBe(true);
+          expect(vertexIds.has(e.to)).toBe(true);
+        }
+      }),
+    );
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// connectedComponents property tests
+// ──────────────────────────────────────────────────────────────────────
+
+describe("connectedComponents — property tests", () => {
+  test("property: union of all components equals the vertex set", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const components = connectedComponents(gp);
+        const allVertices = components.flat().sort();
+        const vertexIds = gp.vertices.map((v) => v.id).sort();
+        expect(allVertices).toEqual(vertexIds);
+      }),
+    );
+  });
+
+  test("property: components are pairwise disjoint", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const components = connectedComponents(gp);
+        const seen = new Set<string>();
+        for (const comp of components) {
+          for (const v of comp) {
+            expect(seen.has(v)).toBe(false);
+            seen.add(v);
+          }
+        }
+      }),
+    );
+  });
+
+  test("property: number of components ≤ number of vertices", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const components = connectedComponents(gp);
+        expect(components.length).toBeLessThanOrEqual(gp.vertices.length);
+      }),
+    );
+  });
+
+  test("property: single-component graph has all vertices reachable from any vertex", () => {
+    fc.assert(
+      fc.property(smallGraph, (g) => {
+        const gp = toGraphPayload(g);
+        const components = connectedComponents(gp);
+        if (components.length !== 1) return;
+        // Dijkstra from vertex 0 should reach all others.
+        const dist = dijkstra(gp, "0");
+        for (const v of gp.vertices) {
+          expect(Number.isFinite(dist.get(v.id) ?? Infinity)).toBe(true);
+        }
+      }),
+    );
   });
 });
 
