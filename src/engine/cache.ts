@@ -12,9 +12,17 @@ export type CacheKey = string;
 
 export class EvalCache {
   private readonly store = new Map<CacheKey, MathValue>();
+  private _hits = 0;
+  private _misses = 0;
 
   get(key: CacheKey): MathValue | undefined {
-    return this.store.get(key);
+    const result = this.store.get(key);
+    if (result !== undefined) {
+      this._hits++;
+    } else {
+      this._misses++;
+    }
+    return result;
   }
 
   set(key: CacheKey, value: MathValue): void {
@@ -31,6 +39,17 @@ export class EvalCache {
 
   size(): number {
     return this.store.size;
+  }
+
+  // test-only — do not consume in production code
+  __getCacheStats(): { hits: number; misses: number } {
+    return { hits: this._hits, misses: this._misses };
+  }
+
+  // test-only — do not consume in production code
+  __resetCacheStats(): void {
+    this._hits = 0;
+    this._misses = 0;
   }
 }
 
