@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T17:22:50.862Z",
+  "description": "SymPy Sum().doit() partial sum reference values for calc.series cross-engine tests.",
+  "cases": [
+    {
+      "expression": "n",
+      "index": "n",
+      "from": 1,
+      "to": 10,
+      "result": "55",
+      "numericResult": 55
+    },
+    {
+      "expression": "n**2",
+      "index": "n",
+      "from": 1,
+      "to": 5,
+      "result": "55",
+      "numericResult": 55
+    },
+    {
+      "expression": "2**n",
+      "index": "n",
+      "from": 0,
+      "to": 4,
+      "result": "31",
+      "numericResult": 31
+    },
+    {
+      "expression": "(1/2)**n",
+      "index": "n",
+      "from": 0,
+      "to": 9,
+      "result": "1023/512",
+      "numericResult": null
+    },
+    {
+      "expression": "1/n",
+      "index": "n",
+      "from": 1,
+      "to": 5,
+      "result": "137/60",
+      "numericResult": null
+    },
+    {
+      "expression": "n + 1",
+      "index": "n",
+      "from": 0,
+      "to": 3,
+      "result": "10",
+      "numericResult": 10
+    },
+    {
+      "expression": "n * (n + 1)",
+      "index": "n",
+      "from": 1,
+      "to": 4,
+      "result": "40",
+      "numericResult": 40
+    },
+    {
+      "expression": "(-1)**n",
+      "index": "n",
+      "from": 0,
+      "to": 5,
+      "result": "0",
+      "numericResult": 0
+    }
+  ]
+}
