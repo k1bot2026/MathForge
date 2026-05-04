@@ -322,3 +322,57 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - Block versioning + save/load [shipped] — `saveUserBlock` / `loadUserBlocks` / `deleteUserBlock` / `hydrateUserBlocks` in `src/lib/user-blocks.ts`; `SaveAsBlockButton` in inspector panel; `hydrateUserBlocksIntoRegistry()` wired on canvas mount; graph-codec v3 with optional `subgraph` field on `SerializedNode.data`. (`f887afc`)
 - Supabase backend — Postgres + Auth (magic link); persistent graphs at `/g/<slug>`. **Deferred to Phase 5b — Cloud sharing** (user-approved 2026-05-05).
 - Community block library — browse, fork, install blocks authored by other users. Pending.
+
+### Phase 6 (Discrete Mathematics & Combinatorics)
+
+**Foundation note:** `Permutation`, `Combination`, `Graph`, `Modular` added to `MathType` discriminator in `src/math/types.ts` (`1008750`). `canConnect` extended for all new kinds. `discrete/index.ts` plugin entry registered in `src/blocks/index.ts`. All `discrete.*` blocks use `engine: "native"` unless noted; stability: `"beta"` unless noted; color: `"violet"` for operations, `"sky-blue"` for sources.
+
+**Set blocks** _(source + operation role)_
+
+- `discrete.set` [shipped] — explicit integer set; params `count` (1–16) + `e0..e15` integer values; deduplicates and sorts output; output port `set: Set<Scalar(integer, exact)>`. Property tests: idempotence, order-independence, size invariant, no duplicates. (`a1d2bf7`)
+- `discrete.union` — `A: Set × B: Set → Set`; element-wise union.
+- `discrete.intersection` — `A: Set × B: Set → Set`; elements in both A and B.
+- `discrete.difference` — `A: Set × B: Set → Set`; elements in A not in B.
+- `discrete.cartesian-product` — `A: Set × B: Set → Set<Tuple>`; all ordered pairs.
+
+**Combinatorics** _(operation role, violet)_
+
+- `discrete.permutations` — ordered arrangements; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (P(n,r) = n!/(n−r)!).
+- `discrete.combinations` — unordered selections; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (C(n,r) = n!/(r!(n−r)!)).
+- `discrete.factorial` — n!; input `n: Scalar(integer, exact)` (n ≥ 0); output `result: Scalar(integer, exact)`.
+- `discrete.binomial` — C(n, k); inputs `n: Scalar(integer)`, `k: Scalar(integer)`; output `result: Scalar(integer, exact)`. Property test: Pascal's identity C(n,k) = C(n−1,k−1) + C(n−1,k).
+- `discrete.multinomial` — n! / (n₁!·…·nₖ!); input `counts: Vector<k, integer>`; output `result: Scalar(integer, exact)`.
+
+**Number theory** _(operation role, violet)_
+
+- `discrete.gcd` — GCD via Euclidean algorithm; inputs `a: Scalar(integer)`, `b: Scalar(integer)`; output `result: Scalar(integer, exact)`. SymPy cross-check.
+- `discrete.lcm` — LCM = |a·b| / gcd(a,b); inputs `a: Scalar(integer)`, `b: Scalar(integer)`; output `result: Scalar(integer, exact)`. Property test: `gcd(a,b) · lcm(a,b) = |a·b|`.
+- `discrete.modpow` — modular exponentiation aᵇ mod m; inputs `a`, `b`, `m: Scalar(integer)`; output `result: Scalar(integer, exact)`.
+- `discrete.is-prime` — primality test; input `n: Scalar(integer)`; output `result: Scalar(boolean, exact)`.
+- `discrete.factor` — prime factorization; input `n: Scalar(integer)`; output `factors: Vector<k, integer>` (prime factors with multiplicity, ascending). SymPy factorint cross-check.
+- `discrete.totient` — Euler's φ(n); input `n: Scalar(integer, exact)` (n ≥ 1); output `result: Scalar(integer, exact)`. Property test: multiplicativity for coprime inputs. SymPy cross-check.
+- `discrete.divisors` — all positive divisors of n; input `n: Scalar(integer)`; output `divs: Set<Scalar(integer, exact)>`.
+- `discrete.prime-factorize` — returns prime bases and exponents; input `n: Scalar(integer)`; output `Tuple` of `primes: Vector<k>` + `exponents: Vector<k>`.
+- `discrete.modular-inverse` — a⁻¹ mod m; inputs `a: Scalar(integer)`, `m: Scalar(integer)`; requires gcd(a, m) = 1; throws `ModularInverseError` when not coprime; output `result: Scalar(integer, exact)`.
+
+**Graph theory** _(operation role, violet; source role for `discrete.graph`)_
+
+- `discrete.graph` — explicit graph; params: vertex list (labels), edge list (source, target, optional weight), directed/undirected flag; output `g: Graph`. Source block.
+- `discrete.adjacency-matrix` — `Graph → Matrix<n,n>`; bridges discrete and linear-algebra domains. Weighted edges produce weight values; unweighted produce 0/1. Engine: native.
+- `discrete.shortest-path` — Dijkstra (weighted) or BFS (unweighted); inputs `g: Graph`, `source: Scalar(integer)` (vertex id); output `distances: Vector<n, real>` + optional `path: Vector<k, integer>`. Throws `ShortestPathError` for disconnected source.
+- `discrete.minimum-spanning-tree` — Kruskal (undirected only); input `g: Graph`; output `mst: Graph` (spanning tree). Throws `MSTError` for directed or disconnected graphs.
+- `discrete.connected-components` — weakly connected component labelling; input `g: Graph`; output `count: Scalar(integer, exact)`.
+- `discrete.coloring` — chromatic number via backtracking; input `g: Graph`; output `chromatic: Scalar(integer, exact)`. Stability: experimental (exponential worst case).
+
+**Sequences & recurrences** _(operation role, violet)_
+
+- `discrete.fibonacci` — nth Fibonacci number; input `n: Scalar(integer)`; output `result: Scalar(integer, exact)`. Large n via Binet formula (approximate branch); exact for n ≤ 70.
+- `discrete.partial-sum` — Σᵢ₌₀ⁿ aᵢ; input `seq: Vector<n, real>`; output `sum: Scalar(real)`.
+- `discrete.recurrence` — evaluate a recurrence relation up to n; params: `f` (string, e.g. "a[n-1]+a[n-2]"), `initial` (initial values), `n` (evaluation depth). Stability: experimental.
+
+**Visualization** _(visualizer role, emerald)_
+
+- `viz.graph-2d` — force-directed graph layout; input `g: Graph`; passthrough output `g: Graph`. react-three-fiber or 2D Canvas. Vertex labels shown; edge weights shown for weighted graphs.
+- `viz.set-venn` — Venn diagram for ≤3 sets (SVG); inputs up to `A`, `B`, `C: Set`; regions labeled with membership counts. Passthrough output `A: Set`.
+- `viz.permutation-cycles` — cycle decomposition of a permutation; input `perm: Permutation`; SVG arrows showing cycles. Passthrough output.
+- `viz.modular-clock` — clock-face modular arithmetic; input `x: Modular`; SVG clock with hand pointing to x mod m. Passthrough output.
