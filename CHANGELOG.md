@@ -13,7 +13,8 @@ Phase 4 deferral), user-defined block save/load UI, and Phase 5 exit criterion c
 2047 tests green.
 
 Phase 6 in progress: MathValue extended with Permutation/Combination/Graph/Modular kinds.
-First block: discrete.set.
+21 discrete blocks shipped (set ops, combinatorics, number theory, sequences); graph theory
+blocks untracked (in progress); 4 viz blocks pending.
 
 ### Foundation (Phase 6)
 
@@ -32,6 +33,39 @@ First block: discrete.set.
 - **`discrete.factorial`** — n! as an exact integer. Input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `n!`. Throws `CombinatoricsError` for n exceeding `FACTORIAL_MAX_N`. Shared `combinatorics.ts` utility module (`factorial`, `binomial`, `multinomial`, `makeScalar`). Stability: experimental. (`7273ac1`)
 - **`discrete.binomial`** — binomial coefficient C(n, k) = n! / (k!(n−k)!). Inputs `n: Scalar(integer, exact)`, `k: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `C(n,k)`. Cross-checked against SymPy `discrete-binomial.json` fixture (40 cases including Pascal's identity triples). (`7273ac1`)
 - **`discrete.multinomial`** — multinomial coefficient (k₀+k₁+…)! / (k₀!·k₁!·…). No inputs; params `groups` (1–8, default 3) + `k0..k7` group sizes. Output `result: Scalar(integer, exact)`. Symbol: `M`. Up to 8 groups; total n ≤ `FACTORIAL_MAX_N`. Generalizes the binomial coefficient for more than two groups. 189 tests across all three combinatorics blocks (unit cases, error paths, fast-check properties: Pascal's identity, C(n,0)=C(n,n)=1, multinomial sum). (`7273ac1`)
+
+### Discrete blocks (Phase 6 / Combinatorics — permutations + combinations)
+
+- **`discrete.permutations`** — enumerates all ordered k-tuples drawn from a set S without repetition. Inputs `S: Set<Scalar(integer, exact)>`, `k: Scalar(integer, exact)`; output `result: Set<Tuple<Scalar(integer)×k>>`. Throws `PermutationsError` if k > |S| or result exceeds 5040 tuples. (`0ff2c81`)
+- **`discrete.combinations`** — enumerates all unordered k-subsets drawn from a set S without repetition. Inputs `S: Set<Scalar(integer, exact)>`, `k: Scalar(integer, exact)`; output `result: Set<Tuple<Scalar(integer)×k>>`. Elements sorted ascending before enumeration. Throws `CombinationsError` if k > |S| or result exceeds 5040 tuples. (`0ff2c81`)
+
+### Discrete blocks (Phase 6 / Number theory)
+
+Nine number-theory blocks shipped together in `52d4fc8`. All share the `number-theory.ts` utility module (`NumberTheoryError`, `gcd`, `lcm`, `modpow`, `isPrime`, `factor`, `divisors`, `totient`, `primeFactorize`, `modularInverse`, `makeSetOfIntegers`). All use `engine: "native"`, `stability: "experimental"`.
+
+- **`discrete.gcd`** — greatest common divisor via Euclidean algorithm. Inputs `a, b: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `gcd`. Cross-checked against SymPy `discrete-gcd.json`. (`52d4fc8`)
+- **`discrete.lcm`** — least common multiple = |a·b| / gcd(a,b). Inputs `a, b: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `lcm`. (`52d4fc8`)
+- **`discrete.modpow`** — modular exponentiation aᵉ mod m via repeated squaring. Inputs `base, exp, m: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `aᵉ mod m`. (`52d4fc8`)
+- **`discrete.is-prime`** — trial-division primality test. Input `n: Scalar(integer, exact)`; output `result: Scalar(boolean, exact)`. Symbol: `prime?`. Uses `makeBooleanScalar`. (`52d4fc8`)
+- **`discrete.factor`** — distinct prime factors of n (no multiplicity, e.g. 12 → {2, 3}). Input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>`. Symbol: `factors`. Uses `makeSetOfIntegers`. (`52d4fc8`)
+- **`discrete.totient`** — Euler's totient φ(n): count of integers in [1, n] coprime to n. Input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `φ(n)`. SymPy cross-check. (`52d4fc8`)
+- **`discrete.divisors`** — all positive divisors of n in ascending order. Input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>`. Symbol: `div`. Uses `makeSetOfIntegers`. (`52d4fc8`)
+- **`discrete.prime-factorize`** — prime factorization with multiplicity (e.g. 12 → {2, 2, 3}). Input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>`. Symbol: `p-fact`. Distinct from `discrete.factor`: includes repeated factors. (`52d4fc8`)
+- **`discrete.modular-inverse`** — modular multiplicative inverse a⁻¹ mod m. Inputs `a, m: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Requires gcd(a, m) = 1; throws `NumberTheoryError` when not coprime. Symbol: `a⁻¹ mod m`. (`52d4fc8`)
+
+### Discrete blocks (Phase 6 / Sequences)
+
+- **`discrete.fibonacci`** — generates the first n terms of the Fibonacci sequence F(0), F(1), …, F(n-1). No inputs; param `n` (integer, 0–78, default 10). Output `result: Vector<n, integer>`. Exact integers up to F(78) ≤ MAX_SAFE_INTEGER. Throws `FibonacciError` for n > 78. (`4d2a9c2`)
+- **`discrete.partial-sum`** — running prefix sums of a sequence: S(k) = a(0) + a(1) + … + a(k). Input `seq: Vector<any, integer>`; output `result: Vector<n, integer>`. Throws `PartialSumError` on missing input. (`4d2a9c2`)
+- **`discrete.recurrence`** — evaluates a general linear recurrence a(n) = c₁·a(n-1) + c₂·a(n-2) + d with configurable initial conditions. No inputs; params `terms` (0–50, default 10), `a0` (default 0), `a1` (default 1), `c1` (default 1), `c2` (default 1), `d` (default 0). Output `result: Vector<n, real>`. Throws `RecurrenceError` on divergence. Fibonacci is a special case (c₁=1, c₂=1, d=0, a0=0, a1=1). Stability: experimental. (`4d2a9c2`)
+
+### Testing (Phase 6 / Number theory cross-engine)
+
+- **Fermat's little theorem property** — `1f85c40` adds a fast-check property: for prime p and a not divisible by p, `modpow(a, p-1, p) === 1`. Runs against the native engine.
+- **Number-theory cross-engine tests** — `1f85c40` adds SymPy fixture-driven tests for gcd, isPrime, primeFactorize, totient, modpow, and modularInverse against `discrete-gcd.json`, `discrete-prime.json`, `discrete-factorint.json`, `discrete-totient.json`, `discrete-modular.json`.
+- **Binomial cross-engine tests** — `d7cd6b3` adds SymPy fixture-driven tests for `discrete.binomial` against `discrete-binomial.json` (40 cases, includes Pascal's identity triples).
+- **Set-op property invariants** — union associativity + identity (`8731b1f`), intersection associativity + distributivity (`5dc811d`), cartesian-product annihilation + pair-membership (`ede07d9`). Explain.effect callbacks and missing error-path tests added for gcd, lcm, is-prime, union (`b5c05d8`).
+- **Fibonacci SymPy cross-engine + sequence property tests** — `86ca40a` adds SymPy fixture-driven tests for `discrete.fibonacci`; recurrence cross-check (Fibonacci as special case); sum identity (partial-sum of constant-1 sequence = n); monotonicity property for ascending sequences.
 
 ### Discrete blocks (Phase 6 / Set operations)
 
