@@ -17,6 +17,7 @@ import { IsPrimeBlock } from "./is-prime/definition";
 import { LcmBlock } from "./lcm/definition";
 import { MinimumSpanningTreeBlock } from "./minimum-spanning-tree/definition";
 import { ModpowBlock } from "./modpow/definition";
+import { ModularBlock } from "./modular/definition";
 import { ModularInverseBlock } from "./modular-inverse/definition";
 import { MultinomialBlock } from "./multinomial/definition";
 import { PartialSumBlock } from "./partial-sum/definition";
@@ -43,6 +44,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(MultinomialBlock);
   registry.register(GcdBlock);
   registry.register(LcmBlock);
+  registry.register(ModularBlock);
   registry.register(ModpowBlock);
   registry.register(IsPrimeBlock);
   registry.register(FactorBlock);
