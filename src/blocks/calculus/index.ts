@@ -13,6 +13,7 @@ import { VizEpsilonDeltaBlock } from "./viz-epsilon-delta/definition";
 import { VizRiemannBlock } from "./viz-riemann/definition";
 import { VizTangentBlock } from "./viz-tangent/definition";
 import { VizTaylorBlock } from "./viz-taylor/definition";
+import { VizVectorFieldBlock } from "./viz-vector-field/definition";
 
 export function register(registry: BlockRegistry): void {
   registry.register(FunctionBlock);
@@ -29,4 +30,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(OdeSolveBlock);
   registry.register(VizRiemannBlock);
   registry.register(VizEpsilonDeltaBlock);
+  registry.register(VizVectorFieldBlock);
 }
