@@ -485,6 +485,59 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 ### Exit criteria
 - A user can build a composite block, save it, share it, and another user can use it as a first-class block.
 
+### Phase 5 retrospective (as of 2026-05-05)
+
+**Velocity (single keep-working session):**
+
+| Category | Count |
+|---|---|
+| Core infrastructure blocks shipped | 5 (`core.input-proxy`, `core.output-proxy`, `core.assert`, `core.subgraph`, `core.benchmark`) |
+| Registry extension | 1 (`BlockRegistry.registerOrReplace()`) |
+| Composite blocks shipped (Phase 3 deferral closed) | 1 (`stats.bayes-net`) |
+| Persistence layer shipped (Phase 4 deferral closed) | 1 (IndexedDB Layer 3 cache — `ee43548`) |
+| Ecosystem features shipped | 1 (user-defined block save/load — `f887afc`) |
+| ADRs accepted | 1 (ADR 0004 — composite blocks via `core.subgraph`) |
+| Developer commits | ~8 (core infra through exit-criterion walkthrough) |
+| Tester commits | ~6 (subgraph depth tests, evaluator branch coverage, SaveAsBlockButton tests, etc.) |
+| Docs commits | ~12 (taxonomy sweeps, ARCHITECTURE composite blocks section, BLOCK_AUTHORING_GUIDE §7b + §9) |
+| Total new tests | ~291 (1756 → 2047) |
+
+**Architectural milestones:**
+
+- **ADR 0004 (composite blocks)** — established the `core.subgraph` pattern: proxy nodes (`core.input-proxy`, `core.output-proxy`) as the I/O surface; `buildSubgraphDefinition()` factory generating a `BlockDefinition` whose `compute()` recursively calls `evaluate()` on an inner `GraphSpec`; `EvalContext.depth` threaded opaquely through the evaluator for recursion capping; named output ports (not Tuple) per ADR §5.
+- **3-layer cache architecture complete** — Phase 5 closes the last open layer. Layer 1: in-memory memoization (Phase 1); Layer 2: sessionStorage on idle (Phase 1); Layer 3: IndexedDB cross-reload persistence (`ee43548`). All three layers are now wired and tested.
+- **Runtime block registration** — `BlockRegistry.registerOrReplace()` allows user-defined composites to appear in the block palette without recompiling. Built-in blocks remain protected; re-registration of user blocks emits `console.warn`. First use: `stats.bayes-net` and `hydrateUserBlocksIntoRegistry()`.
+- **User-defined block versioning** — `src/lib/user-blocks.ts` + graph-codec v3 (`SerializedNode.data` gains optional `subgraph` field). Composite blocks can be saved locally, reloaded on next session, and shared via URL hash. The v2→v3 migration is a passthrough (no existing graphs break).
+
+**Phase 5 closes 2 prior deferrals:**
+
+- `stats.bayes-net` — deferred from Phase 3 because it required `core.subgraph`. Now ships as a `core.subgraph` instance. The Phase 3 decision to defer was correct: implementing bayes-net without the composite infrastructure would have produced a hard-coded one-off instead of a reusable pattern.
+- IndexedDB Layer 3 cache — deferred from Phase 4 because it required a cache-invalidation strategy for URL-linked graphs. Phase 5's graph-hash tagging provides that strategy.
+
+**Items deferred forward:**
+
+- **Supabase wiring** — cloud persistence (`/g/<slug>` shared URLs, magic-link auth) is deferred to a follow-up phase designated "Phase 5b — Cloud sharing". IndexedDB gives local-first save/load, which satisfies the Phase 5 exit criterion. Cloud-sharing is a substantial infrastructure investment that is not on the critical path for the composite-block feature set. User-approved deferral 2026-05-05.
+- **Community block library** — browse/fork/install from other users. Requires the Supabase backend as a prerequisite; deferred alongside it.
+
+**Foundation laid for Phase 6:**
+
+The composite block pattern demonstrates that the plugin architecture is extensible into new domains at runtime without recompilation. Phase 6 introduces `discrete.*` blocks with new `MathValue` kinds (`Permutation`, `Combination`, `Graph`, `Modular`). The same registration pattern (`BlockRegistry.register()` in a `src/blocks/discrete/index.ts` plugin entry) extends naturally; the connection validator and evaluator require no changes for new value kinds.
+
+**Phase 5 status at close of this retrospective:**
+
+| Area | Status |
+|---|---|
+| `core.subgraph` + proxy blocks + `core.assert` + `core.benchmark` | Complete |
+| `BlockRegistry.registerOrReplace()` | Complete |
+| `stats.bayes-net` (Phase 3 deferral) | Complete |
+| IndexedDB Layer 3 cache (Phase 4 deferral) | Complete |
+| User-defined block save/load UI | Complete |
+| Phase 5 exit criterion ("build, save, share, use a composite") | **Met** (`53db869`) |
+| Supabase wiring | Deferred to Phase 5b |
+| Community block library | Deferred to Phase 5b |
+
+**Phase 5 is complete.** Composite block foundation shipped, both prior deferrals closed, save/load works locally, 2047 tests green. Advancing to Phase 6.
+
 ---
 
 ## Cross-phase invariants
