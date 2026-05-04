@@ -70,3 +70,19 @@ describe("stats.beta compute", () => {
     expect(() => computeBeta({}, { alpha: 1, beta: 0 })).toThrow("beta must be > 0");
   });
 });
+
+describe("stats.beta definition explain", () => {
+  test("effect shows E[X] from output", async () => {
+    const { BetaBlock } = await import("./definition");
+    const output = computeBeta({}, { alpha: 2, beta: 5 });
+    const msg = BetaBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Beta/);
+    expect(msg).toMatch(/0\.2857/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { BetaBlock } = await import("./definition");
+    const output = computeBeta({}, { alpha: 1, beta: 1 });
+    expect(BetaBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

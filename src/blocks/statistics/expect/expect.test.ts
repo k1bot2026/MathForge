@@ -40,3 +40,26 @@ describe("stats.expect compute", () => {
     expect(() => computeExpect({}, {})).toThrow("dist input is required");
   });
 });
+
+describe("stats.expect definition explain", () => {
+  test("effect shows E[X] value from output", async () => {
+    const { ExpectBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 2.5,
+      provenance: { blockId: "stats.expect", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = ExpectBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/2\.50000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { ExpectBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "stats.expect", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(ExpectBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

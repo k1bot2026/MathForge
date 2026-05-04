@@ -84,3 +84,21 @@ describe("stats.uniform compute", () => {
     expect(() => computeUniform({}, { a: 2, b: 1 })).toThrow("a must be strictly less than b");
   });
 });
+
+describe("stats.uniform definition explain", () => {
+  test("effect shows E[X] from output", async () => {
+    const { UniformBlock } = await import("./definition");
+    const { computeUniform } = await import("./compute");
+    const output = computeUniform({}, { a: 0, b: 1 });
+    const msg = UniformBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Uniform/);
+    expect(msg).toMatch(/0\.5000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { UniformBlock } = await import("./definition");
+    const { computeUniform } = await import("./compute");
+    const output = computeUniform({}, { a: 0, b: 1 });
+    expect(UniformBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

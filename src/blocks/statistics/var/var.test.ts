@@ -31,3 +31,26 @@ describe("stats.var compute", () => {
     expect(() => computeVar({}, {})).toThrow("dist input is required");
   });
 });
+
+describe("stats.var definition explain", () => {
+  test("effect shows Var[X] value from output", async () => {
+    const { VarBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0.25,
+      provenance: { blockId: "stats.var", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = VarBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/0\.250000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { VarBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "stats.var", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(VarBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

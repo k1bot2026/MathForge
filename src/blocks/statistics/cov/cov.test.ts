@@ -42,3 +42,26 @@ describe("stats.cov compute", () => {
     );
   });
 });
+
+describe("stats.cov definition explain", () => {
+  test("effect shows Cov[X,Y] value from output", async () => {
+    const { CovBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 1.5,
+      provenance: { blockId: "stats.cov", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = CovBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/1\.50000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { CovBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "stats.cov", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(CovBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

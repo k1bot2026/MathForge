@@ -69,3 +69,21 @@ describe("stats.poisson compute", () => {
     expect(() => computePoisson({}, { lambda: -1 })).toThrow("lambda must be > 0");
   });
 });
+
+describe("stats.poisson definition explain", () => {
+  test("effect shows E[X] from output", async () => {
+    const { PoissonBlock } = await import("./definition");
+    const { computePoisson } = await import("./compute");
+    const output = computePoisson({}, { lambda: 3 });
+    const msg = PoissonBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Poisson/);
+    expect(msg).toMatch(/3\.000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { PoissonBlock } = await import("./definition");
+    const { computePoisson } = await import("./compute");
+    const output = computePoisson({}, { lambda: 3 });
+    expect(PoissonBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

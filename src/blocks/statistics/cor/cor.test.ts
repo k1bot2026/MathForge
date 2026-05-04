@@ -56,3 +56,26 @@ describe("stats.cor compute", () => {
     expect(result.payload).toBe(0);
   });
 });
+
+describe("stats.cor definition explain", () => {
+  test("effect shows Cor[X,Y] value from output", async () => {
+    const { CorBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0.75,
+      provenance: { blockId: "stats.cor", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = CorBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/0\.7500/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { CorBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "stats.cor", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(CorBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

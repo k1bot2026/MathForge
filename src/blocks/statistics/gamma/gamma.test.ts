@@ -94,3 +94,21 @@ describe("stats.gamma compute", () => {
     expect(() => computeGamma({}, { alpha: 1, beta: 0 })).toThrow("beta must be > 0");
   });
 });
+
+describe("stats.gamma definition explain", () => {
+  test("effect shows E[X] from output", async () => {
+    const { GammaBlock } = await import("./definition");
+    const { computeGamma } = await import("./compute");
+    const output = computeGamma({}, { alpha: 2, beta: 1 });
+    const msg = GammaBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Gamma/);
+    expect(msg).toMatch(/2\.000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { GammaBlock } = await import("./definition");
+    const { computeGamma } = await import("./compute");
+    const output = computeGamma({}, { alpha: 2, beta: 1 });
+    expect(GammaBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

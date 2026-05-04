@@ -122,3 +122,25 @@ describe("stats.sample compute", () => {
     expect(samples.every((x) => x > 0)).toBe(true);
   });
 });
+
+describe("stats.sample definition explain", () => {
+  test("effect shows vector length from output", async () => {
+    const { SampleBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Vector", n: 5, field: "real" },
+      payload: [1, 2, 3, 4, 5] as unknown as number,
+      provenance: { blockId: "stats.sample", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(SampleBlock.explain.effect?.({}, output)).toMatch(/5/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { SampleBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Vector", n: 5, field: "real" },
+      payload: [1, 2, 3, 4, 5] as unknown as number,
+      provenance: { blockId: "stats.sample", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(SampleBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

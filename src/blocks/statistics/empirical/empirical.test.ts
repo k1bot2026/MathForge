@@ -87,3 +87,20 @@ describe("stats.empirical compute", () => {
     );
   });
 });
+
+describe("stats.empirical definition explain", () => {
+  test("effect shows sample count and E[X] from output", async () => {
+    const { EmpiricalBlock } = await import("./definition");
+    const output = computeEmpirical({ samples: makeVector([1, 2, 3, 4, 5]) }, {});
+    const msg = EmpiricalBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Empirical/);
+    expect(msg).toMatch(/5 samples/);
+    expect(msg).toMatch(/3\.000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { EmpiricalBlock } = await import("./definition");
+    const output = computeEmpirical({ samples: makeVector([1]) }, {});
+    expect(EmpiricalBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

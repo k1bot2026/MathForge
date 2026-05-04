@@ -107,3 +107,21 @@ describe("stats.binomial compute", () => {
     expect(() => computeBinomial({}, { n: 5, p: 1.5 })).toThrow("p must be in [0, 1]");
   });
 });
+
+describe("stats.binomial definition explain", () => {
+  test("effect shows E[X] from output", async () => {
+    const { BinomialBlock } = await import("./definition");
+    const { computeBinomial } = await import("./compute");
+    const output = computeBinomial({}, { n: 10, p: 0.5 });
+    const msg = BinomialBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Binomial/);
+    expect(msg).toMatch(/5\.000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { BinomialBlock } = await import("./definition");
+    const { computeBinomial } = await import("./compute");
+    const output = computeBinomial({}, { n: 10, p: 0.5 });
+    expect(BinomialBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

@@ -86,3 +86,19 @@ describe("stats.bernoulli compute", () => {
     expect(() => computeBernoulli({}, { p: 1.1 })).toThrow("p must be in [0, 1]");
   });
 });
+
+describe("stats.bernoulli definition explain", () => {
+  test("effect shows E[X] and Var[X] from output", async () => {
+    const { BernoulliBlock } = await import("./definition");
+    const output = computeBernoulli({}, { p: 0.3 });
+    const msg = BernoulliBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Bernoulli/);
+    expect(msg).toMatch(/0\.3000/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { BernoulliBlock } = await import("./definition");
+    const output = computeBernoulli({}, { p: 0.3 });
+    expect(BernoulliBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});

@@ -65,3 +65,20 @@ describe("stats.normal compute", () => {
     expect(() => computeNormal({}, { mu: 0, sigma: -1 })).toThrow("sigma must be > 0");
   });
 });
+
+describe("stats.normal definition explain", () => {
+  test("effect shows E[X] from output", async () => {
+    const { NormalBlock } = await import("./definition");
+    const { computeNormal } = await import("./compute");
+    const output = computeNormal({}, { mu: 0, sigma: 1 });
+    const msg = NormalBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/Normal/);
+  });
+
+  test("impact is a non-empty static string", async () => {
+    const { NormalBlock } = await import("./definition");
+    const { computeNormal } = await import("./compute");
+    const output = computeNormal({}, { mu: 0, sigma: 1 });
+    expect(NormalBlock.explain.impact?.({}, output)).toBeTruthy();
+  });
+});
