@@ -27,6 +27,10 @@ import { SetBlock } from "./set/definition";
 import { ShortestPathBlock } from "./shortest-path/definition";
 import { TotientBlock } from "./totient/definition";
 import { UnionBlock } from "./union/definition";
+import { VizGraph2dBlock } from "./viz-graph-2d/definition";
+import { VizModularClockBlock } from "./viz-modular-clock/definition";
+import { VizPermutationCyclesBlock } from "./viz-permutation-cycles/definition";
+import { VizSetVennBlock } from "./viz-set-venn/definition";
 
 export function register(registry: BlockRegistry): void {
   registry.register(SetBlock);
@@ -57,4 +61,8 @@ export function register(registry: BlockRegistry): void {
   registry.register(MinimumSpanningTreeBlock);
   registry.register(ConnectedComponentsBlock);
   registry.register(ColoringBlock);
+  registry.register(VizGraph2dBlock);
+  registry.register(VizSetVennBlock);
+  registry.register(VizPermutationCyclesBlock);
+  registry.register(VizModularClockBlock);
 }
