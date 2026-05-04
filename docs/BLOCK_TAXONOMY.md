@@ -295,5 +295,21 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 - `viz.taylor` [shipped] — plots f(x) (solid) and Tₙ(x) (dashed) on the same axes; inputs `fn: Function` (original), optional `taylor: Function` (from calc.taylor); passthrough output `fn: Function`. Evaluates expression strings numerically via mathjs.evaluate(). Introduces `viz-calc.ts` shared helpers (evalAt, sampleExpr, yRange) for calculus viz blocks. Phase 4 exit-criterion demo block. (`18e7d58`)
 - `viz.vector-field` [shipped] — 2D arrow-grid vector field; inputs `Fx: Function(arity=2)` (x-component, required), optional `Fy: Function(arity=2)` (y-component); zoom slider param; passthrough output `Fx: Function`. Arrow length/opacity encodes magnitude. Connect calc.partial outputs as Fx/Fy to visualise gradient fields. Engine: native. (`81aace9`)
 
-### Phase 5 (Composites)
-`core.subgraph`, `core.assert`, `core.benchmark`.
+### Phase 5 (Composites & ecosystem)
+
+**Composite blocks** _(composite role, stateful, slate color)_
+
+- `core.subgraph` — encapsulates a selected subgraph as a reusable composite block with named input and output ports. The user selects N connected blocks, assigns port labels, and the subgraph appears as a first-class block on the canvas. Shareable via URL; the inner graph is embedded in the outer graph's codec. Unlocks `stats.bayes-net` and the community block library.
+- `core.assert` — assertion block: declares an expected output value (or range) for any upstream output port. The node turns red when the connected value violates the assertion at eval time. Useful for property-testing graphs in the live canvas and for educational "verify your answer" scenarios.
+- `core.benchmark` — micro-benchmark block: measures median and P95 wall-clock time for a single upstream block over N evaluation samples. Displays results in the inspector preview. Connects to `core.assert` to gate performance regressions.
+
+**Deferred from Phase 3**
+
+- `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. **Deferred from Phase 3.** Requires `core.subgraph` to be available first.
+
+**Infrastructure (Phase 5)**
+
+- IndexedDB Layer 3 cache — cross-reload EvalCache persistence; entries tagged with graph hash for correct invalidation. **Deferred from Phase 4.**
+- Supabase backend — Postgres + Auth (magic link); persistent graphs at `/g/<slug>`.
+- Community block library — browse, fork, install blocks authored by other users.
+- Block versioning — semver tags on composite blocks; import pinning for stable references.

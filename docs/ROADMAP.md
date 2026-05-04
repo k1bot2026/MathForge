@@ -439,6 +439,35 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 
 **Goal**: users define their own reusable blocks; the system supports an ecosystem of shared blocks.
 
+### Phase 5 status snapshot
+
+| Area | Shipped | Pending |
+|---|---|---|
+| **Composite core** | — | `core.subgraph`, `core.assert`, `core.benchmark` |
+| **Deferred from Phase 3** | — | `stats.bayes-net` (requires `core.subgraph`) |
+| **Deferred from Phase 4** | — | IndexedDB Layer 3 cache persistence (requires cache-invalidation strategy for URL-linked graphs) |
+| **Ecosystem** | — | Community block library; block versioning |
+| **Backend** | — | Supabase wiring; auth; persistent graph URLs at `/g/<slug>` |
+
+### Phase 5 progress
+
+**Core composite blocks**
+
+- [ ] `core.subgraph` — select N blocks, name their exposed ports, package as a reusable composite block. The fundamental Phase 5 primitive; unblocks `stats.bayes-net` and community sharing.
+- [ ] `core.assert` — declare expected output behavior (e.g. "result ≈ 3.14"); node turns red on violation. Property-test scaffolding in the live canvas.
+- [ ] `core.benchmark` — micro-benchmark for a block: measure median / P95 wall-clock over N samples; display result in inspector.
+
+**Deferred Phase 3 blocks**
+
+- [ ] `stats.bayes-net` — user-assembled Bayesian network; wraps a subgraph of distributions and conditionals. Requires `core.subgraph`.
+
+**Infrastructure / platform**
+
+- [ ] IndexedDB Layer 3 cache — cross-reload EvalCache persistence via idb-keyval; requires cache-invalidation strategy for URL-linked graphs (tag cache entries with graph hash).
+- [ ] Supabase wiring — Postgres + Supabase Auth (magic link); persistent graphs at `/g/<slug>`.
+- [ ] Community block library — browse, fork, and install blocks from other users.
+- [ ] Block versioning — semver for user-defined composite blocks; import pinning.
+
 ### Features
 - `core.subgraph`: select N blocks, package as a custom block with named inputs/outputs.
 - `core.assert`: declare expected behavior; turns red on violation.

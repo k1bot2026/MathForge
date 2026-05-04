@@ -98,4 +98,27 @@ describe("stats.sample compute", () => {
       "n must be a positive integer",
     );
   });
+
+  test("Empirical distribution samples are drawn from the provided values", () => {
+    const values = [2, 5, 8, 13, 21];
+    const dist = distValue({
+      parameters: { family: "Empirical", samples: values },
+      moments: { mean: 49 / 5, variance: 0 },
+      support: { kind: "discrete", values },
+    });
+    const result = computeSample({ dist }, { n: 50, seed: 7 });
+    const samples = result.payload as number[];
+    expect(samples.every((x) => values.includes(x))).toBe(true);
+  });
+
+  test("Gamma(0.5, 1): samples are positive (alpha < 1 branch)", () => {
+    const dist = distValue({
+      parameters: { family: "Gamma", alpha: 0.5, beta: 1 },
+      moments: { mean: 0.5, variance: 0.5 },
+      support: { kind: "continuous", lo: 0, hi: 20 },
+    });
+    const result = computeSample({ dist }, { n: 100, seed: 11 });
+    const samples = result.payload as number[];
+    expect(samples.every((x) => x > 0)).toBe(true);
+  });
 });

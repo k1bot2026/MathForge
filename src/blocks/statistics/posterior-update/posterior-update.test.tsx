@@ -81,6 +81,27 @@ describe("viz.posterior-update definition", () => {
   });
 });
 
+describe("viz.posterior-update explain", () => {
+  const effect = PosteriorUpdateBlock.explain.effect;
+  const impact = PosteriorUpdateBlock.explain.impact;
+
+  test("effect returns connect prompt when inputs are missing", () => {
+    expect(effect?.({}, uniformPrior)).toMatch(/Connect/);
+  });
+
+  test("effect returns correct posterior summary when both inputs present", () => {
+    const msg = effect?.({ prior: uniformPrior, posterior: posterior8_4 }, posterior8_4);
+    expect(msg).toMatch(/Posterior: Beta\(8\.000, 4\.000\)/);
+    expect(msg).toMatch(/E\[θ\] = 0\.6667/);
+  });
+
+  test("impact returns correct Beta string when output is Beta", () => {
+    const msg = impact?.({ prior: uniformPrior, posterior: posterior8_4 }, posterior8_4);
+    expect(msg).toMatch(/Beta\(8\.000, 4\.000\)/);
+    expect(msg).toMatch(/viz\.pdf-cdf/);
+  });
+});
+
 describe("PosteriorUpdateVisualization", () => {
   test("renders placeholder when no prior connected", () => {
     render(<PosteriorUpdateVisualization inputs={{}} output={undefined} />);
