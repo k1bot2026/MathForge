@@ -5,7 +5,7 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 4 in progress: 7 calc blocks + viz.taylor shipped
+## [Unreleased] — Phase 4 complete: 10 calc ops + 5 viz blocks + cache gate
 
 Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
 (viz.unit-grid-3d, eigenvector highlighting, det area/volume animation), SymPy
@@ -16,8 +16,9 @@ inference pipeline (prior + likelihood → posterior → viz) works end-to-end.
 `stats.mgf` establishes the SymPy Pyodide worker RPC pattern for Phase 4 calculus.
 1338 tests green. `stats.bayes-net` deferred to Phase 5 (requires `core.subgraph`).
 
-Phase 4 in progress: `calc.function` establishes the `FunctionPayload` convention and
-extends the Pyodide client with all Phase 4 RPCs. Five operation blocks follow.
+Phase 4 complete: 10 calc operation blocks (including multivariable partial/gradient/ODE),
+5 visualization blocks, cross-engine test coverage for all ops, and the cache hit-rate gate
+(>50% on a 13-node calc graph). 1756 tests green. Advancing to Phase 5.
 
 ### Calculus (Phase 4)
 
@@ -26,10 +27,19 @@ extends the Pyodide client with all Phase 4 RPCs. Five operation blocks follow.
 - **`calc.integrate`** — indefinite integral ∫f dx via SymPy integrate(). Input `fn: Function`; param `variable`; output `fn: Function` (antiderivative; constant of integration omitted). Throws `IntegrateError`. Compose with calc.derivative to verify the Fundamental Theorem. (`8d41219`)
 - **`calc.definite-integrate`** — ∫ₐᵇ f dx via SymPy N(integrate(f,(x,a,b))). Inputs: `fn: Function`, optional `a: Scalar(real)` (lower bound), optional `b: Scalar(real)` (upper bound). Params: `a` (default 0), `b` (default 1), `variable`. Output `value: Scalar(real, approximate)`. Bound input ports override param defaults — upstream Scalar blocks drive integration limits dynamically. Throws `DefiniteIntegrateError`. (`5cbf696`)
 - **`calc.limit`** — lim_{x→c} f(x) via SymPy limit(). Inputs: `fn: Function`, optional `point: Scalar(real)`. Params: `point` (default 0), `variable`. Output `value: Expression(freeVars=[])`. Returns `Scalar(real)` for finite numeric results; `Expression` for symbolic answers (oo, zoo, indeterminate forms). Throws `LimitError`. (`3ceb98f`)
-- **`calc.taylor`** — degree-n Taylor polynomial via SymPy series().removeO(). Inputs: `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`. Params: `center` (default 0), `order` (1–20, default 5), `variable`. Output `fn: Function` (polynomial expression, big-O term removed). Throws `TaylorError`. Phase 4 exit-criterion centerpiece — connects to viz.taylor for convergence animation. (`99b529f`)
-
 - **`calc.series`** — partial sum Σ_{n=from}^{to} aₙ via SymPy Sum().doit(). Inputs: `fn: Function` (general term), optional `from: Scalar`, optional `to: Scalar`. Params: `from` (default 0), `to` (default 10), `index` (blank = infer). Output `value: Scalar` for numeric sums; `fn: Function` for parametric terms. Bound inputs override params for slider-driven convergence exploration. Throws `SeriesError`. (`505b00a`)
+- **`calc.taylor`** — degree-n Taylor polynomial via SymPy series().removeO(). Inputs: `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`. Params: `center` (default 0), `order` (1–20, default 5), `variable`. Output `fn: Function` (polynomial expression, big-O term removed). Throws `TaylorError`. Phase 4 exit-criterion centerpiece — connects to viz.taylor for convergence animation. (`99b529f`)
+- **`calc.partial`** — partial derivative ∂f/∂xᵢ via SymPy diff(). Input `fn: Function`; param `variable` (explicit required — can't infer for multivariate). Output `fn: Function`; full variables list preserved in FunctionPayload so downstream blocks see all free variables. Throws `PartialError`. (`75339ae`)
+- **`calc.gradient`** — gradient ∇f = [∂f/∂x₁, …, ∂f/∂xₙ] via parallel SymPy diff per variable. Input `fn: Function` (variables list from payload determines dimension). Output `gradient: Vector<n, real>`. Connect Fx/Fy outputs to viz.vector-field to visualise gradient fields of scalar functions. Throws `GradientError`. (`264322c`)
+- **`calc.ode-solve`** — ODE solver via SymPy dsolve(). ODE expressed in prime notation (e.g. "y' - y"). Optional IVP inputs `x0: Scalar(real)`, `y0: Scalar(real)` pin the arbitrary constant. Params: `ode` (string), `depVar` (default "y"), `indepVar` (default "x"), `x0` (default 0), `y0` (default 1). Output `solution: Function` (explicit) or `solution: Expression` (implicit/piecewise). Extends Pyodide client with dsolve RPC. Throws `OdeSolveError`. (`a569a71`)
+
+### Visualization (Phase 4)
+
 - **`viz.taylor`** — Taylor convergence overlay: plots f(x) (solid) and Tₙ(x) (dashed) on the same SVG canvas. Inputs: `fn: Function` (original), optional `taylor: Function` (from calc.taylor); passthrough output `fn`. Evaluates expression strings via mathjs.evaluate(). Introduces `src/blocks/calculus/viz-calc.ts` with shared `evalAt`/`sampleExpr`/`yRange` helpers for all calculus viz blocks. Connect calc.taylor's order port to a slider to animate convergence — the Phase 4 exit-criterion demo. (`18e7d58`)
+- **`viz.tangent`** — interactive tangent line on a Mafs curve plot. Inputs: `fn: Function`, optional `derivative: Function` (exact slope from calc.derivative; falls back to numerical central-difference when absent); passthrough output `fn: Function`. Click anywhere on the plot to reposition the contact point. Engine: native. (`e0ad80d`)
+- **`viz.riemann`** — animated Riemann sum approximation. Input `fn: Function`, optional `a: Scalar(real)`, optional `b: Scalar(real)`; params `a` (default 0), `b` (default π). Interactive n-slider (rectangle count) and left/right/midpoint endpoint method selector. Passthrough output `fn: Function`. Visually bridges discrete summation and continuous integration as n → ∞. Engine: native. (`3da90ee`)
+- **`viz.epsilon-delta`** — ε–δ limit definition visualiser. Input `fn: Function`, optional `c: Scalar(real)` (limit point), optional `L: Scalar(real)` (limit value). Yellow horizontal ε-strip + blue vertical δ-strip rendered as interactive sliders; overlap turns green when the chosen δ satisfies |x − c| < δ ⟹ |f(x) − L| < ε. Passthrough output `fn: Function`. Engine: native. (`9583503`)
+- **`viz.vector-field`** — 2D arrow-grid vector field. Inputs: `Fx: Function(arity=2)` (x-component, required), optional `Fy: Function(arity=2)` (y-component). Zoom slider param. Arrow direction shows field direction; arrow length and opacity encode magnitude. Passthrough output `Fx: Function`. Connect calc.partial outputs as Fx/Fy to visualise the gradient field ∇f. Engine: native. (`81aace9`)
 
 ### Testing (Phase 4)
 
@@ -37,6 +47,16 @@ extends the Pyodide client with all Phase 4 RPCs. Five operation blocks follow.
 - **Pyodide client error-path coverage** — all new RPC methods (sympify, diff, integrate, definiteIntegrate, limit, taylor) covered in `src/engine/workers/pyodide.client.test.ts`. (`3ad4736`)
 - **`calc.derivative` cross-engine tests** — `derivative-sympy.test.ts` loads `calc-derivative.json` fixture; asserts derivative expressions match SymPy diff() output for polynomial, trigonometric, exponential, and composite functions. (`9bc0382`)
 - **`calc.integrate` cross-engine tests** — `integrate-sympy.test.ts` includes standard antiderivative assertions and the `derivative(integrate(f)) = f` compositional invariant (Fundamental Theorem of Calculus verification). (`41d7fca`)
+- **`calc.taylor` cross-engine tests** — `taylor-sympy.test.ts` (202 tests); includes Taylor convergence property test: at order 30, the polynomial approximation of exp/sin evaluated at x ∈ [−2, 2] matches the true value to within 1e-10. (`92714af`)
+- **`calc.series` cross-engine tests** — `series-sympy.test.ts` (22 tests); `calc-series.json` (8 cases: geometric series, harmonic partial sums, alternating series). (`3155450`)
+- **Calculus compositional invariants** — `calc-invariants.test.ts` (261 lines): Taylor convergence at order 30 for exp and sin; finite-difference consistency (central-difference slope matches SymPy derivative at sampled points). (`a1b5228`)
+- **`calc.gradient` cross-engine tests** — `gradient-sympy.test.ts` (19 tests); `calc-gradient.json` (7 cases: univariate, bivariate, trivariate functions). (`732dbd3`)
+- **`calc.partial` + `calc.ode-solve` cross-engine tests** — `partial-sympy.test.ts` (28 tests, `calc-partial.json` 10 cases); `ode-solve-sympy.test.ts` (19 tests, `calc-ode-solve.json`). (`b9c352b`)
+- **`calc.limit` cross-engine tests** — `limit-sympy.test.ts` (133 tests); covers numeric limits, symbolic results (oo, zoo), and one-sided limits. (`6f00d6c`)
+
+### Performance (Phase 4)
+
+- **Cache hit-rate gate** — `EvalCache` extended with hit and miss counters; `__getCacheStats()` and `__resetCacheStats()` test-only helpers added. `cache-hit-rate.test.ts` (5 tests): single-leaf evaluation, multi-leaf mutation, and cascading-invalidation scenarios on a 13-node calc-style graph confirm >50% hit rate. Phase 4 exit criterion satisfied. IndexedDB (Layer 3) persistence deferred to Phase 5. (`243fd91`)
 
 ### Distributions (Phase 3)
 
