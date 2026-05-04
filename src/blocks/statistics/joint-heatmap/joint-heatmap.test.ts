@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import { computeNormal } from "../normal/compute";
 import { JointHeatmapBlock } from "./definition";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeNormalDist() {
   return computeNormal({}, { mu: 0, sigma: 1 });
 }
@@ -9,11 +11,11 @@ function makeNormalDist() {
 describe("viz.joint-heatmap compute", () => {
   test("returns X passthrough when X is provided", () => {
     const X = makeNormalDist();
-    expect(JointHeatmapBlock.compute({ X }, {})).toBe(X);
+    expect(JointHeatmapBlock.compute({ X }, {}, ctx)).toBe(X);
   });
 
   test("throws when X input is missing", () => {
-    expect(() => JointHeatmapBlock.compute({}, {})).toThrow(
+    expect(() => JointHeatmapBlock.compute({}, {}, ctx)).toThrow(
       "viz.joint-heatmap requires Distribution inputs on X and Y",
     );
   });

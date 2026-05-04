@@ -139,7 +139,7 @@ describe("la.add definition explain", () => {
   test("effect returns output dimensions string", async () => {
     const { AddBlock } = await import("./definition");
     const output: MathValue = {
-      type: { kind: "Matrix", m: 2, n: 3, field: "real", precision: "approximate" },
+      type: { kind: "Matrix", m: 2, n: 3, field: "real" },
       payload: [
         [1, 2, 3],
         [4, 5, 6],
@@ -152,7 +152,7 @@ describe("la.add definition explain", () => {
   test("impact returns dimension info string", async () => {
     const { AddBlock } = await import("./definition");
     const output: MathValue = {
-      type: { kind: "Matrix", m: 2, n: 3, field: "real", precision: "approximate" },
+      type: { kind: "Matrix", m: 2, n: 3, field: "real" },
       payload: [
         [1, 2, 3],
         [4, 5, 6],

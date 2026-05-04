@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import { computeNormal } from "../normal/compute";
 import { PdfCdfBlock } from "./definition";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeNormalDist(): ReturnType<typeof computeNormal> {
   return computeNormal({}, { mu: 0, sigma: 1 });
 }
@@ -9,11 +11,11 @@ function makeNormalDist(): ReturnType<typeof computeNormal> {
 describe("viz.pdf-cdf compute", () => {
   test("returns X passthrough when X is provided", () => {
     const X = makeNormalDist();
-    expect(PdfCdfBlock.compute({ X }, {})).toBe(X);
+    expect(PdfCdfBlock.compute({ X }, {}, ctx)).toBe(X);
   });
 
   test("throws when X input is missing", () => {
-    expect(() => PdfCdfBlock.compute({}, {})).toThrow(
+    expect(() => PdfCdfBlock.compute({}, {}, ctx)).toThrow(
       "viz.pdf-cdf requires a Distribution input on port X",
     );
   });

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import type { FunctionPayload, MathValue } from "~/math/types";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeFn2(expression: string): MathValue {
   const payload: FunctionPayload = { expression, variables: ["x", "y"] };
   return {
@@ -19,12 +21,12 @@ describe("viz.vector-field compute", () => {
   test("returns Fx passthrough when Fx is provided", async () => {
     const { VizVectorFieldBlock } = await import("./definition");
     const fx = makeFn2("x");
-    expect(VizVectorFieldBlock.compute({ Fx: fx }, {})).toBe(fx);
+    expect(VizVectorFieldBlock.compute({ Fx: fx }, {}, ctx)).toBe(fx);
   });
 
   test("throws when Fx input is missing", async () => {
     const { VizVectorFieldBlock } = await import("./definition");
-    expect(() => VizVectorFieldBlock.compute({}, {})).toThrow(
+    expect(() => VizVectorFieldBlock.compute({}, {}, ctx)).toThrow(
       "viz.vector-field requires Fx(x,y) on the Fx port",
     );
   });

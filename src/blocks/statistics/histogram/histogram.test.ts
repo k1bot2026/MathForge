@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import type { MathValue } from "~/math/types";
 import { HistogramBlock } from "./definition";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeVector(samples: number[]): MathValue {
   return {
     type: { kind: "Vector", n: samples.length, field: "real" },
@@ -13,11 +15,11 @@ function makeVector(samples: number[]): MathValue {
 describe("viz.histogram compute", () => {
   test("returns samples passthrough when samples is provided", () => {
     const v = makeVector([1, 2, 3]);
-    expect(HistogramBlock.compute({ samples: v }, {})).toBe(v);
+    expect(HistogramBlock.compute({ samples: v }, {}, ctx)).toBe(v);
   });
 
   test("throws when samples input is missing", () => {
-    expect(() => HistogramBlock.compute({}, {})).toThrow(
+    expect(() => HistogramBlock.compute({}, {}, ctx)).toThrow(
       "viz.histogram requires a Vector input on port samples",
     );
   });

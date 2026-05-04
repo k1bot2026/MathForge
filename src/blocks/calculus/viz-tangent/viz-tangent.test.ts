@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import type { FunctionPayload, MathValue } from "~/math/types";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeFn(expression: string): MathValue {
   const payload: FunctionPayload = { expression, variables: ["x"] };
   return {
@@ -19,12 +21,12 @@ describe("viz.tangent compute", () => {
   test("returns fn passthrough when fn is provided", async () => {
     const { VizTangentBlock } = await import("./definition");
     const fn = makeFn("x**2");
-    expect(VizTangentBlock.compute({ fn }, {})).toBe(fn);
+    expect(VizTangentBlock.compute({ fn }, {}, ctx)).toBe(fn);
   });
 
   test("throws when fn input is missing", async () => {
     const { VizTangentBlock } = await import("./definition");
-    expect(() => VizTangentBlock.compute({}, {})).toThrow(
+    expect(() => VizTangentBlock.compute({}, {}, ctx)).toThrow(
       "viz.tangent requires f(x) on the fn port",
     );
   });

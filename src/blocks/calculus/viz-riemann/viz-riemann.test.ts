@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import type { FunctionPayload, MathValue } from "~/math/types";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeFn(expression: string): MathValue {
   const payload: FunctionPayload = { expression, variables: ["x"] };
   return {
@@ -19,12 +21,12 @@ describe("viz.riemann compute", () => {
   test("returns fn passthrough when fn is provided", async () => {
     const { VizRiemannBlock } = await import("./definition");
     const fn = makeFn("sin(x)");
-    expect(VizRiemannBlock.compute({ fn }, {})).toBe(fn);
+    expect(VizRiemannBlock.compute({ fn }, {}, ctx)).toBe(fn);
   });
 
   test("throws when fn input is missing", async () => {
     const { VizRiemannBlock } = await import("./definition");
-    expect(() => VizRiemannBlock.compute({}, {})).toThrow(
+    expect(() => VizRiemannBlock.compute({}, {}, ctx)).toThrow(
       "viz.riemann requires f(x) on the fn port",
     );
   });

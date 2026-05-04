@@ -129,7 +129,7 @@ describe("la.transpose definition explain", () => {
   test("effect returns transposed dimensions string", async () => {
     const { TransposeBlock } = await import("./definition");
     const output: MathValue = {
-      type: { kind: "Matrix", m: 3, n: 2, field: "real", precision: "approximate" },
+      type: { kind: "Matrix", m: 3, n: 2, field: "real" },
       payload: [] as unknown as number,
       provenance: { blockId: "la.transpose", inputs: [], computedAt: 0, engine: "native" },
     };
@@ -139,7 +139,7 @@ describe("la.transpose definition explain", () => {
   test("impact notes rows and columns are swapped", async () => {
     const { TransposeBlock } = await import("./definition");
     const output: MathValue = {
-      type: { kind: "Matrix", m: 3, n: 2, field: "real", precision: "approximate" },
+      type: { kind: "Matrix", m: 3, n: 2, field: "real" },
       payload: [] as unknown as number,
       provenance: { blockId: "la.transpose", inputs: [], computedAt: 0, engine: "native" },
     };

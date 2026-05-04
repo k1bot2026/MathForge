@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import type { FunctionPayload, MathValue } from "~/math/types";
 
+const ctx = { signal: new AbortController().signal };
+
 function makeFn(expression: string, variables: string[] = ["x"]): MathValue {
   const payload: FunctionPayload = { expression, variables };
   return {
@@ -27,12 +29,12 @@ describe("viz.epsilon-delta compute", () => {
   test("returns fn passthrough when fn is provided", async () => {
     const { VizEpsilonDeltaBlock } = await import("./definition");
     const fn = makeFn("sin(x)");
-    expect(VizEpsilonDeltaBlock.compute({ fn }, {})).toBe(fn);
+    expect(VizEpsilonDeltaBlock.compute({ fn }, {}, ctx)).toBe(fn);
   });
 
   test("throws when fn input is missing", async () => {
     const { VizEpsilonDeltaBlock } = await import("./definition");
-    expect(() => VizEpsilonDeltaBlock.compute({}, {})).toThrow(
+    expect(() => VizEpsilonDeltaBlock.compute({}, {}, ctx)).toThrow(
       "viz.epsilon-delta requires f(x) on the fn port",
     );
   });

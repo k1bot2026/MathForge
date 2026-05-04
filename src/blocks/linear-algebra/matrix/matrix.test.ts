@@ -1,5 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, test } from "vitest";
+import type { MathValue } from "~/math/types";
 import { computeMatrix } from "./compute";
 
 describe("la.matrix compute", () => {

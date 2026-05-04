@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import type { MathValue } from "~/math/types";
 import { UnitGridBlock } from "./definition";
 
+const ctx = { signal: new AbortController().signal };
+
 function matrixValue(rows: number[][]): MathValue {
   return {
     type: { kind: "Matrix", m: rows.length, n: rows[0]?.length ?? 0, field: "real" },
@@ -16,11 +18,11 @@ describe("viz.unit-grid compute", () => {
       [1, 0],
       [0, 1],
     ]);
-    expect(UnitGridBlock.compute({ M }, {})).toBe(M);
+    expect(UnitGridBlock.compute({ M }, {}, ctx)).toBe(M);
   });
 
   test("throws when M input is missing", () => {
-    expect(() => UnitGridBlock.compute({}, {})).toThrow(
+    expect(() => UnitGridBlock.compute({}, {}, ctx)).toThrow(
       "viz.unit-grid requires a Matrix input on port M",
     );
   });
