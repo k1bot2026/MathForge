@@ -173,6 +173,49 @@ describe("setIntersection", () => {
       ),
     );
   });
+
+  test("property: associativity ((A ∩ B) ∩ C = A ∩ (B ∩ C))", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        (a, b, c) => {
+          const lhs = asSortedSet(
+            getIntegers(setIntersection(setIntersection(makeSet(a), makeSet(b)), makeSet(c))),
+          );
+          const rhs = asSortedSet(
+            getIntegers(setIntersection(makeSet(a), setIntersection(makeSet(b), makeSet(c)))),
+          );
+          expect(lhs).toEqual(rhs);
+        },
+      ),
+    );
+  });
+
+  test("property: distributes over union (A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C))", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 8 }),
+        (a, b, c) => {
+          const lhs = asSortedSet(
+            getIntegers(setIntersection(makeSet(a), setUnion(makeSet(b), makeSet(c)))),
+          );
+          const rhs = asSortedSet(
+            getIntegers(
+              setUnion(
+                setIntersection(makeSet(a), makeSet(b)),
+                setIntersection(makeSet(a), makeSet(c)),
+              ),
+            ),
+          );
+          expect(lhs).toEqual(rhs);
+        },
+      ),
+    );
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────
