@@ -4,6 +4,7 @@ import { DerivativeBlock } from "./derivative/definition";
 import { FunctionBlock } from "./function/definition";
 import { IntegrateBlock } from "./integrate/definition";
 import { LimitBlock } from "./limit/definition";
+import { PartialBlock } from "./partial/definition";
 import { SeriesBlock } from "./series/definition";
 import { TaylorBlock } from "./taylor/definition";
 import { VizTangentBlock } from "./viz-tangent/definition";
@@ -19,4 +20,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(SeriesBlock);
   registry.register(VizTaylorBlock);
   registry.register(VizTangentBlock);
+  registry.register(PartialBlock);
 }

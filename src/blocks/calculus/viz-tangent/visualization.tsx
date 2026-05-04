@@ -92,12 +92,17 @@ export function TangentVisualization({
     .filter(Boolean)
     .join(" ");
 
-  // Handle drag on the SVG to move the point
-  function handleSvgClick(e: React.MouseEvent<SVGSVGElement>) {
-    const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+  function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+    const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
     const px = e.clientX - rect.left;
     const newX = Math.max(X_LO, Math.min(X_HI, fromSvgX(px)));
     setPointX(newX);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    const step = (X_HI - X_LO) / 50;
+    if (e.key === "ArrowLeft") setPointX((p) => Math.max(X_LO, p - step));
+    if (e.key === "ArrowRight") setPointX((p) => Math.min(X_HI, p + step));
   }
 
   const pointSvgX = toSvgX(pointX);
@@ -108,13 +113,19 @@ export function TangentVisualization({
   const pointColor = "var(--role-function-border, #f97316)";
 
   return (
-    <div data-testid="viz-tangent-root">
+    <button
+      data-testid="viz-tangent-root"
+      type="button"
+      aria-label="Function with movable tangent line — click or use arrow keys to move the point"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      style={{ all: "unset", display: "block", cursor: "crosshair" }}
+    >
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        style={{ display: "block", width: W, height: H, cursor: "crosshair" }}
+        style={{ display: "block", width: W, height: H, pointerEvents: "none" }}
         role="img"
-        aria-label="Function with movable tangent line"
-        onClick={handleSvgClick}
+        aria-label="Function plot"
       >
         {/* Plot area */}
         <rect
@@ -199,7 +210,7 @@ export function TangentVisualization({
           const x = X_LO + frac * (X_HI - X_LO);
           const px = PAD_L + frac * PLOT_W;
           return (
-            <g key={`xt${i}`}>
+            <g key={`xt${x.toFixed(3)}`}>
               <line
                 x1={px}
                 y1={PAD_T + PLOT_H}
@@ -226,6 +237,6 @@ export function TangentVisualization({
           click to move point
         </text>
       </svg>
-    </div>
+    </button>
   );
 }
