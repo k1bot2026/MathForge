@@ -279,6 +279,25 @@ describe("setDifference", () => {
       ),
     );
   });
+
+  test("property: A ∖ A = ∅ for any set", () => {
+    fc.assert(
+      fc.property(fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 15 }), (a) => {
+        const s = makeSet(a);
+        expect(getIntegers(setDifference(s, s))).toHaveLength(0);
+      }),
+    );
+  });
+
+  test("property: A ∖ ∅ = A for any set", () => {
+    fc.assert(
+      fc.property(fc.array(fc.integer({ min: 0, max: 20 }), { maxLength: 15 }), (a) => {
+        const s = makeSet(a);
+        const original = asSortedSet(getIntegers(s));
+        expect(asSortedSet(getIntegers(setDifference(s, makeSet([]))))).toEqual(original);
+      }),
+    );
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────
