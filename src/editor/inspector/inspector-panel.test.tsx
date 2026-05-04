@@ -1,5 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import "fake-indexeddb/auto";
+
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { blockRegistry } from "~/blocks";
+import { buildSubgraphDefinition } from "~/blocks/common/subgraph/definition";
 import { useGraphStore } from "~/store/graph-store";
 import { useUiStore } from "~/store/ui-store";
 import { InspectorPanel } from "./inspector-panel";
@@ -331,6 +335,75 @@ describe("InspectorPanel", () => {
     );
     render(<InspectorPanel />);
     expect(screen.getByTestId("inspector-value-strip")).toHaveTextContent("[[1, 0], [0, 1]]");
+  });
+
+  // ── SaveAsBlockButton (shown only for subgraph blocks) ──────────────────
+
+  test("save-as-block UI is absent for non-subgraph blocks", () => {
+    useGraphStore.getState().setSelectedNodeId("constant-1");
+    render(<InspectorPanel />);
+    expect(screen.queryByTestId("save-as-block-btn")).toBeNull();
+  });
+
+  test("save-as-block UI is present for a registered subgraph block", () => {
+    const def = buildSubgraphDefinition(
+      "user.test-sg",
+      "Test Subgraph",
+      { inner: { nodes: [], edges: [] }, inputProxies: [], outputProxies: [] },
+      [],
+      [
+        {
+          id: "out",
+          label: "Out",
+          type: { kind: "Scalar", field: "real", precision: "approximate" },
+        },
+      ],
+      blockRegistry,
+    );
+    blockRegistry.registerOrReplace(def);
+
+    useGraphStore.getState().addNode({
+      id: "sg-test",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: { blockId: "user.test-sg", params: {} },
+    });
+    useGraphStore.getState().setSelectedNodeId("sg-test");
+    render(<InspectorPanel />);
+    expect(screen.getByTestId("save-as-block-btn")).toBeInTheDocument();
+    expect(screen.getByTestId("save-as-block-name")).toBeInTheDocument();
+  });
+
+  test("save-as-block button text changes to 'saved' after click then reverts", async () => {
+    const def = buildSubgraphDefinition(
+      "user.save-test",
+      "Save Test",
+      { inner: { nodes: [], edges: [] }, inputProxies: [], outputProxies: [] },
+      [],
+      [
+        {
+          id: "out",
+          label: "Out",
+          type: { kind: "Scalar", field: "real", precision: "approximate" },
+        },
+      ],
+      blockRegistry,
+    );
+    blockRegistry.registerOrReplace(def);
+
+    useGraphStore.getState().addNode({
+      id: "sg-save",
+      type: "block",
+      position: { x: 0, y: 0 },
+      data: { blockId: "user.save-test", params: {} },
+    });
+    useGraphStore.getState().setSelectedNodeId("sg-save");
+    render(<InspectorPanel />);
+
+    const btn = screen.getByTestId("save-as-block-btn");
+    expect(btn).toHaveTextContent("save");
+    fireEvent.click(btn);
+    await waitFor(() => expect(screen.getByTestId("save-as-block-btn")).toHaveTextContent("saved"));
   });
 
   // ── useSelectedInputs: upstream value wiring ────────────────────────────
