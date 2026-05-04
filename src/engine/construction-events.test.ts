@@ -166,6 +166,57 @@ describe("projectGraph", () => {
     expect(out.edges).toEqual([]);
     expect(out.justAppearedIds).toEqual(["e1"]);
   });
+
+  it("edge-added with sourceHandle and targetHandle preserves both", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "edge-added",
+        edge: { id: "e1", source: "a", target: "b", sourceHandle: "out", targetHandle: "in" },
+      }),
+    ];
+    const out = projectGraph(events, 3);
+    expect(out.edges[0]).toMatchObject({
+      id: "e1",
+      source: "a",
+      target: "b",
+      sourceHandle: "out",
+      targetHandle: "in",
+    });
+  });
+
+  it("edge-added with null handles omits handle fields", () => {
+    const events: ConstructionEvent[] = [
+      ev({
+        kind: "node-added",
+        node: { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "node-added",
+        node: { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      }),
+      ev({
+        kind: "edge-added",
+        edge: {
+          id: "e1",
+          source: "a",
+          target: "b",
+          sourceHandle: null,
+          targetHandle: null,
+        } as Parameters<typeof ev>[0]["edge"] & { sourceHandle: null; targetHandle: null },
+      }),
+    ];
+    const out = projectGraph(events, 3);
+    expect(out.edges[0]).not.toHaveProperty("sourceHandle");
+    expect(out.edges[0]).not.toHaveProperty("targetHandle");
+  });
 });
 
 describe("synthesizeFromSnapshot", () => {
@@ -224,5 +275,52 @@ describe("synthesizeFromSnapshot", () => {
     const t = out[0]?.at ?? -1;
     expect(t).toBeGreaterThanOrEqual(before);
     expect(t).toBeLessThanOrEqual(after);
+  });
+
+  it("preserves sourceHandle and targetHandle when present in snapshot edge", () => {
+    const out = synthesizeFromSnapshot(
+      [
+        { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+        { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      ],
+      [{ id: "e1", source: "a", target: "b", sourceHandle: "value", targetHandle: "x" }],
+      "url-hash",
+      () => 0,
+    );
+    const edgeEvent = out.find((e) => e.kind === "edge-added");
+    expect(edgeEvent).toBeDefined();
+    if (edgeEvent?.kind === "edge-added") {
+      expect(edgeEvent.edge.sourceHandle).toBe("value");
+      expect(edgeEvent.edge.targetHandle).toBe("x");
+    }
+  });
+
+  it("omits sourceHandle and targetHandle when null in snapshot edge", () => {
+    const out = synthesizeFromSnapshot(
+      [
+        { id: "a", type: "block", position: { x: 0, y: 0 }, data: {} },
+        { id: "b", type: "block", position: { x: 0, y: 0 }, data: {} },
+      ],
+      [
+        {
+          id: "e1",
+          source: "a",
+          target: "b",
+          sourceHandle: null,
+          targetHandle: null,
+        } as Parameters<typeof synthesizeFromSnapshot>[1][number] & {
+          sourceHandle: null;
+          targetHandle: null;
+        },
+      ],
+      "seed",
+      () => 0,
+    );
+    const edgeEvent = out.find((e) => e.kind === "edge-added");
+    expect(edgeEvent).toBeDefined();
+    if (edgeEvent?.kind === "edge-added") {
+      expect(edgeEvent.edge).not.toHaveProperty("sourceHandle");
+      expect(edgeEvent.edge).not.toHaveProperty("targetHandle");
+    }
   });
 });
