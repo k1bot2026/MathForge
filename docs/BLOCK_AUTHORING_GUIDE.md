@@ -480,6 +480,172 @@ Tag the test file with `@cross-engine` in a leading JSDoc comment.
 
 ---
 
+## 7a. SymPy-engine blocks — additional conventions
+
+When a block delegates its computation to SymPy via the Pyodide worker, the pattern
+differs from the `la.transpose` (native) and `la.det` (math.js) examples above.
+`calc.derivative` (`cc3542d`) is the canonical reference.
+
+### What changes vs native blocks
+
+| Aspect | Native / math.js block | SymPy-engine block |
+|---|---|---|
+| `engine` field | `"native"` or `"mathjs"` | `"sympy"` |
+| `stability` field | `"stable"` is appropriate | Start at `"beta"` (Pyodide loads async; edge cases exist) |
+| `compute` signature | synchronous `(inputs, params): MathValue` | async `(inputs, params): Promise<MathValue>` |
+| Input payload | `number[][]` or numeric | `FunctionPayload` (expression + variables) |
+| Output payload | numeric | `FunctionPayload` or `ExpressionPayload` |
+| RPC call | — | `pyClient.<rpc>(args)` from `~/engine/workers/pyodide.client` |
+| Error class | `class XError extends Error` | same pattern, but catch RPC throw and re-throw as typed error |
+
+### `compute.ts` for a SymPy block
+
+```typescript
+// src/blocks/calculus/derivative/compute.ts
+import type { ResolvedInputs, ResolvedParams } from "~/blocks/types";
+import * as pyClient from "~/engine/workers/pyodide.client";
+import type { FunctionPayload, MathValue } from "~/math/types";
+
+export class DerivativeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DerivativeError";
+  }
+}
+
+export async function computeDerivative(
+  inputs: ResolvedInputs,
+  params: ResolvedParams,
+): Promise<MathValue> {
+  const fn = inputs.fn;
+  if (fn === undefined) {
+    throw new DerivativeError("calc.derivative requires a function input");
+  }
+  if (fn.type.kind !== "Function") {
+    throw new DerivativeError(
+      `calc.derivative requires a Function input, got ${fn.type.kind}`,
+    );
+  }
+
+  const fnPayload = fn.payload as unknown as FunctionPayload;
+  const diffVar =
+    typeof params.variable === "string" && params.variable.trim()
+      ? params.variable.trim()
+      : (fnPayload.variables[0] ?? "x");
+
+  let resultExpr: string;
+  try {
+    resultExpr = await pyClient.diff(
+      fnPayload.expression,
+      fnPayload.variables as string[],
+      diffVar,
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new DerivativeError(`SymPy diff failed: ${msg}`);
+  }
+
+  const outputPayload: FunctionPayload = {
+    expression: resultExpr,
+    variables: fnPayload.variables,
+  };
+
+  return {
+    type: fn.type,
+    payload: outputPayload as unknown as number,
+    provenance: {
+      blockId: "calc.derivative",
+      inputs: ["fn"],
+      computedAt: Date.now(),
+      engine: "sympy",
+    },
+  };
+}
+```
+
+Key points:
+- `compute` is `async`. The evaluator awaits it — the DAG evaluator handles the Promise.
+- Cast `fn.payload as unknown as FunctionPayload` to extract the expression and variables. The `MathValue.payload` field is typed as `number` at the boundary; the `kind: "Function"` discriminator in `fn.type` is the signal.
+- Call the RPC in a `try/catch` and re-throw as the block's typed error class. Never let raw Pyodide/Comlink errors propagate to callers.
+- Preserve `fnPayload.variables` in the output payload — downstream blocks need the full variable list.
+- Set `provenance.engine: "sympy"`.
+
+### `definition.ts` for a SymPy block
+
+```typescript
+// src/blocks/calculus/derivative/definition.ts
+export const DerivativeBlock: BlockDefinition = {
+  id: "calc.derivative",
+  label: "Derivative",
+  symbol: "d/dx",
+  category: "operation",
+  domain: "calculus",
+  determinism: "pure",
+  stability: "beta",          // ← always start beta for SymPy blocks
+  engine: "sympy",             // ← declares the Pyodide dependency
+  color: "function",           // ← "function" color for calc blocks
+
+  inputs: [
+    {
+      id: "fn",
+      label: "f(x)",
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+    },
+  ],
+
+  outputs: [
+    {
+      id: "fn",          // ← reuse the port id "fn" for function passthrough chains
+      label: "f'(x)",
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+    },
+  ],
+
+  params: {
+    variable: {
+      kind: "string",
+      default: "",
+      label: "Variable (blank = infer from input)",
+    },
+  },
+
+  compute: (inputs, params) => computeDerivative(inputs, params),
+
+  explain: {
+    what: "Computes the symbolic derivative df/dx via SymPy diff().",
+    why: "Symbolic differentiation yields exact closed-form derivatives rather than finite-difference approximations.",
+    effect: (_inputs, output) => {
+      const payload = output.payload as unknown as FunctionPayload;
+      const v = payload.variables[0] ?? "x";
+      return `f'(${v}) = ${payload.expression}`;
+    },
+  },
+};
+```
+
+Note the `effect` callback casts `output.payload as unknown as FunctionPayload` to access the expression string for the inspector display. This is the canonical pattern for all calc blocks.
+
+### Which Pyodide RPC to call
+
+Check `src/engine/workers/pyodide.client.ts` for the available RPCs. Do not add a new RPC until you have confirmed SymPy supports the operation and the worker is already loaded (the worker lazily loads SymPy on first call). If you need a new RPC:
+1. Add the handler in `src/engine/workers/pyodide.worker.ts`.
+2. Add the typed wrapper in `src/engine/workers/pyodide.client.ts`.
+3. Add error-path coverage in `pyodide.client.test.ts`.
+
+Current RPCs available (as of `a569a71`): `sympify`, `diff`, `integrate`, `definiteIntegrate`, `limit`, `taylor`, `series`, `dsolve`.
+
+---
+
 ## 8. Checklist before TASK DONE
 
 - [ ] `src/blocks/<domain>/<name>/compute.ts` — exported function + typed error class.
