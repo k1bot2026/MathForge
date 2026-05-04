@@ -157,6 +157,66 @@ describe("computeCombinations", () => {
 });
 
 // ──────────────────────────────────────────────────────────────────────
+// cross-checks: combinations ⊂ permutations (as multisets)
+// ──────────────────────────────────────────────────────────────────────
+
+describe("combinations vs permutations — structural cross-check", () => {
+  test("n=4, k=2: every combination appears as a sorted permutation", () => {
+    const elements = [1, 2, 3, 4];
+    const combos = getTupleValues(computeCombinations(elements, 2));
+    const perms = getTupleValues(computePermutations(elements, 2));
+    // Each combination (sorted) must exist as a sorted permutation.
+    const permSortedSet = new Set(perms.map((t) => [...t].sort((a, b) => a - b).join(",")));
+    for (const combo of combos) {
+      const key = [...combo].sort((a, b) => a - b).join(",");
+      expect(permSortedSet.has(key)).toBe(true);
+    }
+  });
+
+  test("n=4, k=2: combinations has no duplicate multisets", () => {
+    const combos = getTupleValues(computeCombinations([1, 2, 3, 4], 2));
+    const seen = new Set<string>();
+    for (const combo of combos) {
+      const key = [...combo].sort((a, b) => a - b).join(",");
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+    expect(combos.length).toBe(6);
+  });
+
+  test("n=4, k=2: permutations has no duplicate ordered tuples", () => {
+    const perms = getTupleValues(computePermutations([1, 2, 3, 4], 2));
+    const seen = new Set<string>();
+    for (const perm of perms) {
+      const key = perm.join(",");
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+    expect(perms.length).toBe(12);
+  });
+
+  test("property: every combo's element set is a subset of the input set", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 0, max: 20 }), { minLength: 1, maxLength: 8 }),
+        fc.integer({ min: 0, max: 7 }),
+        (arr, k) => {
+          const unique = [...new Set(arr)];
+          fc.pre(k <= unique.length);
+          const inputSet = new Set(unique);
+          const combos = getTupleValues(computeCombinations(unique, k));
+          for (const combo of combos) {
+            for (const v of combo) {
+              expect(inputSet.has(v)).toBe(true);
+            }
+          }
+        },
+      ),
+    );
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
 // Block smoke tests
 // ──────────────────────────────────────────────────────────────────────
 
