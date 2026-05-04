@@ -6,9 +6,13 @@
 
 import type { BlockRegistry } from "../registry";
 import { ConstantBlock } from "./constant/definition";
+import { InputProxyBlock } from "./input-proxy/definition";
+import { OutputProxyBlock } from "./output-proxy/definition";
 import { ScalarInputBlock } from "./scalar-input/definition";
 
 export function register(registry: BlockRegistry): void {
   registry.register(ConstantBlock);
+  registry.register(InputProxyBlock);
+  registry.register(OutputProxyBlock);
   registry.register(ScalarInputBlock);
 }
