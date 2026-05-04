@@ -27,6 +27,13 @@ First block: discrete.set.
 
 - **Discrete fixture infrastructure** — `scripts/generate-sympy-fixtures.mjs` extended with six SymPy-backed generators: `generateGcdCases()` (36 cases including coprime, same-number, zero), `generateIsPrimeCases()` (30 cases: primes, composites, edge cases including 0/1/2), `generateFactorintCases()` (25 cases: primes, prime powers, composites), `generateTotientCases()` (28 cases covering multiplicativity), `generateBinomialCases()` (40 cases including Pascal's identity triples), `generateModularCases()` (31 cases: modpow + modular-inverse). Corresponding fixture JSON files: `discrete-gcd.json`, `discrete-prime.json`, `discrete-factorint.json`, `discrete-totient.json`, `discrete-binomial.json`, `discrete-modular.json`. Six typed loaders added to `tests/sympy-reference.ts`. All values are integer-exact; no floating-point tolerance needed. (`acd093a`)
 
+### Discrete blocks (Phase 6 / Set operations)
+
+- **`discrete.union`** — set union A ∪ B. Inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Scalar(integer, exact)>`. Symbol: ∪. Shared `set-ops.ts` utility module (`setUnion`, `setIntersection`, `setDifference`, `setCartesianProduct`); all four set-op blocks register from `discrete/index.ts`. Throws `SetOpError` on missing inputs. (`a085ac1`)
+- **`discrete.intersection`** — set intersection A ∩ B. Inputs `A, B: Set<Scalar(integer, exact)>`; output `S`. Symbol: ∩. (`a085ac1`)
+- **`discrete.difference`** — set difference A ∖ B (elements in A not in B). Inputs `A, B: Set<Scalar(integer, exact)>`; output `S`. Symbol: ∖. Property test: `|A∖B| + |A∩B| = |A|`. (`a085ac1`)
+- **`discrete.cartesian-product`** — Cartesian product A × B. Inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Tuple(Scalar(integer), Scalar(integer))>`. Symbol: ×. Property test: `|A×B| = |A|·|B|`. 31 tests across all four blocks (unit behavior, error paths, fast-check properties: commutativity of union/intersection, idempotence, size invariants). (`a085ac1`)
+
 ### Composite blocks (Phase 5 / Ecosystem)
 
 - **`stats.bayes-net`** — Bayesian network composite block shipped as a `core.subgraph` instance pre-configured with Beta prior + Binomial likelihood + Poisson–Gamma conjugate pair; registered via `BlockRegistry.registerOrReplace()`. Closes the Phase 3 deferral that required `core.subgraph` to exist first. (`60e234b`)

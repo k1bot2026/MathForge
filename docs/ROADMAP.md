@@ -549,14 +549,14 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 | Area | Shipped | Pending |
 |---|---|---|
 | **Foundation** | `Permutation`, `Combination`, `Graph`, `Modular` types in `MathType`; `SetPayload`, `PermutationPayload`, `CombinationPayload`, `GraphPayload`, `ModularPayload`; `canConnect` extended for all new kinds (`1008750`); `discrete/index.ts` plugin entry (`a1d2bf7`) | — |
-| **Set blocks** | `discrete.set` (`a1d2bf7`) | `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product` |
+| **Set blocks** | `discrete.set` (`a1d2bf7`), `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product` (all `a085ac1`) | — |
 | **Combinatorics** | — | `discrete.permutations`, `discrete.combinations`, `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` |
 | **Number theory** | — | `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse` |
 | **Graph theory** | — | `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring` |
 | **Sequences** | — | `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence` |
 | **Visualization** | — | `viz.graph-2d`, `viz.set-venn`, `viz.permutation-cycles`, `viz.modular-clock` |
 | **Testing** | — | SymPy `discrete-*` fixture sets; cross-engine tests; property invariants (gcd·lcm, Pascal, totient) |
-| **Docs** | ROADMAP.md Phase 6 section (this document); active-phase header advanced | BLOCK_TAXONOMY.md `discrete.*` section; TYPES.md discrete kinds; CHANGELOG entries per block |
+| **Docs** | ROADMAP.md Phase 6 section; active-phase header; BLOCK_TAXONOMY.md `discrete.*` section; TYPES.md discrete kinds; CHANGELOG entries per block | — (watching brief active) |
 
 ### Phase 6 progress
 
@@ -567,11 +567,11 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 
 **Set blocks**
 
-- [x] `discrete.set` — explicit integer set; params `count` (1–16) + `e0..e15` integer values; deduplicates and sorts; output `set: Set<Scalar(integer, exact)>`. Property tests: idempotence, order-independence, size invariant, no duplicates. (`a1d2bf7`)
-- [ ] `discrete.union` — `Set × Set → Set`; element-wise union.
-- [ ] `discrete.intersection` — `Set × Set → Set`; shared elements.
-- [ ] `discrete.difference` — `Set × Set → Set`; A minus B.
-- [ ] `discrete.cartesian-product` — `Set × Set → Set<Tuple>`.
+- [x] `discrete.set` — explicit integer set; params `count` (0–16) + `e0..e15` integer values; deduplicates and sorts; output `S: Set<Scalar(integer, exact)>`; stability: experimental. (`a1d2bf7`)
+- [x] `discrete.union` — inputs `A, B: Set<integer>`; output `S: Set<integer>`; A ∪ B; symbol ∪; 31 property + unit tests (commutativity, idempotence). (`a085ac1`)
+- [x] `discrete.intersection` — inputs `A, B: Set<integer>`; output `S: Set<integer>`; A ∩ B; symbol ∩. (`a085ac1`)
+- [x] `discrete.difference` — inputs `A, B: Set<integer>`; output `S: Set<integer>`; A ∖ B; symbol ∖; property test `|A∖B| + |A∩B| = |A|`. (`a085ac1`)
+- [x] `discrete.cartesian-product` — inputs `A, B: Set<integer>`; output `S: Set<Tuple(integer,integer)>`; A × B; symbol ×; property test `|A×B| = |A|·|B|`. (`a085ac1`)
 
 **Combinatorics**
 

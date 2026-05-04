@@ -330,10 +330,10 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 **Set blocks** _(source + operation role)_
 
 - `discrete.set` [shipped] — explicit integer set; params `count` (0–16, default 3) + `e0..e15` integer values (range ±1,000,000); deduplicates and sorts output; output port `S: Set<Scalar(integer, exact)>`. Category: source; stability: experimental; color: source. Symbol: `{}`. Property tests: idempotence, order-independence, size invariant, no duplicates. (`a1d2bf7`)
-- `discrete.union` — `A: Set × B: Set → Set`; element-wise union.
-- `discrete.intersection` — `A: Set × B: Set → Set`; elements in both A and B.
-- `discrete.difference` — `A: Set × B: Set → Set`; elements in A not in B.
-- `discrete.cartesian-product` — `A: Set × B: Set → Set<Tuple>`; all ordered pairs.
+- `discrete.union` [shipped] — inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Scalar(integer, exact)>`; A ∪ B; symbol ∪; category: operation; stability: experimental. Shared `set-ops.ts` utility (`setUnion`). Throws `SetOpError` on missing inputs. (`a085ac1`)
+- `discrete.intersection` [shipped] — inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Scalar(integer, exact)>`; A ∩ B; symbol ∩. Shared `setIntersection` utility. (`a085ac1`)
+- `discrete.difference` [shipped] — inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Scalar(integer, exact)>`; A ∖ B (elements in A not in B); symbol ∖. Shared `setDifference` utility. Property test: `|A∖B| + |A∩B| = |A|`. (`a085ac1`)
+- `discrete.cartesian-product` [shipped] — inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Tuple(Scalar(integer), Scalar(integer))>`; A × B; symbol ×. Shared `setCartesianProduct` utility. Property test: `|A×B| = |A|·|B|`. (`a085ac1`)
 
 **Combinatorics** _(operation role, violet)_
 
