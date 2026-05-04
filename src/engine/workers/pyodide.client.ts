@@ -86,6 +86,15 @@ export async function taylor(
   return ensureProxy().taylor(expression, variables, seriesVar, center, order);
 }
 
+export async function dsolve(
+  odeExpr: string,
+  depVar: string,
+  indepVar: string,
+  ics?: { x0: number; y0: number },
+): Promise<{ rhs: string; implicit: boolean }> {
+  return ensureProxy().dsolve(odeExpr, depVar, indepVar, ics);
+}
+
 export async function mgf(family: string, parameters: Record<string, number>): Promise<string> {
   return ensureProxy().mgf(family, parameters);
 }

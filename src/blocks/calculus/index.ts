@@ -5,6 +5,7 @@ import { FunctionBlock } from "./function/definition";
 import { GradientBlock } from "./gradient/definition";
 import { IntegrateBlock } from "./integrate/definition";
 import { LimitBlock } from "./limit/definition";
+import { OdeSolveBlock } from "./ode-solve/definition";
 import { PartialBlock } from "./partial/definition";
 import { SeriesBlock } from "./series/definition";
 import { TaylorBlock } from "./taylor/definition";
@@ -23,4 +24,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(VizTangentBlock);
   registry.register(PartialBlock);
   registry.register(GradientBlock);
+  registry.register(OdeSolveBlock);
 }

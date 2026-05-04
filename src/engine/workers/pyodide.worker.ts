@@ -188,6 +188,52 @@ str(_s)
   },
 
   /**
+   * Solves a first or second-order ODE symbolically via SymPy dsolve().
+   *
+   * odeExpr: the ODE in SymPy string form — must be a valid Eq(lhs, rhs) expression,
+   *   e.g. "Eq(Derivative(y(x), x) - y(x), 0)".
+   * depVar: the dependent variable name (e.g. "y").
+   * indepVar: the independent variable name (e.g. "x").
+   * ics: optional initial conditions as { x0: number, y0: number }.
+   *
+   * Returns serialized JSON string: { rhs: string, implicit: boolean }.
+   *   rhs: SymPy str() of the solution RHS if dsolve returns Eq(y(x), expr),
+   *        or the full dsolve() output str() if implicit/piecewise.
+   *   implicit: true when the result is not in explicit solved form.
+   */
+  async dsolve(
+    odeExpr: string,
+    depVar: string,
+    indepVar: string,
+    ics?: { x0: number; y0: number },
+  ): Promise<{ rhs: string; implicit: boolean }> {
+    const py = await ensureSympy();
+    const icsArg = ics !== undefined ? `, ics={${depVar}(${ics.x0}): ${ics.y0}}` : "";
+    const code = `
+import sympy
+from sympy import symbols, Function, dsolve, Eq, Derivative
+${indepVar} = symbols('${indepVar}')
+${depVar} = Function('${depVar}')
+_ode = ${odeExpr}
+_sol = dsolve(_ode, ${depVar}(${indepVar})${icsArg})
+if hasattr(_sol, '__iter__'):
+    _sol = list(_sol)[0]
+_is_explicit = isinstance(_sol, sympy.Eq) and _sol.lhs == ${depVar}(${indepVar})
+_out = str(_sol.rhs) if _is_explicit else str(_sol)
+str(_is_explicit) + '|' + _out
+`.trim();
+    const result = py.runPython(code);
+    if (typeof result !== "string") {
+      throw new Error(`dsolve returned unexpected type: ${typeof result}`);
+    }
+    const sep = result.indexOf("|");
+    const isExplicitStr = result.slice(0, sep);
+    const rhs = result.slice(sep + 1);
+    const implicit = isExplicitStr !== "True";
+    return { rhs, implicit };
+  },
+
+  /**
    * Computes the moment generating function M_X(t) = E[e^{tX}] symbolically
    * via SymPy for the given distribution family and parameters.
    */
