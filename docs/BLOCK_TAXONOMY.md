@@ -278,22 +278,22 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 **Operation blocks** _(operation role, sympy engine, function color)_
 
 - `calc.derivative` [shipped] — symbolic d/dx via SymPy diff(); input `fn: Function`; param `variable` (blank = infer from payload); output port `fn: Function`. Chainable for higher-order derivatives. Throws `DerivativeError`. (`cc3542d`)
-- `calc.partial` — ∂/∂xᵢ of multivariate Function; output `fn: Function`. [pending]
-- `calc.gradient` — ∇f; output `grad: Vector<Function>`. [pending]
+- `calc.partial` [shipped] — ∂/∂xᵢ of multivariate Function via SymPy diff(); input `fn: Function`; param `variable` (explicit required); output port `fn: Function`. Preserves full variables list in FunctionPayload so downstream blocks see all free vars. Throws `PartialError`. (`75339ae`)
+- `calc.gradient` [shipped] — ∇f = [∂f/∂x₁, …, ∂f/∂xₙ] via parallel SymPy diff per variable in FunctionPayload.variables; input `fn: Function`; output port `gradient: Vector<n, real>` (n = len(variables)). Throws `GradientError`. Use with viz.vector-field to visualise gradient fields. (`264322c`)
 - `calc.integrate` [shipped] — indefinite integral ∫f dx via SymPy integrate(); input `fn: Function`; param `variable` (blank = infer); output port `fn: Function` (antiderivative; constant of integration omitted). Throws `IntegrateError`. (`8d41219`)
 - `calc.definite-integrate` [shipped] — ∫ₐᵇ f dx via SymPy N(integrate(f,(x,a,b))); inputs `fn: Function`, optional `a: Scalar(real)`, optional `b: Scalar(real)`; params `a` (default 0), `b` (default 1), `variable`; output port `value: Scalar(real, approximate)`. Bound inputs override params. Throws `DefiniteIntegrateError`. (`5cbf696`)
 - `calc.limit` [shipped] — lim_{x→c} f(x) via SymPy limit(); inputs `fn: Function`, optional `point: Scalar(real)`; params `point` (default 0), `variable`; output port `value: Expression(freeVars=[])`. Scalar for finite numeric results; Expression for symbolic answers (oo, zoo). Throws `LimitError`. (`3ceb98f`)
 - `calc.series` [shipped] — partial sum Σ_{n=from}^{to} aₙ via SymPy Sum().doit(); inputs `fn: Function` (general term aₙ), optional `from: Scalar(real)`, optional `to: Scalar(real)`; params `from` (default 0), `to` (default 10), `index` (blank = infer); output port `value: Scalar(real, approximate)` for numeric sums, or `fn: Function` for parametric terms. Bound inputs override params. Throws `SeriesError`. (`505b00a`)
 - `calc.taylor` [shipped] — degree-n Taylor polynomial via SymPy series().removeO(); inputs `fn: Function`, optional `center: Scalar(real)`, optional `order: Scalar(real)`; params `center` (default 0), `order` (1–20, default 5), `variable`; output port `fn: Function` (polynomial, no O() term). Throws `TaylorError`. Phase 4 exit-criterion centerpiece. (`99b529f`)
-- `calc.ode-solve` — first-order ODE y′ = f(x,y) via SymPy dsolve(); output `fn: Function`. [pending]
+- `calc.ode-solve` [shipped] — ODE solver via SymPy dsolve(); prime notation y′; optional IVP ports `x0: Scalar(real)`, `y0: Scalar(real)` (not required); params `ode` (string), `depVar` (default "y"), `indepVar` (default "x"), `x0` (default 0), `y0` (default 1); output port `solution: Function` (explicit solution) or `solution: Expression` (implicit/piecewise). Throws `OdeSolveError`. Extends Pyodide client with dsolve RPC. (`a569a71`)
 
 **Visualization** _(visualizer role, emerald color)_
 
-- `viz.tangent` — Mafs curve with movable tangent point + tangent line; input `fn: Function`. [pending]
-- `viz.riemann` — Observable Plot Riemann sum bars; input `fn: Function`; params `a`, `b`, `n` (slider). [pending]
-- `viz.epsilon-delta` — ε–δ limit visualisation; inputs `fn: Function`, `c: Scalar`, `L: Scalar`. [pending]
+- `viz.tangent` [shipped] — interactive tangent line on Mafs plot; inputs `fn: Function`, optional `derivative: Function` (exact slope, falls back to central-difference); passthrough output `fn: Function`. Click anywhere on plot to move contact point. Engine: native. (`e0ad80d`)
+- `viz.riemann` [shipped] — animated Riemann sum approximation ∫ₐᵇ f(x)dx; input `fn: Function`, optional `a: Scalar(real)`, optional `b: Scalar(real)`; params `a` (default 0), `b` (default π); n-slider (rectangles count) + left/right/midpoint method selector; passthrough output `fn: Function`. Engine: native. (`3da90ee`)
+- `viz.epsilon-delta` [shipped] — ε–δ limit definition with interactive ε and δ sliders; input `fn: Function`, optional `c: Scalar(real)`, optional `L: Scalar(real)`; yellow horizontal ε-strip + blue vertical δ-strip, turns green when δ satisfies the definition; passthrough output `fn: Function`. Engine: native. (`9583503`)
 - `viz.taylor` [shipped] — plots f(x) (solid) and Tₙ(x) (dashed) on the same axes; inputs `fn: Function` (original), optional `taylor: Function` (from calc.taylor); passthrough output `fn: Function`. Evaluates expression strings numerically via mathjs.evaluate(). Introduces `viz-calc.ts` shared helpers (evalAt, sampleExpr, yRange) for calculus viz blocks. Phase 4 exit-criterion demo block. (`18e7d58`)
-- `viz.vector-field` — 2D vector field; inputs `fx: Function`, `fy: Function`; grid density param. [pending]
+- `viz.vector-field` [shipped] — 2D arrow-grid vector field; inputs `Fx: Function(arity=2)` (x-component, required), optional `Fy: Function(arity=2)` (y-component); zoom slider param; passthrough output `Fx: Function`. Arrow length/opacity encodes magnitude. Connect calc.partial outputs as Fx/Fy to visualise gradient fields. Engine: native. (`81aace9`)
 
 ### Phase 5 (Composites)
 `core.subgraph`, `core.assert`, `core.benchmark`.
