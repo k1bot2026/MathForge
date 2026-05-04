@@ -348,6 +348,66 @@ Family-polymorphic slots (e.g. `stats.sample` accepts any distribution) will use
 
 `RandomVariable` is the result of sampling a `Distribution`; `Distribution` is an abstract object you can reason about symbolically.
 
+## Function and Expression payload conventions (Phase 4)
+
+Established by `calc.function` (`02b5512`). All Phase 4 calculus blocks that return symbolic results follow these conventions.
+
+### FunctionPayload
+
+Defined in `src/math/types.ts`:
+
+```typescript
+export type FunctionPayload = {
+  expression: string;              // SymPy str() of the expression body, e.g. "sin(x) + x**2"
+  variables: ReadonlyArray<string>; // variable names in definition order, e.g. ["x"] or ["x", "y"]
+};
+```
+
+`expression` is always the canonical SymPy `str()` output after a sympify + str round-trip. This makes SymPy expressions safe to hand back to SymPy for further operations (diff, integrate, series, etc.) without re-parsing.
+
+`variables` carries all free variable names that appear in the expression. Single-variable blocks set `variables: ["x"]`. Multivariate blocks (calc.partial, calc.gradient) preserve the full variable list from the incoming FunctionPayload so downstream blocks can see all free variables without introspecting the expression string.
+
+The `arity` field in `MathType.Function` mirrors `variables.length` for type-check purposes and does not need to be re-derived from `FunctionPayload.variables`.
+
+### ExpressionPayload
+
+Defined in `src/math/types.ts`:
+
+```typescript
+export type ExpressionPayload = {
+  form: "sympy" | "latex";       // serialization format
+  serialized: string;            // expression string, e.g. "(1 - p) + p*exp(t)"
+  freeVars: ReadonlyArray<string>; // free variable names, e.g. ["t"]
+};
+```
+
+`ExpressionPayload` is used when SymPy returns a symbolic result that is not a callable function — including:
+
+- `stats.mgf` — M_X(t) as a polynomial in `t` (established the type in Phase 3)
+- `calc.limit` — results like `oo` or `zoo` (signed/unsigned infinity) that cannot be represented as `Scalar`
+- `calc.ode-solve` — implicit solutions or piecewise results where SymPy's dsolve() does not yield an explicit function form
+
+For `calc.limit` specifically: the output port is typed statically as `Expression(freeVars=[])`. At runtime, finite numeric limits produce a `Scalar` value instead. The `Expression` port type is the declared contract; `Scalar` is a subtype that flows into `Expression` slots.
+
+### When to use Function vs Expression
+
+| Situation | Use |
+|---|---|
+| SymPy returns a callable expression in one or more variables | `Function` + `FunctionPayload` |
+| SymPy returns a symbolic constant or non-callable result (oo, zoo) | `Expression` + `ExpressionPayload` |
+| Runtime value is numeric and finite | `Scalar` |
+
+The practical rule: if the result can be evaluated at a point `f(x=a)`, use `Function`. If it only exists as a symbolic object (infinity, an implicit relation, a parametric expression in a non-variable symbol), use `Expression`.
+
+### canConnect rules for Function
+
+`canConnect` for `Function` checks:
+- `arity` equality (both sides must accept the same number of arguments)
+- `domain` compatibility (contravariant: `into.domain` must be a subtype of `out.domain`)
+- `codomain` compatibility (covariant: `out.codomain` must be a subtype of `into.codomain`)
+
+A `Function(arity=1, real→real)` output connects to a `Function(arity=1, real→real)` input. Arity mismatch is rejected with a clear message. Domain/codomain checks use the same field-subtyping rules as Scalar (`boolean ⊂ integer ⊂ rational ⊂ real ⊂ complex`).
+
 ## Notes on extensibility
 
 - Add a new `MathType` kind only via ADR — it cascades to `canConnect`, payloads, serialization, validation, and visualizers.
