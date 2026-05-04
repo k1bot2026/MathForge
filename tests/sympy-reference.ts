@@ -866,3 +866,135 @@ export type CalcOdeSolveFixture = {
 export function loadCalcOdeSolveFixture(): CalcOdeSolveFixture {
   return loadJson<CalcOdeSolveFixture>("calc-ode-solve");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.gcd fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type GcdCase = {
+  a: number;
+  b: number;
+  gcd: number;
+};
+
+export type GcdFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: GcdCase[];
+};
+
+export function loadGcdFixture(): GcdFixture {
+  return loadJson<GcdFixture>("discrete-gcd");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.is-prime fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type PrimeCase = {
+  n: number;
+  isPrime: boolean;
+};
+
+export type PrimeFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: PrimeCase[];
+};
+
+export function loadPrimeFixture(): PrimeFixture {
+  return loadJson<PrimeFixture>("discrete-prime");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.factor fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type FactorintCase = {
+  n: number;
+  /** Sorted [prime, exponent] pairs. Empty for n=1. */
+  factors: [number, number][];
+};
+
+export type FactorintFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: FactorintCase[];
+};
+
+export function loadFactorintFixture(): FactorintFixture {
+  return loadJson<FactorintFixture>("discrete-factorint");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.totient fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type TotientCase = {
+  n: number;
+  totient: number;
+};
+
+export type TotientFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: TotientCase[];
+};
+
+export function loadTotientFixture(): TotientFixture {
+  return loadJson<TotientFixture>("discrete-totient");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.binomial fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type DiscreteBinomialCase = {
+  n: number;
+  k: number;
+  value: number;
+};
+
+export type DiscreteBinomialFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: DiscreteBinomialCase[];
+};
+
+export function loadDiscreteBinomialFixture(): DiscreteBinomialFixture {
+  return loadJson<DiscreteBinomialFixture>("discrete-binomial");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.modular fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type ModularInverseCase = {
+  a: number;
+  m: number;
+  inverse: number;
+};
+
+export type ModpowCase = {
+  a: number;
+  b: number;
+  m: number;
+  result: number;
+};
+
+export type ModularFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  inverseCases: ModularInverseCase[];
+  powCases: ModpowCase[];
+};
+
+export function loadModularFixture(): ModularFixture {
+  return loadJson<ModularFixture>("discrete-modular");
+}

@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-04T22:55:27.714Z",
+  "description": "Reference Euler totient φ(n) values from SymPy. Covers 1–10, primes, prime powers, and composite numbers including highly composite ones. All results are exact integers.",
+  "cases": [
+    {
+      "n": 1,
+      "totient": 1
+    },
+    {
+      "n": 2,
+      "totient": 1
+    },
+    {
+      "n": 3,
+      "totient": 2
+    },
+    {
+      "n": 4,
+      "totient": 2
+    },
+    {
+      "n": 5,
+      "totient": 4
+    },
+    {
+      "n": 6,
+      "totient": 2
+    },
+    {
+      "n": 7,
+      "totient": 6
+    },
+    {
+      "n": 8,
+      "totient": 4
+    },
+    {
+      "n": 9,
+      "totient": 6
+    },
+    {
+      "n": 10,
+      "totient": 4
+    },
+    {
+      "n": 12,
+      "totient": 4
+    },
+    {
+      "n": 15,
+      "totient": 8
+    },
+    {
+      "n": 16,
+      "totient": 8
+    },
+    {
+      "n": 18,
+      "totient": 6
+    },
+    {
+      "n": 20,
+      "totient": 8
+    },
+    {
+      "n": 24,
+      "totient": 8
+    },
+    {
+      "n": 25,
+      "totient": 20
+    },
+    {
+      "n": 30,
+      "totient": 8
+    },
+    {
+      "n": 36,
+      "totient": 12
+    },
+    {
+      "n": 41,
+      "totient": 40
+    },
+    {
+      "n": 43,
+      "totient": 42
+    },
+    {
+      "n": 47,
+      "totient": 46
+    },
+    {
+      "n": 53,
+      "totient": 52
+    },
+    {
+      "n": 59,
+      "totient": 58
+    },
+    {
+      "n": 61,
+      "totient": 60
+    },
+    {
+      "n": 97,
+      "totient": 96
+    },
+    {
+      "n": 101,
+      "totient": 100
+    },
+    {
+      "n": 32,
+      "totient": 16
+    },
+    {
+      "n": 64,
+      "totient": 32
+    },
+    {
+      "n": 81,
+      "totient": 54
+    },
+    {
+      "n": 125,
+      "totient": 100
+    },
+    {
+      "n": 360,
+      "totient": 96
+    },
+    {
+      "n": 720,
+      "totient": 192
+    }
+  ]
+}

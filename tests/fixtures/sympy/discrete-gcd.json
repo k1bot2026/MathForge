@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-04T22:55:27.695Z",
+  "description": "Reference gcd(a, b) values from SymPy. All inputs are non-negative integers. Covers coprime pairs, equal inputs, one-zero, composite pairs, and large consecutive integers.",
+  "cases": [
+    {
+      "a": 0,
+      "b": 0,
+      "gcd": 0
+    },
+    {
+      "a": 0,
+      "b": 5,
+      "gcd": 5
+    },
+    {
+      "a": 5,
+      "b": 0,
+      "gcd": 5
+    },
+    {
+      "a": 1,
+      "b": 1,
+      "gcd": 1
+    },
+    {
+      "a": 1,
+      "b": 100,
+      "gcd": 1
+    },
+    {
+      "a": 7,
+      "b": 13,
+      "gcd": 1
+    },
+    {
+      "a": 12,
+      "b": 8,
+      "gcd": 4
+    },
+    {
+      "a": 100,
+      "b": 75,
+      "gcd": 25
+    },
+    {
+      "a": 17,
+      "b": 34,
+      "gcd": 17
+    },
+    {
+      "a": 360,
+      "b": 252,
+      "gcd": 36
+    },
+    {
+      "a": 48,
+      "b": 36,
+      "gcd": 12
+    },
+    {
+      "a": 0,
+      "b": 1,
+      "gcd": 1
+    },
+    {
+      "a": 2,
+      "b": 3,
+      "gcd": 1
+    },
+    {
+      "a": 6,
+      "b": 9,
+      "gcd": 3
+    },
+    {
+      "a": 35,
+      "b": 14,
+      "gcd": 7
+    },
+    {
+      "a": 1001,
+      "b": 77,
+      "gcd": 77
+    },
+    {
+      "a": 1000000,
+      "b": 999999,
+      "gcd": 1
+    }
+  ]
+}

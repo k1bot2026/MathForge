@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-04T22:55:27.723Z",
+  "description": "Reference modular arithmetic values from SymPy. mod_inverse(a, m): multiplicative inverse of a mod m for coprime pairs. modpow(a, b, m): modular exponentiation a^b mod m.",
+  "inverseCases": [
+    {
+      "a": 1,
+      "m": 5,
+      "inverse": 1
+    },
+    {
+      "a": 2,
+      "m": 5,
+      "inverse": 3
+    },
+    {
+      "a": 3,
+      "m": 5,
+      "inverse": 2
+    },
+    {
+      "a": 4,
+      "m": 5,
+      "inverse": 4
+    },
+    {
+      "a": 3,
+      "m": 7,
+      "inverse": 5
+    },
+    {
+      "a": 5,
+      "m": 7,
+      "inverse": 3
+    },
+    {
+      "a": 6,
+      "m": 7,
+      "inverse": 6
+    },
+    {
+      "a": 7,
+      "m": 11,
+      "inverse": 8
+    },
+    {
+      "a": 3,
+      "m": 11,
+      "inverse": 4
+    },
+    {
+      "a": 4,
+      "m": 11,
+      "inverse": 3
+    },
+    {
+      "a": 2,
+      "m": 13,
+      "inverse": 7
+    },
+    {
+      "a": 7,
+      "m": 13,
+      "inverse": 2
+    },
+    {
+      "a": 17,
+      "m": 100,
+      "inverse": 53
+    },
+    {
+      "a": 3,
+      "m": 100,
+      "inverse": 67
+    },
+    {
+      "a": 1,
+      "m": 2,
+      "inverse": 1
+    },
+    {
+      "a": 1,
+      "m": 997,
+      "inverse": 1
+    }
+  ],
+  "powCases": [
+    {
+      "a": 2,
+      "b": 10,
+      "m": 1000,
+      "result": 24
+    },
+    {
+      "a": 3,
+      "b": 0,
+      "m": 7,
+      "result": 1
+    },
+    {
+      "a": 0,
+      "b": 5,
+      "m": 13,
+      "result": 0
+    },
+    {
+      "a": 1,
+      "b": 1000000,
+      "m": 97,
+      "result": 1
+    },
+    {
+      "a": 2,
+      "b": 100,
+      "m": 97,
+      "result": 16
+    },
+    {
+      "a": 7,
+      "b": 200,
+      "m": 13,
+      "result": 3
+    },
+    {
+      "a": 5,
+      "b": 3,
+      "m": 13,
+      "result": 8
+    },
+    {
+      "a": 17,
+      "b": 51,
+      "m": 100,
+      "result": 33
+    },
+    {
+      "a": 2,
+      "b": 32,
+      "m": 1000000007,
+      "result": 294967268
+    },
+    {
+      "a": 123,
+      "b": 456,
+      "m": 789,
+      "result": 699
+    }
+  ]
+}

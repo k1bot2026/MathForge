@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-04T22:55:27.719Z",
+  "description": "Reference C(n, k) values from SymPy binomial(). All results are exact integers. Covers boundary cases (k=0, k=n), symmetry, Pascal identity pairs, and C(50,25).",
+  "cases": [
+    {
+      "n": 0,
+      "k": 0,
+      "value": 1
+    },
+    {
+      "n": 1,
+      "k": 0,
+      "value": 1
+    },
+    {
+      "n": 1,
+      "k": 1,
+      "value": 1
+    },
+    {
+      "n": 5,
+      "k": 0,
+      "value": 1
+    },
+    {
+      "n": 5,
+      "k": 5,
+      "value": 1
+    },
+    {
+      "n": 2,
+      "k": 1,
+      "value": 2
+    },
+    {
+      "n": 3,
+      "k": 1,
+      "value": 3
+    },
+    {
+      "n": 3,
+      "k": 2,
+      "value": 3
+    },
+    {
+      "n": 4,
+      "k": 2,
+      "value": 6
+    },
+    {
+      "n": 5,
+      "k": 2,
+      "value": 10
+    },
+    {
+      "n": 6,
+      "k": 3,
+      "value": 20
+    },
+    {
+      "n": 10,
+      "k": 3,
+      "value": 120
+    },
+    {
+      "n": 10,
+      "k": 7,
+      "value": 120
+    },
+    {
+      "n": 15,
+      "k": 5,
+      "value": 3003
+    },
+    {
+      "n": 15,
+      "k": 10,
+      "value": 3003
+    },
+    {
+      "n": 20,
+      "k": 10,
+      "value": 184756
+    },
+    {
+      "n": 20,
+      "k": 0,
+      "value": 1
+    },
+    {
+      "n": 20,
+      "k": 20,
+      "value": 1
+    },
+    {
+      "n": 30,
+      "k": 15,
+      "value": 155117520
+    },
+    {
+      "n": 50,
+      "k": 25,
+      "value": 126410606437752
+    },
+    {
+      "n": 7,
+      "k": 1,
+      "value": 7
+    },
+    {
+      "n": 100,
+      "k": 1,
+      "value": 100
+    },
+    {
+      "n": 7,
+      "k": 6,
+      "value": 7
+    },
+    {
+      "n": 10,
+      "k": 9,
+      "value": 10
+    }
+  ]
+}

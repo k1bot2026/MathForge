@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-04T22:55:27.703Z",
+  "description": "Reference isprime(n) values from SymPy. Covers 0, 1, small primes and composites, primes up to 100, Carmichael numbers, and several larger primes/composites.",
+  "cases": [
+    {
+      "n": 0,
+      "isPrime": false
+    },
+    {
+      "n": 1,
+      "isPrime": false
+    },
+    {
+      "n": 2,
+      "isPrime": true
+    },
+    {
+      "n": 3,
+      "isPrime": true
+    },
+    {
+      "n": 4,
+      "isPrime": false
+    },
+    {
+      "n": 5,
+      "isPrime": true
+    },
+    {
+      "n": 6,
+      "isPrime": false
+    },
+    {
+      "n": 7,
+      "isPrime": true
+    },
+    {
+      "n": 8,
+      "isPrime": false
+    },
+    {
+      "n": 9,
+      "isPrime": false
+    },
+    {
+      "n": 10,
+      "isPrime": false
+    },
+    {
+      "n": 11,
+      "isPrime": true
+    },
+    {
+      "n": 12,
+      "isPrime": false
+    },
+    {
+      "n": 13,
+      "isPrime": true
+    },
+    {
+      "n": 14,
+      "isPrime": false
+    },
+    {
+      "n": 15,
+      "isPrime": false
+    },
+    {
+      "n": 16,
+      "isPrime": false
+    },
+    {
+      "n": 17,
+      "isPrime": true
+    },
+    {
+      "n": 18,
+      "isPrime": false
+    },
+    {
+      "n": 19,
+      "isPrime": true
+    },
+    {
+      "n": 20,
+      "isPrime": false
+    },
+    {
+      "n": 23,
+      "isPrime": true
+    },
+    {
+      "n": 25,
+      "isPrime": false
+    },
+    {
+      "n": 29,
+      "isPrime": true
+    },
+    {
+      "n": 31,
+      "isPrime": true
+    },
+    {
+      "n": 37,
+      "isPrime": true
+    },
+    {
+      "n": 41,
+      "isPrime": true
+    },
+    {
+      "n": 43,
+      "isPrime": true
+    },
+    {
+      "n": 47,
+      "isPrime": true
+    },
+    {
+      "n": 49,
+      "isPrime": false
+    },
+    {
+      "n": 53,
+      "isPrime": true
+    },
+    {
+      "n": 59,
+      "isPrime": true
+    },
+    {
+      "n": 61,
+      "isPrime": true
+    },
+    {
+      "n": 67,
+      "isPrime": true
+    },
+    {
+      "n": 71,
+      "isPrime": true
+    },
+    {
+      "n": 73,
+      "isPrime": true
+    },
+    {
+      "n": 79,
+      "isPrime": true
+    },
+    {
+      "n": 83,
+      "isPrime": true
+    },
+    {
+      "n": 89,
+      "isPrime": true
+    },
+    {
+      "n": 97,
+      "isPrime": true
+    },
+    {
+      "n": 100,
+      "isPrime": false
+    },
+    {
+      "n": 101,
+      "isPrime": true
+    },
+    {
+      "n": 127,
+      "isPrime": true
+    },
+    {
+      "n": 128,
+      "isPrime": false
+    },
+    {
+      "n": 131,
+      "isPrime": true
+    },
+    {
+      "n": 169,
+      "isPrime": false
+    },
+    {
+      "n": 197,
+      "isPrime": true
+    },
+    {
+      "n": 199,
+      "isPrime": true
+    },
+    {
+      "n": 561,
+      "isPrime": false
+    },
+    {
+      "n": 1105,
+      "isPrime": false
+    },
+    {
+      "n": 1729,
+      "isPrime": false
+    },
+    {
+      "n": 9973,
+      "isPrime": true
+    },
+    {
+      "n": 10007,
+      "isPrime": true
+    }
+  ]
+}

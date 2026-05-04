@@ -2834,6 +2834,304 @@ str(_s)
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.gcd — gcd(a, b) reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference gcd(a, b) values for discrete.gcd cross-engine tests.
+ * All values are non-negative integers; SymPy gcd() always returns non-negative.
+ * Covers: coprime pairs, equal inputs, one-zero, small primes, composite pairs.
+ */
+async function generateGcdCases(py) {
+  const pairs = [
+    [0, 0],
+    [0, 5],
+    [5, 0],
+    [1, 1],
+    [1, 100],
+    [7, 13],   // coprime primes
+    [12, 8],   // gcd = 4
+    [100, 75], // gcd = 25
+    [17, 34],  // gcd = 17
+    [360, 252], // gcd = 36
+    [48, 36],  // gcd = 12
+    [0, 1],
+    [2, 3],
+    [6, 9],    // gcd = 3
+    [35, 14],  // gcd = 7
+    [1001, 77], // gcd = 77
+    [1000000, 999999], // consecutive → gcd = 1
+  ];
+
+  const cases = [];
+  for (const [a, b] of pairs) {
+    const result = py.runPython(`
+from sympy import gcd
+import json
+json.dumps({"a": ${a}, "b": ${b}, "gcd": int(gcd(${a}, ${b}))})
+`);
+    cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference gcd(a, b) values from SymPy. All inputs are non-negative integers. " +
+      "Covers coprime pairs, equal inputs, one-zero, composite pairs, and large consecutive integers.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.is-prime — isprime(n) reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference isprime(n) values for discrete.is-prime cross-engine tests.
+ * Covers primes up to 100, small composites, edge cases (0, 1, 2), and a few
+ * larger primes/composites to stress the primality test.
+ */
+async function generatePrimeCases(py) {
+  const numbers = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    23, 25, 29, 31, 37, 41, 43, 47, 49,
+    53, 59, 61, 67, 71, 73, 79, 83, 89, 97,
+    100, 101, 127, 128, 131, 169, 197, 199,
+    // Carmichael numbers (composite but pass some primality filters)
+    561, 1105, 1729,
+    // A few larger primes
+    9973, 10007,
+  ];
+
+  const cases = [];
+  for (const n of numbers) {
+    const result = py.runPython(`
+from sympy import isprime
+import json
+json.dumps({"n": ${n}, "isPrime": bool(isprime(${n}))})
+`);
+    cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference isprime(n) values from SymPy. Covers 0, 1, small primes and composites, " +
+      "primes up to 100, Carmichael numbers, and several larger primes/composites.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.factor — factorint(n) reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference factorint(n) prime decompositions for discrete.factor.
+ * SymPy factorint() returns {prime: exponent} dicts. We store as sorted
+ * [prime, exponent] pairs for deterministic JSON.
+ */
+async function generateFactorintCases(py) {
+  const numbers = [
+    1, 2, 3, 4, 6, 8, 12, 16, 24, 36, 60,
+    100, 120, 128, 360, 1000, 1024,
+    // Products of two large primes
+    2 * 3, 5 * 7, 11 * 13, 97 * 89,
+    // Highly composite
+    720, 5040,
+    // Prime powers
+    32, 81, 243,
+  ];
+
+  const cases = [];
+  for (const n of numbers) {
+    const result = py.runPython(`
+from sympy import factorint
+import json
+factors = factorint(${n})
+# Convert to sorted list of [prime, exponent] for deterministic serialisation
+pairs = sorted([[int(p), int(e)] for p, e in factors.items()])
+json.dumps({"n": ${n}, "factors": pairs})
+`);
+    cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference prime factorization values from SymPy factorint(). Factors stored as " +
+      "sorted [prime, exponent] pairs. Covers small composites, prime powers, products of primes, " +
+      "and highly composite numbers.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.totient — Euler's φ(n) reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference totient(n) = φ(n) values for discrete.totient.
+ * SymPy totient() computes Euler's totient function exactly.
+ * Includes primes (φ(p) = p-1), prime powers, and composite invariants.
+ */
+async function generateTotientCases(py) {
+  const numbers = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    12, 15, 16, 18, 20, 24, 25, 30, 36,
+    // Primes — φ(p) = p-1
+    41, 43, 47, 53, 59, 61, 97, 101,
+    // Prime powers — φ(p^k) = p^(k-1) * (p-1)
+    32, 64, 81, 125,
+    // Highly composite
+    360, 720,
+  ];
+
+  const cases = [];
+  for (const n of numbers) {
+    const result = py.runPython(`
+from sympy import totient
+import json
+json.dumps({"n": ${n}, "totient": int(totient(${n}))})
+`);
+    cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference Euler totient φ(n) values from SymPy. Covers 1–10, primes, prime powers, " +
+      "and composite numbers including highly composite ones. All results are exact integers.",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.binomial — C(n, k) reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference binomial(n, k) values for discrete.binomial.
+ * SymPy binomial() returns exact integers. Covers boundary cases (k=0, k=n),
+ * symmetry (C(n,k) = C(n,n-k)), Pascal's identity (C(n,k) = C(n-1,k-1) + C(n-1,k)),
+ * and larger values.
+ */
+async function generateDiscreteBinomialCases(py) {
+  const pairs = [
+    // Boundary cases
+    [0, 0],
+    [1, 0], [1, 1],
+    [5, 0], [5, 5],
+    // Small standard cases
+    [2, 1], [3, 1], [3, 2],
+    [4, 2], [5, 2], [6, 3],
+    // Pascal's identity verification cases
+    [10, 3], [10, 7],
+    [15, 5], [15, 10],
+    // Larger values for correctness stress
+    [20, 10], [20, 0], [20, 20],
+    [30, 15],
+    [50, 25],
+    // C(n,1) = n
+    [7, 1], [100, 1],
+    // C(n, n-1) = n
+    [7, 6], [10, 9],
+  ];
+
+  const cases = [];
+  for (const [n, k] of pairs) {
+    const result = py.runPython(`
+from sympy import binomial
+import json
+json.dumps({"n": ${n}, "k": ${k}, "value": int(binomial(${n}, ${k}))})
+`);
+    cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference C(n, k) values from SymPy binomial(). All results are exact integers. " +
+      "Covers boundary cases (k=0, k=n), symmetry, Pascal identity pairs, and C(50,25).",
+    cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.modular — modular_inverse and modpow reference values
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference modular arithmetic values for discrete.modular blocks:
+ *   - mod_inverse(a, m): multiplicative inverse of a mod m (requires gcd(a,m)=1)
+ *   - pow(a, b, m):      modular exponentiation a^b mod m
+ *
+ * All values are non-negative integers; SymPy mod_inverse() raises when
+ * gcd(a, m) ≠ 1 so all inverse cases use coprime inputs.
+ */
+async function generateModularCases(py) {
+  const inverseCases = [];
+  const inversePairs = [
+    // [a, m] where gcd(a, m) = 1
+    [1, 5], [2, 5], [3, 5], [4, 5],
+    [3, 7], [5, 7], [6, 7],
+    [7, 11], [3, 11], [4, 11],
+    [2, 13], [7, 13],
+    [17, 100], [3, 100],
+    [1, 2], [1, 997],
+  ];
+
+  for (const [a, m] of inversePairs) {
+    const result = py.runPython(`
+from sympy import mod_inverse
+import json
+json.dumps({"a": ${a}, "m": ${m}, "inverse": int(mod_inverse(${a}, ${m}))})
+`);
+    inverseCases.push(JSON.parse(result));
+  }
+
+  const powCases = [];
+  const powTriples = [
+    // [a, b, m]
+    [2, 10, 1000],
+    [3, 0, 7],
+    [0, 5, 13],
+    [1, 1000000, 97],
+    [2, 100, 97],
+    [7, 200, 13],
+    [5, 3, 13],
+    [17, 51, 100],
+    [2, 32, 1000000007],
+    [123, 456, 789],
+  ];
+
+  for (const [a, b, m] of powTriples) {
+    const result = py.runPython(`
+import json
+json.dumps({"a": ${a}, "b": ${b}, "m": ${m}, "result": int(pow(${a}, ${b}, ${m}))})
+`);
+    powCases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference modular arithmetic values from SymPy. " +
+      "mod_inverse(a, m): multiplicative inverse of a mod m for coprime pairs. " +
+      "modpow(a, b, m): modular exponentiation a^b mod m.",
+    inverseCases,
+    powCases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -2972,6 +3270,30 @@ async function main() {
   console.log("\nGenerating calc.series fixtures…");
   const calcSeriesFixture = await generateCalcSeriesCases(py);
   writeFixture("calc-series", calcSeriesFixture);
+
+  console.log("\nGenerating discrete.gcd fixtures…");
+  const gcdFixture = await generateGcdCases(py);
+  writeFixture("discrete-gcd", gcdFixture);
+
+  console.log("\nGenerating discrete.is-prime fixtures…");
+  const primeFixture = await generatePrimeCases(py);
+  writeFixture("discrete-prime", primeFixture);
+
+  console.log("\nGenerating discrete.factor fixtures…");
+  const factorintFixture = await generateFactorintCases(py);
+  writeFixture("discrete-factorint", factorintFixture);
+
+  console.log("\nGenerating discrete.totient fixtures…");
+  const totientFixture = await generateTotientCases(py);
+  writeFixture("discrete-totient", totientFixture);
+
+  console.log("\nGenerating discrete.binomial fixtures…");
+  const discreteBinomialFixture = await generateDiscreteBinomialCases(py);
+  writeFixture("discrete-binomial", discreteBinomialFixture);
+
+  console.log("\nGenerating discrete.modular fixtures…");
+  const modularFixture = await generateModularCases(py);
+  writeFixture("discrete-modular", modularFixture);
 
   console.log("\nDone.");
 }
