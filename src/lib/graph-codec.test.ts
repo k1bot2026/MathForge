@@ -140,4 +140,44 @@ describe("graph-codec / encode + decode", () => {
       expect(decoded.graph.edges[0]?.targetHandle).toBeUndefined();
     }
   });
+
+  test("decode rejects edge with non-string sourceHandle", () => {
+    const payload = require("fflate").deflateSync(
+      new TextEncoder().encode(
+        JSON.stringify({
+          schemaVersion: GRAPH_SCHEMA_VERSION,
+          nodes: [],
+          edges: [{ id: "e", source: "a", target: "b", sourceHandle: 42 }],
+        }),
+      ),
+    );
+    const encoded = Buffer.from(payload)
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    const decoded = decodeGraph(encoded);
+    expect(decoded.ok).toBe(false);
+    if (!decoded.ok) expect(decoded.reason).toMatch(/sourceHandle/);
+  });
+
+  test("decode rejects edge with non-string targetHandle", () => {
+    const payload = require("fflate").deflateSync(
+      new TextEncoder().encode(
+        JSON.stringify({
+          schemaVersion: GRAPH_SCHEMA_VERSION,
+          nodes: [],
+          edges: [{ id: "e", source: "a", target: "b", targetHandle: true }],
+        }),
+      ),
+    );
+    const encoded = Buffer.from(payload)
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    const decoded = decodeGraph(encoded);
+    expect(decoded.ok).toBe(false);
+    if (!decoded.ok) expect(decoded.reason).toMatch(/targetHandle/);
+  });
 });
