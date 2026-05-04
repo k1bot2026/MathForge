@@ -9,6 +9,7 @@ import { OdeSolveBlock } from "./ode-solve/definition";
 import { PartialBlock } from "./partial/definition";
 import { SeriesBlock } from "./series/definition";
 import { TaylorBlock } from "./taylor/definition";
+import { VizEpsilonDeltaBlock } from "./viz-epsilon-delta/definition";
 import { VizRiemannBlock } from "./viz-riemann/definition";
 import { VizTangentBlock } from "./viz-tangent/definition";
 import { VizTaylorBlock } from "./viz-taylor/definition";
@@ -27,4 +28,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(GradientBlock);
   registry.register(OdeSolveBlock);
   registry.register(VizRiemannBlock);
+  registry.register(VizEpsilonDeltaBlock);
 }
