@@ -295,4 +295,67 @@ describe("evaluate", () => {
       expect(r.error.message).toBe("compute() threw a non-Error value");
     }
   });
+
+  test("aborted signal halts evaluation after the first node is processed", async () => {
+    const _registry = buildRegistry();
+    let computeCount = 0;
+    const countedRegistry = new (await import("~/blocks/registry")).BlockRegistry();
+    const countedConstant: BlockDefinition = {
+      ...constantBlock,
+      id: "test.counted-const",
+      compute: (_inputs, params) => {
+        computeCount++;
+        return scalarValue(Number(params.value ?? 0), "test.counted-const");
+      },
+    };
+    countedRegistry.register(countedConstant);
+
+    const controller = new AbortController();
+    // Abort immediately before evaluation so no nodes compute
+    controller.abort();
+
+    const graph: GraphSpec = {
+      nodes: [
+        { id: "c1", blockId: "test.counted-const", params: { value: 1 } },
+        { id: "c2", blockId: "test.counted-const", params: { value: 2 } },
+        { id: "c3", blockId: "test.counted-const", params: { value: 3 } },
+      ],
+      edges: [],
+    };
+
+    await evaluate({ graph, registry: countedRegistry, signal: controller.signal });
+    // All nodes skipped due to pre-aborted signal
+    expect(computeCount).toBe(0);
+  });
+
+  test("aborted signal mid-evaluation stops further processing", async () => {
+    let computeCount = 0;
+    const countedRegistry = new (await import("~/blocks/registry")).BlockRegistry();
+    const controller = new AbortController();
+
+    const countedConstant: BlockDefinition = {
+      ...constantBlock,
+      id: "test.counted-abort",
+      compute: (_inputs, params) => {
+        computeCount++;
+        // Abort after first node computes
+        if (computeCount === 1) controller.abort();
+        return scalarValue(Number(params.value ?? 0), "test.counted-abort");
+      },
+    };
+    countedRegistry.register(countedConstant);
+
+    const graph: GraphSpec = {
+      nodes: [
+        { id: "c1", blockId: "test.counted-abort", params: { value: 1 } },
+        { id: "c2", blockId: "test.counted-abort", params: { value: 2 } },
+        { id: "c3", blockId: "test.counted-abort", params: { value: 3 } },
+      ],
+      edges: [],
+    };
+
+    await evaluate({ graph, registry: countedRegistry, signal: controller.signal });
+    // Only the first node computed before abort
+    expect(computeCount).toBe(1);
+  });
 });

@@ -94,7 +94,7 @@ export type BlockDefinition = {
   category: BlockRole;
   domain: BlockDomain;
   determinism: "pure" | "stochastic" | "stateful";
-  stability: "stable" | "beta" | "experimental";
+  stability: "stable" | "beta" | "experimental" | "internal";
   engine: "mathjs" | "sympy" | "native";
   color: ColorToken;
   inputs: ReadonlyArray<InputPort>;
