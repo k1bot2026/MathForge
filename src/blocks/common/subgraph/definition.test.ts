@@ -138,6 +138,79 @@ describe("buildSubgraphDefinition", () => {
     await expect(def.compute({}, {}, deepCtx)).rejects.toThrow(SubgraphError);
   });
 
+  test("depth exactly at MAX_SUBGRAPH_DEPTH is allowed", async () => {
+    const r = makeRegistry();
+    const def = buildSubgraphDefinition(
+      "user.trivial",
+      "Trivial",
+      trivialPayload,
+      [],
+      [
+        {
+          id: "result",
+          label: "result",
+          type: { kind: "Scalar", field: "real", precision: "exact" },
+        },
+      ],
+      r,
+    );
+    // depth === MAX_SUBGRAPH_DEPTH: condition is depth > MAX, so this must pass
+    const atLimitCtx = { signal: new AbortController().signal, depth: MAX_SUBGRAPH_DEPTH };
+    const result = await def.compute({}, {}, atLimitCtx);
+    expect(result.payload).toBe(7);
+  });
+
+  test("throws SubgraphError when single-output subgraph has no output proxy in payload", async () => {
+    // outputPorts has 1 port declared but outputProxies is empty — hits line 69
+    const inner: GraphSpec = {
+      nodes: [{ id: "c1", blockId: "core.constant", params: { value: 1 } }],
+      edges: [],
+    };
+    const payload: SubgraphPayload = { inner, inputProxies: [], outputProxies: [] };
+    const r = makeRegistry();
+    const def = buildSubgraphDefinition(
+      "user.no-proxy",
+      "NoProxy",
+      payload,
+      [],
+      [
+        {
+          id: "result",
+          label: "result",
+          type: { kind: "Scalar", field: "real", precision: "exact" },
+        },
+      ],
+      r,
+    );
+    await expect(def.compute({}, {}, ctx)).rejects.toThrow(/No output proxy configured/);
+  });
+
+  test("throws SubgraphError when multi-output proxy result is missing", async () => {
+    // outputPorts.length === 2 with a proxy node that produces no value
+    const brokenInner: GraphSpec = {
+      nodes: [{ id: "op1", blockId: "core.output-proxy", params: { portId: "a" } }],
+      edges: [],
+    };
+    const payload: SubgraphPayload = {
+      inner: brokenInner,
+      inputProxies: [],
+      outputProxies: [{ proxyNodeId: "op1", portId: "a" }],
+    };
+    const r = makeRegistry();
+    const def = buildSubgraphDefinition(
+      "user.multi-broken",
+      "MultiBroken",
+      payload,
+      [],
+      [
+        { id: "a", label: "a", type: { kind: "Scalar", field: "real", precision: "exact" } },
+        { id: "b", label: "b", type: { kind: "Scalar", field: "real", precision: "exact" } },
+      ],
+      r,
+    );
+    await expect(def.compute({}, {}, ctx)).rejects.toThrow(SubgraphError);
+  });
+
   test("throws SubgraphError when inner output-proxy has no value", async () => {
     // Inner graph has output-proxy but no node connecting to it
     const brokenInner: GraphSpec = {
