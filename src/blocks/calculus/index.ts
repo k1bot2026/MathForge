@@ -2,6 +2,7 @@ import type { BlockRegistry } from "../registry";
 import { DefiniteIntegrateBlock } from "./definite-integrate/definition";
 import { DerivativeBlock } from "./derivative/definition";
 import { FunctionBlock } from "./function/definition";
+import { GradientBlock } from "./gradient/definition";
 import { IntegrateBlock } from "./integrate/definition";
 import { LimitBlock } from "./limit/definition";
 import { PartialBlock } from "./partial/definition";
@@ -21,4 +22,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(VizTaylorBlock);
   registry.register(VizTangentBlock);
   registry.register(PartialBlock);
+  registry.register(GradientBlock);
 }
