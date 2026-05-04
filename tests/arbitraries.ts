@@ -160,3 +160,108 @@ export function orthogonalMatrix(n: number): fc.Arbitrary<number[][]> {
     return Q;
   });
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Phase 6 discrete-domain arbitraries
+// ──────────────────────────────────────────────────────────────────────────
+
+const SMALL_PRIMES = [
+  2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97,
+] as const;
+
+/**
+ * Generates a prime number ≤ 97.
+ * Used for: is-prime, factor, modular-inverse, and number-theory property tests.
+ * Shrinks toward 2 (the smallest prime).
+ */
+export const smallPrime: fc.Arbitrary<number> = fc.constantFrom(...SMALL_PRIMES);
+
+/**
+ * Generates a pair of coprime positive integers (a, m) with m ≥ 2.
+ * Coprimality is verified via gcd — rejection rate is low: ~39% of random
+ * pairs in [1,100]×[2,100] are coprime, so expected draws ≈ 2.6.
+ *
+ * Used for: modular-inverse tests (inverse exists iff gcd(a, m) = 1).
+ * Shrinks toward (1, 2) — the "most boring" coprime pair.
+ */
+function gcd(a: number, b: number): number {
+  while (b !== 0) {
+    [a, b] = [b, a % b];
+  }
+  return a;
+}
+
+export const coprimePair: fc.Arbitrary<[number, number]> = fc
+  .tuple(fc.integer({ min: 1, max: 100 }), fc.integer({ min: 2, max: 100 }))
+  .filter(([a, m]) => gcd(a, m) === 1);
+
+/**
+ * Generates a random permutation of [0, 1, …, n-1] using a Fisher-Yates
+ * shuffle over a fast-check integer array.
+ *
+ * Used for: permutation-group tests, cycle decomposition, sign/parity.
+ * Shrinks toward the identity permutation [0, 1, …, n-1].
+ */
+export function permutationOf(n: number): fc.Arbitrary<number[]> {
+  if (n <= 0) return fc.constant([]);
+  // Generate n random swap positions then apply Fisher-Yates.
+  return fc
+    .array(fc.integer({ min: 0, max: n - 1 }), { minLength: n, maxLength: n })
+    .map((swapTargets) => {
+      const perm = Array.from({ length: n }, (_, i) => i);
+      for (let i = n - 1; i > 0; i--) {
+        const j = (swapTargets[i] ?? 0) % (i + 1);
+        const tmp = perm[i] as number;
+        perm[i] = perm[j] as number;
+        perm[j] = tmp;
+      }
+      return perm;
+    });
+}
+
+/**
+ * Represents a directed or undirected graph as vertex count + edge list.
+ * Vertices are 0-indexed integers in [0, vertexCount).
+ */
+export type SimpleGraph = {
+  vertexCount: number;
+  edges: Array<[number, number]>;
+};
+
+/**
+ * Generates a small random graph with 2–8 vertices and 0–12 edges.
+ * Edges are ordered pairs (u, v) with u < v (undirected convention).
+ * Self-loops are excluded. Duplicate edges are removed.
+ *
+ * Used for: graph-theory block scaffolding (connectivity, path-finding, etc.)
+ * Shrinks toward a two-vertex graph with no edges.
+ */
+export const smallGraph: fc.Arbitrary<SimpleGraph> = fc
+  .integer({ min: 2, max: 8 })
+  .chain((vertexCount) => {
+    const edgeArb = fc
+      .tuple(
+        fc.integer({ min: 0, max: vertexCount - 1 }),
+        fc.integer({ min: 0, max: vertexCount - 1 }),
+      )
+      .filter(([u, v]) => u !== v)
+      .map(([u, v]): [number, number] => (u < v ? [u, v] : [v, u]));
+    return fc
+      .array(edgeArb, {
+        minLength: 0,
+        maxLength: Math.min(12, (vertexCount * (vertexCount - 1)) / 2),
+      })
+      .map((rawEdges) => {
+        // Deduplicate edges using string keys.
+        const seen = new Set<string>();
+        const edges: Array<[number, number]> = [];
+        for (const [u, v] of rawEdges) {
+          const key = `${String(u)}-${String(v)}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            edges.push([u, v]);
+          }
+        }
+        return { vertexCount, edges };
+      });
+  });
