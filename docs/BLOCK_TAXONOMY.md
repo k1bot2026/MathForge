@@ -325,11 +325,11 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 ### Phase 6 (Discrete Mathematics & Combinatorics)
 
-**Foundation note:** `Permutation`, `Combination`, `Graph`, `Modular` added to `MathType` discriminator in `src/math/types.ts` (`1008750`). `canConnect` extended for all new kinds. `discrete/index.ts` plugin entry registered in `src/blocks/index.ts`. All `discrete.*` blocks use `engine: "native"` unless noted; stability: `"beta"` unless noted; color: `"violet"` for operations, `"sky-blue"` for sources.
+**Foundation note:** `Permutation`, `Combination`, `Graph`, `Modular` added to `MathType` discriminator in `src/math/types.ts`; new payload types `PermutationPayload`, `CombinationPayload`, `GraphPayload`, `ModularPayload`, `SetPayload` defined and threaded through `Payload<T>`; `canConnect` extended for all four new kinds (Permutation: unifies `n`; Combination: unifies `n` and `k`; Graph: directed/weighted flag checks with soft warning on weight mismatch; Modular: unifies modulus). `discrete/index.ts` plugin entry registered in `src/blocks/index.ts`. (`1008750`, `a1d2bf7`) All `discrete.*` blocks use `engine: "native"` unless noted; stability: `"experimental"` unless noted; color: `"source"` for source blocks, `"violet"` for operations.
 
 **Set blocks** _(source + operation role)_
 
-- `discrete.set` [shipped] — explicit integer set; params `count` (1–16) + `e0..e15` integer values; deduplicates and sorts output; output port `set: Set<Scalar(integer, exact)>`. Property tests: idempotence, order-independence, size invariant, no duplicates. (`a1d2bf7`)
+- `discrete.set` [shipped] — explicit integer set; params `count` (0–16, default 3) + `e0..e15` integer values (range ±1,000,000); deduplicates and sorts output; output port `S: Set<Scalar(integer, exact)>`. Category: source; stability: experimental; color: source. Symbol: `{}`. Property tests: idempotence, order-independence, size invariant, no duplicates. (`a1d2bf7`)
 - `discrete.union` — `A: Set × B: Set → Set`; element-wise union.
 - `discrete.intersection` — `A: Set × B: Set → Set`; elements in both A and B.
 - `discrete.difference` — `A: Set × B: Set → Set`; elements in A not in B.
