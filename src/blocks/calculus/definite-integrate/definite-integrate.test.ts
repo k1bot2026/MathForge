@@ -125,3 +125,39 @@ describe("calc.definite-integrate compute", () => {
     ).rejects.toThrow(/SymPy definite integrate failed/);
   });
 });
+
+describe("calc.definite-integrate definition explain", () => {
+  test("effect returns numeric result with 6 significant figures", async () => {
+    const { DefiniteIntegrateBlock } = await import("./definition");
+    const effect = DefiniteIntegrateBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 1.23456789,
+      provenance: {
+        blockId: "calc.definite-integrate",
+        inputs: [],
+        computedAt: 0,
+        engine: "sympy",
+      },
+    };
+    expect(effect({}, output)).toMatch(/1\.23457/);
+  });
+
+  test("impact returns Result string with payload", async () => {
+    const { DefiniteIntegrateBlock } = await import("./definition");
+    const impact = DefiniteIntegrateBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 2,
+      provenance: {
+        blockId: "calc.definite-integrate",
+        inputs: [],
+        computedAt: 0,
+        engine: "sympy",
+      },
+    };
+    expect(impact({}, output)).toBe("Result: 2");
+  });
+});

@@ -106,3 +106,36 @@ describe("calc.limit compute", () => {
     );
   });
 });
+
+describe("calc.limit definition explain", () => {
+  function scalarOutput(val: number): MathValue {
+    return {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: val,
+      provenance: { blockId: "calc.limit", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+  }
+
+  function expressionOutput(serialized: string): MathValue {
+    const payload: ExpressionPayload = { form: "sympy", serialized, freeVars: [] };
+    return {
+      type: { kind: "Expression", freeVars: [] },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.limit", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+  }
+
+  test("impact returns Scalar limit string", async () => {
+    const { LimitBlock } = await import("./definition");
+    const impact = LimitBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    expect(impact({}, scalarOutput(1))).toBe("Limit: 1");
+  });
+
+  test("impact returns symbolic limit string for Expression output", async () => {
+    const { LimitBlock } = await import("./definition");
+    const impact = LimitBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    expect(impact({}, expressionOutput("oo"))).toBe("Limit: oo");
+  });
+});

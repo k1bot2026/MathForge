@@ -114,4 +114,24 @@ describe("calc.function definition explain", () => {
     };
     expect(effect({}, output)).toBe("f(x) = sin(x)");
   });
+
+  test("impact returns canonical SymPy form and variable", async () => {
+    const { FunctionBlock } = await import("./definition");
+    const impact = FunctionBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact is undefined");
+    const payload: FunctionPayload = { expression: "x**2", variables: ["x"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.function", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    const msg = impact({}, output);
+    expect(msg).toMatch(/x\*\*2/);
+    expect(msg).toMatch(/Variable: x/);
+  });
 });

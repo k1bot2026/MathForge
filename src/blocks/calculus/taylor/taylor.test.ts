@@ -136,3 +136,23 @@ describe("calc.taylor compute", () => {
     ).rejects.toThrow(/SymPy taylor failed/);
   });
 });
+
+describe("calc.taylor definition explain", () => {
+  test("impact returns polynomial approximation string", async () => {
+    const { TaylorBlock } = await import("./definition");
+    const impact = TaylorBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const payload: FunctionPayload = { expression: "1 + x + x**2/2", variables: ["x"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.taylor", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(impact({}, output)).toBe("Polynomial approximation: 1 + x + x**2/2");
+  });
+});

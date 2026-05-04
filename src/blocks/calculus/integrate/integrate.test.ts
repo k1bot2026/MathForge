@@ -115,4 +115,22 @@ describe("calc.integrate definition explain", () => {
     };
     expect(effect({}, output)).toBe("∫f(x) dx = -cos(x)");
   });
+
+  test("impact returns antiderivative expression string", async () => {
+    const { IntegrateBlock } = await import("./definition");
+    const impact = IntegrateBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const payload: FunctionPayload = { expression: "-cos(x)", variables: ["x"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.integrate", inputs: ["fn"], computedAt: 0, engine: "sympy" },
+    };
+    expect(impact({}, output)).toBe("Antiderivative: -cos(x)");
+  });
 });

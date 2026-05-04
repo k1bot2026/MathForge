@@ -105,3 +105,35 @@ describe("calc.series compute", () => {
     ).rejects.toThrow(/SymPy series summation failed/);
   });
 });
+
+describe("calc.series definition explain", () => {
+  test("impact returns numeric partial sum string for Scalar output", async () => {
+    const { SeriesBlock } = await import("./definition");
+    const impact = SeriesBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 42,
+      provenance: { blockId: "calc.series", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(impact({}, output)).toBe("Partial sum: 42");
+  });
+
+  test("impact returns symbolic sum expression for Function output", async () => {
+    const { SeriesBlock } = await import("./definition");
+    const impact = SeriesBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const payload: FunctionPayload = { expression: "n*(n+1)/2", variables: ["n"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.series", inputs: [], computedAt: 0, engine: "sympy" },
+    };
+    expect(impact({}, output)).toBe("Partial sum: n*(n+1)/2");
+  });
+});

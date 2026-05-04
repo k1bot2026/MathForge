@@ -122,4 +122,22 @@ describe("calc.derivative definition explain", () => {
     };
     expect(effect({}, output)).toBe("f'(x) = cos(x)");
   });
+
+  test("impact returns derivative expression string", async () => {
+    const { DerivativeBlock } = await import("./definition");
+    const impact = DerivativeBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const payload: FunctionPayload = { expression: "cos(x)", variables: ["x"] };
+    const output: MathValue = {
+      type: {
+        kind: "Function",
+        arity: 1,
+        domain: { kind: "Scalar", field: "real", precision: "approximate" },
+        codomain: { kind: "Scalar", field: "real", precision: "approximate" },
+      },
+      payload: payload as unknown as number,
+      provenance: { blockId: "calc.derivative", inputs: ["fn"], computedAt: 0, engine: "sympy" },
+    };
+    expect(impact({}, output)).toBe("Derivative: cos(x)");
+  });
 });
