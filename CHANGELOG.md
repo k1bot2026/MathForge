@@ -13,8 +13,8 @@ Phase 4 deferral), user-defined block save/load UI, and Phase 5 exit criterion c
 2047 tests green.
 
 Phase 6 in progress: MathValue extended with Permutation/Combination/Graph/Modular kinds.
-27 discrete blocks shipped (set ops, combinatorics, number theory, sequences, graph theory);
-4 viz blocks pending (viz.graph-2d, viz.set-venn, viz.permutation-cycles, viz.modular-clock).
+31 discrete blocks shipped (set ops, combinatorics, number theory, sequences, graph theory, 4 viz).
+Phase 6 exit criteria met: all blocks property-tested, 2541 tests green.
 
 ### Foundation (Phase 6)
 
@@ -66,6 +66,15 @@ Nine number-theory blocks shipped together in `52d4fc8`. All share the `number-t
 - **Binomial cross-engine tests** — `d7cd6b3` adds SymPy fixture-driven tests for `discrete.binomial` against `discrete-binomial.json` (40 cases, includes Pascal's identity triples).
 - **Set-op property invariants** — union associativity + identity (`8731b1f`), intersection associativity + distributivity (`5dc811d`), cartesian-product annihilation + pair-membership (`ede07d9`). Explain.effect callbacks and missing error-path tests added for gcd, lcm, is-prime, union (`b5c05d8`).
 - **Fibonacci SymPy cross-engine + sequence property tests** — `86ca40a` adds SymPy fixture-driven tests for `discrete.fibonacci`; recurrence cross-check (Fibonacci as special case); sum identity (partial-sum of constant-1 sequence = n); monotonicity property for ascending sequences.
+
+### Visualization blocks (Phase 6 / Discrete)
+
+Four visualization blocks shipped in `e65f672`. All use `engine: "native"`, `stability: "experimental"`, `category: "visualizer"`, `domain: "discrete"`. All pass through their input value as output for downstream composition.
+
+- **`viz.graph-2d`** — SVG force-directed graph layout (Fruchterman-Reingold, 120 iterations, initial circle placement). Input `G: Graph`; output `G (passthrough)`. Directed graphs have arrowhead markers; weighted graphs show edge weight labels. Vertex radius scales with graph size (8–14px). Symbol: `G`. (`e65f672`)
+- **`viz.set-venn`** — Venn diagram for two integer sets A and B. Inputs `A, B: Set<Scalar(integer)>`; output `A ∪ B` (set union). Shows exclusive regions, intersection, and set sizes. Symbol: `∩`. (`e65f672`)
+- **`viz.permutation-cycles`** — cycle decomposition of a permutation. Input `P: Permutation`; output `P (passthrough)`. Elements arranged on a circle; arcs show the mapping; color-coded by cycle; fixed points shown with a self-loop ring. Symbol: `σ`. (`e65f672`)
+- **`viz.modular-clock`** — clock face for Z/nZ. Input `M: Modular`; output `M (passthrough)`. Residues 0..n-1 on a circle; clock hand points to active value; tick labels with highlighted active residue. Symbol: `Z/nZ`. (`e65f672`)
 
 ### Discrete blocks (Phase 6 / Graph theory)
 
