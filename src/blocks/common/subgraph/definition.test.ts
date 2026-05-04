@@ -166,4 +166,80 @@ describe("buildSubgraphDefinition", () => {
     );
     await expect(def.compute({}, {}, ctx)).rejects.toThrow(SubgraphError);
   });
+
+  test("throws SubgraphError when outputProxies is empty (no output proxy configured)", async () => {
+    const inner: GraphSpec = {
+      nodes: [{ id: "c1", blockId: "core.constant", params: { value: 1 } }],
+      edges: [],
+    };
+    const payload: SubgraphPayload = { inner, inputProxies: [], outputProxies: [] };
+    const r = makeRegistry();
+    const def = buildSubgraphDefinition(
+      "user.no-output",
+      "NoOutput",
+      payload,
+      [],
+      // Two declared output ports (triggers multi-output path) but no proxy
+      [
+        { id: "a", label: "a", type: { kind: "Scalar", field: "real", precision: "exact" } },
+        { id: "b", label: "b", type: { kind: "Scalar", field: "real", precision: "exact" } },
+      ],
+      r,
+    );
+    await expect(def.compute({}, {}, ctx)).rejects.toThrow(/no output proxy/i);
+  });
+
+  test("explain.effect returns subgraph label", () => {
+    const r = makeRegistry();
+    const def = buildSubgraphDefinition("user.labeled", "MyBlock", trivialPayload, [], [], r);
+    const msg = def.explain.effect?.({}, scalarValue(0));
+    expect(msg).toMatch(/MyBlock/);
+    expect(msg).toMatch(/inner graph/);
+  });
+
+  test("subgraph-in-subgraph (depth 1) evaluates correctly", async () => {
+    // Outer subgraph wraps the trivialPayload subgraph
+    const r = makeRegistry();
+    const innerDef = buildSubgraphDefinition(
+      "user.inner",
+      "Inner",
+      trivialPayload,
+      [],
+      [
+        {
+          id: "result",
+          label: "result",
+          type: { kind: "Scalar", field: "real", precision: "exact" },
+        },
+      ],
+      r,
+    );
+    r.registerOrReplace(innerDef);
+
+    // Outer inner graph: user.inner → output-proxy
+    const outerInner: GraphSpec = {
+      nodes: [
+        { id: "sg1", blockId: "user.inner", params: {} },
+        { id: "op1", blockId: "core.output-proxy", params: { portId: "out" } },
+      ],
+      edges: [
+        { id: "e1", source: "sg1", sourcePort: "result", target: "op1", targetPort: "value" },
+      ],
+    };
+    const outerPayload: SubgraphPayload = {
+      inner: outerInner,
+      inputProxies: [],
+      outputProxies: [{ proxyNodeId: "op1", portId: "out" }],
+    };
+    const outerDef = buildSubgraphDefinition(
+      "user.outer",
+      "Outer",
+      outerPayload,
+      [],
+      [{ id: "out", label: "out", type: { kind: "Scalar", field: "real", precision: "exact" } }],
+      r,
+    );
+    const result = await outerDef.compute({}, {}, ctx);
+    expect(result.payload).toBe(7);
+  });
 });
