@@ -593,6 +593,21 @@ cross-checked against SymPy fixtures. A generic arbitrary may still be useful fo
 All arbitraries shrink toward "boring" cases (identity, small integers, zero) so that
 fast-check counterexamples are minimal and human-readable.
 
+### Phase 6 discrete-domain arbitraries
+
+Discrete blocks use a parallel set of arbitraries in `tests/arbitraries.ts` (`acd093a`):
+
+| Arbitrary | Type | Use when |
+|---|---|---|
+| `smallPrime` | `number` (prime ≤ 97) | gcd, totient, modpow, Fermat property tests |
+| `coprimePair` | `[number, number]` | modular-inverse, gcd=1 checks |
+| `permutationOf(arr)` | `number[]` (shuffled) | permutations / combinations ordering invariants |
+| `smallGraph(n, m)` | `GraphPayload` | graph theory block inputs (n vertices, up to m edges) |
+
+All discrete fixture values are **integer-exact**. Cross-engine tests use `===` (no tolerance),
+the same rule as `la.*` integer fixtures. This contrasts with `stats.*` fixtures, which often
+require `closeTo(a, b, 1e-9)` because SymPy may return rational approximations for moments.
+
 ## Visual regression
 
 Each Storybook story doubles as a visual regression test via Vitest browser mode (`@vitest/browser` + `playwright`).
