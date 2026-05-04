@@ -5,10 +5,25 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 5 active: composite block foundation
+## [Unreleased] — Phase 5 complete: composite blocks (subgraph + assert + benchmark) + stats.bayes-net + IndexedDB persistence + save/load UI
 
 Phase 4 complete: 10 calc op blocks + 5 viz blocks, all SymPy cross-engine-verified,
-cache hit-rate gate met. 1756 tests green. Advancing to Phase 5 — Composite blocks.
+cache hit-rate gate met. 1756 tests green.
+
+Phase 5 complete: composite block foundation (core.subgraph, core.assert, core.benchmark),
+stats.bayes-net (closes Phase 3 deferral), IndexedDB Layer 3 cache persistence (closes
+Phase 4 deferral), user-defined block save/load UI, and Phase 5 exit criterion confirmed.
+2047 tests green. Advancing to Phase 6 — Discrete Mathematics & Combinatorics.
+
+### Composite blocks (Phase 5 / Ecosystem)
+
+- **`stats.bayes-net`** — Bayesian network composite block shipped as a `core.subgraph` instance pre-configured with Beta prior + Binomial likelihood + Poisson–Gamma conjugate pair; registered via `BlockRegistry.registerOrReplace()`. Closes the Phase 3 deferral that required `core.subgraph` to exist first. (`60e234b`)
+- **Block versioning + save/load UI** — `saveUserBlock` / `loadUserBlocks` / `deleteUserBlock` / `hydrateUserBlocks` backed by idb-keyval store `"mathforge:user-blocks"`. `hydrateUserBlocksIntoRegistry()` called on canvas mount (SSR-guarded). `SaveAsBlockButton` added to the inspector panel for `SubgraphDefinition` nodes. Graph-codec bumped to v3: `SerializedNode.data` gains an optional `subgraph` field so composite blocks serialized in a shared URL survive round-trips without needing a live registry. `migrateV2toV3` passthrough preserves all pre-v3 graphs unchanged. (`f887afc`)
+- **Phase 5 exit criterion walkthrough** — §9 "End-to-end composite walkthrough" added to `docs/BLOCK_AUTHORING_GUIDE.md`: step-by-step guide to build → save → share → use a composite block, confirming the Phase 5 exit criterion ("a user can build a composite block, save it, share it, and another user can use it as a first-class block"). (`53db869`)
+
+### Persistence (Phase 5)
+
+- **`IndexedDBCache` (Layer 3)** — cross-reload `EvalCache` persistence via idb-keyval write-through. `IndexedDBCache` class added to `src/engine/cache.ts`; `hydrateFromIDB()` loads persisted results on startup; cache entries are keyed on `hash(blockId + inputHashes + paramsHash + engineVersion)` so engine upgrades automatically invalidate stale entries; cache entries are tagged with graph hash for per-graph invalidation when the graph URL changes. 146-test suite (`src/engine/idb-cache.test.ts`). Completes the three-layer cache architecture: (1) in-memory memoization, (2) sessionStorage on idle, (3) IndexedDB cross-reload. Closes the Phase 4 deferral. (`ee43548`)
 
 ### Foundation (Phase 5)
 
