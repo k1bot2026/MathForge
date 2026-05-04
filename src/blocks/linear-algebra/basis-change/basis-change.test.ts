@@ -163,7 +163,9 @@ describe("la.basis-change compute", () => {
           }
           const detT = computeDet({ A: mvalue(T) }).payload as number;
           const detTPrime = computeDet({ A: result }).payload as number;
-          expect(Math.abs(detT - detTPrime)).toBeLessThan(1e-9);
+          // Relative tolerance: FP error in det scales with |det(T)|.
+          const scale = Math.max(Math.abs(detT), 1);
+          expect(Math.abs(detT - detTPrime) / scale).toBeLessThan(1e-9);
         },
       ),
     );
