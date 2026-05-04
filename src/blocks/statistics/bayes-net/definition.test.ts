@@ -168,4 +168,45 @@ describe("BayesNetBlock explain", () => {
     const msg = BayesNetBlock.explain.effect?.({}, undefined as never);
     expect(msg).toMatch(/Connect/);
   });
+
+  test("effect returns fallback string for non-Beta posterior family", () => {
+    const poissonOutput: MathValue = {
+      type: { kind: "Distribution", family: "Poisson" },
+      payload: { parameters: { family: "Poisson", lambda: 2 } } as unknown as number,
+      provenance: { blockId: "stats.bayes-net", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const lik = bernoulliLik(0.5);
+    const msg = BayesNetBlock.explain.effect?.(
+      { prior: betaPrior(1, 1), likelihood1: lik, likelihood2: lik },
+      poissonOutput,
+    );
+    expect(msg).toBe("Posterior computed.");
+  });
+
+  test("impact shows posterior family name", () => {
+    const lik = bernoulliLik(0.5);
+    const result = BayesNetBlock.compute(
+      { prior: betaPrior(2, 3), likelihood1: lik, likelihood2: lik },
+      { n1: 5, k1: 3, n2: 5, k2: 2 },
+      ctx,
+    ) as MathValue;
+    const msg = BayesNetBlock.explain.impact?.(
+      { prior: betaPrior(2, 3), likelihood1: lik, likelihood2: lik },
+      result,
+    );
+    expect(msg).toMatch(/Beta/);
+    expect(msg).toMatch(/Distribution/);
+  });
+});
+
+describe("computeBayesNet — non-Distribution prior guard", () => {
+  test("throws BayesNetError when prior type.kind is not Distribution", () => {
+    const scalarPrior: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "exact" },
+      payload: 0.5,
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const lik = bernoulliLik(0.5);
+    expect(() => computeBayesNet(scalarPrior, lik, lik, 5, 3, 5, 2)).toThrow(BayesNetError);
+  });
 });
