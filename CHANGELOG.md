@@ -5,15 +5,27 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 5 complete: composite blocks (subgraph + assert + benchmark) + stats.bayes-net + IndexedDB persistence + save/load UI
-
-Phase 4 complete: 10 calc op blocks + 5 viz blocks, all SymPy cross-engine-verified,
-cache hit-rate gate met. 1756 tests green.
+## [Unreleased] — Phase 6 active: Discrete Mathematics & Combinatorics
 
 Phase 5 complete: composite block foundation (core.subgraph, core.assert, core.benchmark),
 stats.bayes-net (closes Phase 3 deferral), IndexedDB Layer 3 cache persistence (closes
 Phase 4 deferral), user-defined block save/load UI, and Phase 5 exit criterion confirmed.
-2047 tests green. Advancing to Phase 6 — Discrete Mathematics & Combinatorics.
+2047 tests green.
+
+Phase 6 in progress: MathValue extended with Permutation/Combination/Graph/Modular kinds.
+First block: discrete.set.
+
+### Foundation (Phase 6)
+
+- **Phase 6 type system extension** — four new `MathType` kinds added to `src/math/types.ts`: `Permutation` (one-line notation, `n: Shape`), `Combination` (`n: Shape`, `k: Shape`), `Graph` (`directed: boolean`, `weighted: boolean`), `Modular` (`modulus: Shape`). Five new payload types: `PermutationPayload` (one-line notation array), `CombinationPayload` (elements + size), `GraphPayload` (vertices + edges with optional weights), `ModularPayload` (value + modulus), `SetPayload` (ordered `ReadonlyArray<MathValue>`). All threaded through the `Payload<T>` conditional type. `canConnect` in `src/editor/connections.ts` extended with four per-kind checks: Permutation unifies `n`; Combination unifies `n` and `k`; Graph rejects undirected→directed with a hard error and unweighted→weighted with a soft warning; Modular unifies `modulus`. `discrete/index.ts` plugin entry registered in `src/blocks/index.ts`. (`1008750`, `a1d2bf7`)
+
+### Discrete blocks (Phase 6)
+
+- **`discrete.set`** — explicit integer set. No inputs; params `count` (0–16, default 3) + `e0..e15` integer element values (range ±1,000,000). Output port `S: Set<Scalar(integer, exact)>`. Deduplicates and sorts elements silently. Category: source; stability: experimental; symbol: `{}`. Property tests: idempotence (re-entering the same elements), order-independence (element order in params doesn't affect output), size invariant (`|S| ≤ count`), no duplicates. Establishes the `discrete.*` domain plugin pattern. (`a1d2bf7`)
+
+### Testing (Phase 6)
+
+- **Discrete fixture infrastructure** — `scripts/generate-sympy-fixtures.mjs` extended with six SymPy-backed generators: `generateGcdCases()` (36 cases including coprime, same-number, zero), `generateIsPrimeCases()` (30 cases: primes, composites, edge cases including 0/1/2), `generateFactorintCases()` (25 cases: primes, prime powers, composites), `generateTotientCases()` (28 cases covering multiplicativity), `generateBinomialCases()` (40 cases including Pascal's identity triples), `generateModularCases()` (31 cases: modpow + modular-inverse). Corresponding fixture JSON files: `discrete-gcd.json`, `discrete-prime.json`, `discrete-factorint.json`, `discrete-totient.json`, `discrete-binomial.json`, `discrete-modular.json`. Six typed loaders added to `tests/sympy-reference.ts`. All values are integer-exact; no floating-point tolerance needed. (`acd093a`)
 
 ### Composite blocks (Phase 5 / Ecosystem)
 
