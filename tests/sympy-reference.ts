@@ -797,3 +797,26 @@ export type CalcSeriesFixture = {
 export function loadCalcSeriesFixture(): CalcSeriesFixture {
   return loadJson<CalcSeriesFixture>("calc-series");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// calc.gradient fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type CalcGradientCase = {
+  expression: string;
+  variables: string[];
+  partials: string[];
+  gradient: number[] | null;
+  note?: string;
+};
+
+export type CalcGradientFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: CalcGradientCase[];
+};
+
+export function loadCalcGradientFixture(): CalcGradientFixture {
+  return loadJson<CalcGradientFixture>("calc-gradient");
+}

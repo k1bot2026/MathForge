@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "SymPy diff() partial derivative reference values for calc.gradient cross-engine tests. Each case is a multivariate function with known constant partials (so the gradient vector components are numeric).",
+  "cases": [
+    {
+      "expression": "2*x + 3*y",
+      "variables": ["x", "y"],
+      "partials": ["2", "3"],
+      "gradient": [2, 3]
+    },
+    {
+      "expression": "x + 2*y + 3*z",
+      "variables": ["x", "y", "z"],
+      "partials": ["1", "2", "3"],
+      "gradient": [1, 2, 3]
+    },
+    {
+      "expression": "5*x",
+      "variables": ["x"],
+      "partials": ["5"],
+      "gradient": [5]
+    },
+    {
+      "expression": "x - y",
+      "variables": ["x", "y"],
+      "partials": ["1", "-1"],
+      "gradient": [1, -1]
+    },
+    {
+      "expression": "4*x + 0*y",
+      "variables": ["x", "y"],
+      "partials": ["4", "0"],
+      "gradient": [4, 0]
+    },
+    {
+      "expression": "x*y",
+      "variables": ["x", "y"],
+      "partials": ["y", "x"],
+      "gradient": null,
+      "note": "symbolic partials — gradient vector components are NaN"
+    },
+    {
+      "expression": "x**2 + y**2",
+      "variables": ["x", "y"],
+      "partials": ["2*x", "2*y"],
+      "gradient": null,
+      "note": "symbolic partials — gradient vector components are NaN"
+    }
+  ]
+}
