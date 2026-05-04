@@ -140,4 +140,13 @@ describe("calc.derivative definition explain", () => {
     };
     expect(impact({}, output)).toBe("Derivative: cos(x)");
   });
+
+  test("block definition compute delegates to computeDerivative", async () => {
+    const { diff } = await import("~/engine/workers/pyodide.client");
+    vi.mocked(diff).mockResolvedValue("cos(x)");
+    const { DerivativeBlock } = await import("./definition");
+    const ctx = { signal: new AbortController().signal };
+    const result = await DerivativeBlock.compute({ fn: makeFunctionInput("sin(x)") }, {}, ctx);
+    expect((result as MathValue).type.kind).toBe("Function");
+  });
 });

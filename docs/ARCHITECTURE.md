@@ -231,6 +231,50 @@ Replay state is in-memory only; the URL hash continues to encode only
 the current snapshot, not the construction history. Persistent
 shareable replays are deferred to Phase 3+ alongside Supabase.
 
+## Composite blocks (`core.subgraph`)
+
+Phase 5 adds user-definable composite blocks. The full design is in `docs/adr/0004-composite-blocks-via-subgraph.md`. Architectural summary:
+
+### How a subgraph is stored
+
+A composite block is a runtime-registered `BlockDefinition` whose inner graph is embedded in the definition itself. The payload type is:
+
+```typescript
+type SubgraphPayload = {
+  inner: GraphSpec;
+  inputProxies: ReadonlyArray<{ proxyNodeId: string; portId: string }>;
+  outputProxies: ReadonlyArray<{ proxyNodeId: string; portId: string }>;
+};
+```
+
+`inner` is a full `GraphSpec` containing `core.input-proxy` and `core.output-proxy` nodes alongside the user's blocks. The `inputProxies` and `outputProxies` arrays are the port mapping between the outer block's named I/O and the inner proxy nodes.
+
+### How evaluation works
+
+When the evaluator reaches a `core.subgraph` node, it calls `def.compute(inputs, params, ctx)` as normal. Inside `compute()`:
+
+1. Outer `inputs` values are pre-seeded into the sub-evaluator's result map at the `proxyNodeId` of each matching `core.input-proxy` node.
+2. `evaluate({ graph: inner, registry, cache: new EvalCache(), depth: ctx.depth + 1 })` is called recursively.
+3. The sub-evaluator's resolved result for each `core.output-proxy` node's input is collected and returned as the outer block's output.
+
+The evaluator itself is unaware of subgraphs — it treats `core.subgraph` as an ordinary block that returns a `MathValue`. The recursive call happens entirely inside `compute()`.
+
+### Recursion guard
+
+`EvalContext` carries an optional `depth: number` field. `buildSubgraphDefinition` increments `depth` on each recursive call. At `depth > MAX_SUBGRAPH_DEPTH` (currently 8), `compute()` throws `SubgraphError` before starting the sub-evaluator. This prevents infinite recursion from circular composite definitions.
+
+### Runtime registration
+
+Composite blocks are registered via `BlockRegistry.registerOrReplace()` (not `register()`). This allows in-browser re-definition when a user edits a composite. Built-in blocks (registered via `register()`) are permanently protected by a `builtinIds` Set — `registerOrReplace()` throws if called with a built-in ID.
+
+### Schema version
+
+Subgraph nodes extend `SerializedNode.data` with a `subgraph?: SubgraphPayload` field and require `GRAPH_SCHEMA_VERSION: 3`. The v2→v3 migration is a no-op for non-subgraph nodes. Existing shared URLs (schemaVersion 2) continue to open.
+
+### Internal proxy blocks
+
+`core.input-proxy` and `core.output-proxy` are registered at boot with `stability: "internal"`. The block palette UI filters out `"internal"` blocks so users never see them directly. The evaluator has no knowledge of this stability flag — proxy nodes are evaluated like any other block.
+
 ## Performance budgets
 
 - Initial JS bundle: < 250 KB gzip (without Pyodide).

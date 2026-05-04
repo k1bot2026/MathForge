@@ -308,9 +308,9 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 **Composite blocks** _(composite role, stateful, slate color)_
 
-- `core.subgraph` — encapsulates a selected subgraph as a reusable composite block with named input and output ports. The user selects N connected blocks, assigns port labels, and the subgraph appears as a first-class block on the canvas. Shareable via URL; the inner graph is embedded in the outer graph's codec. Unlocks `stats.bayes-net` and the community block library.
+- `core.subgraph` [shipped] — composite block factory (`buildSubgraphDefinition(id, label, payload, inputPorts, outputPorts, registry)`); `SubgraphPayload = { inner: GraphSpec, inputProxies, outputProxies }`; sub-evaluator recursion capped at `MAX_SUBGRAPH_DEPTH = 8`; `EvalContext.depth` threaded opaquely through the evaluator; registered at runtime via `BlockRegistry.registerOrReplace()`; output port: single named port or multiple named ports (no Tuple — see ADR 0004 §5); stability: experimental; throws `SubgraphError`. (`6eb1bd6`)
 - `core.assert` [shipped] — asserts that `actual ≈ expected` within an optional `tolerance` param; inputs `actual: Scalar(real, approximate)`, `expected: Scalar(real, approximate)`; output port `pass: Scalar(boolean, exact)`; param `tolerance: number` (default 0). `computeAssert` handles Scalar, Vector, Matrix (element-wise), and Expression (serialized string) equality; kind mismatch returns false. Engine: native; stability: stable. 192 tests. (`209c4cf`)
-- `core.benchmark` — micro-benchmark block: measures median and P95 wall-clock time for a single upstream block over N evaluation samples. Displays results in the inspector preview. Connects to `core.assert` to gate performance regressions.
+- `core.benchmark` [shipped] — wall-clock profiler for a `Function`; inputs `fn: Function(arity=1, real→real)`, optional `x: Scalar(real)` (eval point, default 0); output port `ms_per_call: Scalar(real, approximate)`; params `samples` (default 10, min 1), `warmup` (default 2, min 0); runs warmup evals then measures `samples` timed evals returning mean ms/call; determinism: stochastic; stability: experimental; throws `BenchmarkError`. 17 tests. (`8758c79`)
 
 **Deferred from Phase 3**
 

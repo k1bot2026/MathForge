@@ -131,4 +131,17 @@ describe("calc.partial definition explain", () => {
     expect(msg).toMatch(/∂f\/∂/);
     expect(msg).toMatch(/2\*x/);
   });
+
+  test("block definition compute delegates to computePartial", async () => {
+    const { diff } = await import("~/engine/workers/pyodide.client");
+    vi.mocked(diff).mockResolvedValue("2*x");
+    const { PartialBlock } = await import("./definition");
+    const ctx = { signal: new AbortController().signal };
+    const result = await PartialBlock.compute(
+      { fn: makeFunctionInput("x**2", ["x", "y"]) },
+      { variable: "x" },
+      ctx,
+    );
+    expect((result as MathValue).type.kind).toBe("Function");
+  });
 });

@@ -133,4 +133,13 @@ describe("calc.integrate definition explain", () => {
     };
     expect(impact({}, output)).toBe("Antiderivative: -cos(x)");
   });
+
+  test("block definition compute delegates to computeIntegrate", async () => {
+    const { integrate } = await import("~/engine/workers/pyodide.client");
+    vi.mocked(integrate).mockResolvedValue("-cos(x)");
+    const { IntegrateBlock } = await import("./definition");
+    const ctx = { signal: new AbortController().signal };
+    const result = await IntegrateBlock.compute({ fn: makeFunctionInput("sin(x)") }, {}, ctx);
+    expect((result as MathValue).type.kind).toBe("Function");
+  });
 });

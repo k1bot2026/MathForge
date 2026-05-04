@@ -160,4 +160,18 @@ describe("calc.definite-integrate definition explain", () => {
     };
     expect(impact({}, output)).toBe("Result: 2");
   });
+
+  test("block definition compute delegates to computeDefiniteIntegrate", async () => {
+    const { definiteIntegrate } = await import("~/engine/workers/pyodide.client");
+    vi.mocked(definiteIntegrate).mockResolvedValue(2);
+    const { DefiniteIntegrateBlock } = await import("./definition");
+    const ctx = { signal: new AbortController().signal };
+    const result = await DefiniteIntegrateBlock.compute(
+      { fn: makeFunctionInput("x**2"), a: makeScalarInput(0), b: makeScalarInput(1) },
+      {},
+      ctx,
+    );
+    expect((result as MathValue).type.kind).toBe("Scalar");
+    expect((result as MathValue).payload).toBe(2);
+  });
 });

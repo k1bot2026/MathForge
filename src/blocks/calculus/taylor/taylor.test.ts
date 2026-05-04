@@ -173,4 +173,24 @@ describe("calc.taylor definition explain", () => {
     };
     expect(effect({}, output)).toBe("T(x) = 1 - x**2/2 + x**4/24");
   });
+
+  test("block definition compute delegates to computeTaylor", async () => {
+    const { taylor } = await import("~/engine/workers/pyodide.client");
+    vi.mocked(taylor).mockResolvedValue("1 - x**2/2");
+    const { TaylorBlock } = await import("./definition");
+    const ctx = { signal: new AbortController().signal };
+    const result = await TaylorBlock.compute(
+      {
+        fn: makeFunctionInput("cos(x)"),
+        center: {
+          type: { kind: "Scalar", field: "real", precision: "exact" },
+          payload: 0,
+          provenance: { blockId: "core.constant", inputs: [], computedAt: 0, engine: "native" },
+        },
+      },
+      { order: 2 },
+      ctx,
+    );
+    expect((result as MathValue).type.kind).toBe("Function");
+  });
 });
