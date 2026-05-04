@@ -297,6 +297,15 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 ### Phase 5 (Composites & ecosystem)
 
+**Internal infrastructure blocks** _(used by core.subgraph — not placed directly by users)_
+
+- `core.input-proxy` [shipped] — internal placeholder marking a subgraph input port; `stability: "internal"`; category: source; no inputs; output port `value: Scalar(real, approximate)`; param `portId: string`. Throws if called standalone — must be pre-populated by `core.subgraph`'s sub-evaluator. (`5400d37`)
+- `core.output-proxy` [shipped] — internal placeholder marking a subgraph output port; `stability: "internal"`; category: sink; input port `value: Scalar(real, approximate)`; no outputs; param `portId: string`. Identity pass-through; `core.subgraph` reads its result to expose named output ports. (`5400d37`)
+
+**Registry extension**
+
+- `BlockRegistry.registerOrReplace()` [shipped] — new method for registering user-defined composite blocks. Built-in blocks (registered via `register()`) are tracked in a `builtinIds` Set and cannot be overwritten (throws). Replacing an existing user block emits a `console.warn`. (`e1159c4`)
+
 **Composite blocks** _(composite role, stateful, slate color)_
 
 - `core.subgraph` — encapsulates a selected subgraph as a reusable composite block with named input and output ports. The user selects N connected blocks, assigns port labels, and the subgraph appears as a first-class block on the canvas. Shareable via URL; the inner graph is embedded in the outer graph's codec. Unlocks `stats.bayes-net` and the community block library.

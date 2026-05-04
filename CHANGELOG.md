@@ -5,7 +5,18 @@ Versions map to phase milestones, not calendar releases.
 
 ---
 
-## [Unreleased] — Phase 4 complete: 10 calc ops + 5 viz blocks + cache gate
+## [Unreleased] — Phase 5 active: composite block foundation
+
+Phase 4 complete: 10 calc op blocks + 5 viz blocks, all SymPy cross-engine-verified,
+cache hit-rate gate met. 1756 tests green. Advancing to Phase 5 — Composite blocks.
+
+### Foundation (Phase 5)
+
+- **`core.input-proxy`** — internal source block marking a subgraph input port. Output port `value: Scalar(real, approximate)`; param `portId` (string). Stability: `"internal"` — not intended for direct user placement. The `compute` function throws if called outside a `core.subgraph` context; in normal evaluation the sub-evaluator pre-populates the result map before running the inner graph. (`5400d37`)
+- **`core.output-proxy`** — internal sink block marking a subgraph output port. Input port `value: Scalar(real, approximate)`; param `portId` (string). Stability: `"internal"`. Identity pass-through; `core.subgraph`'s compute reads the result of each output-proxy node to expose it as a named outer port. (`5400d37`)
+- **`BlockRegistry.registerOrReplace()`** — new registration method for user-defined composite blocks. Built-in blocks (registered via `register()`) are tracked in a `builtinIds` Set and cannot be overwritten (throws). Replacing an existing user-defined block emits a `console.warn` to surface accidental re-registration. 51 tests in `registry.test.ts`. (`e1159c4`)
+
+### [previously] Phase 4 complete: 10 calc ops + 5 viz blocks + cache gate
 
 Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
 (viz.unit-grid-3d, eigenvector highlighting, det area/volume animation), SymPy

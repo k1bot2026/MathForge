@@ -443,13 +443,19 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 
 | Area | Shipped | Pending |
 |---|---|---|
-| **Composite core** | — | `core.subgraph`, `core.assert`, `core.benchmark` |
+| **Composite core foundation** | `core.input-proxy` (`5400d37`), `core.output-proxy` (`5400d37`), `BlockRegistry.registerOrReplace` (`e1159c4`) | `core.subgraph`, `core.assert`, `core.benchmark` |
 | **Deferred from Phase 3** | — | `stats.bayes-net` (requires `core.subgraph`) |
 | **Deferred from Phase 4** | — | IndexedDB Layer 3 cache persistence (requires cache-invalidation strategy for URL-linked graphs) |
 | **Ecosystem** | — | Community block library; block versioning |
 | **Backend** | — | Supabase wiring; auth; persistent graph URLs at `/g/<slug>` |
 
 ### Phase 5 progress
+
+**Core composite infrastructure**
+
+- [x] `core.input-proxy` — internal placeholder marking a subgraph input port; pre-populated by `core.subgraph`'s sub-evaluator; throws standalone. Output port `value: Scalar(real, approximate)`; param `portId`. (`5400d37`)
+- [x] `core.output-proxy` — internal placeholder marking a subgraph output port; identity pass-through read by `core.subgraph` to expose named output ports. Input port `value: Scalar(real, approximate)`; param `portId`. (`5400d37`)
+- [x] `BlockRegistry.registerOrReplace()` — user-defined composite block registration; built-in blocks protected by `builtinIds` Set; re-registration of user blocks emits `console.warn`. (`e1159c4`)
 
 **Core composite blocks**
 
