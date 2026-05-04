@@ -42,4 +42,9 @@ describe("OutputProxyBlock", () => {
       "core.output-proxy: no value connected",
     );
   });
+
+  test("explain.effect returns forwarding message including output stringification", () => {
+    const msg = OutputProxyBlock.explain.effect?.({}, scalar);
+    expect(msg).toMatch(/Output proxy — forwards/);
+  });
 });

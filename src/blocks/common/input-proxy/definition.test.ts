@@ -30,4 +30,9 @@ describe("InputProxyBlock", () => {
       "core.input-proxy must be used inside a core.subgraph",
     );
   });
+
+  test("explain.effect returns injection message", () => {
+    const msg = InputProxyBlock.explain.effect?.({}, undefined as never);
+    expect(msg).toMatch(/injected/);
+  });
 });
