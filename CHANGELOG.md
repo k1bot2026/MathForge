@@ -17,6 +17,15 @@ cache hit-rate gate met. 1756 tests green. Advancing to Phase 5 — Composite bl
 - **`BlockRegistry.registerOrReplace()`** — new registration method for user-defined composite blocks. Built-in blocks (registered via `register()`) are tracked in a `builtinIds` Set and cannot be overwritten (throws). Replacing an existing user-defined block emits a `console.warn` to surface accidental re-registration. 51 tests in `registry.test.ts`. (`e1159c4`)
 - **`core.assert`** — assertion block: inputs `actual: Scalar(real, approximate)`, `expected: Scalar(real, approximate)`; optional param `tolerance: number` (default 0, exact equality); output port `pass: Scalar(boolean, exact)`. `computeAssert` handles Scalar (numeric ± tolerance), Vector (element-wise), Matrix (element-wise), and Expression (serialized string comparison) kinds; kind mismatch returns false without throwing. Node output is `false` on assertion failure — connect downstream to visualise pass/fail in the graph. Engine: native; stability: stable. 192 tests. (`209c4cf`)
 
+### Testing (Phase 5 — coverage push)
+
+- **Explain callback coverage** — `explain.effect` and `explain.impact` callbacks added to test suites for all `la.*` blocks (`0217f92`) and all `stats.*` blocks (`4916392`). Coverage gaps in non-obvious string formatting paths now exercised.
+- **Stats viz block tests** — `viz.histogram`, `viz.pdf-cdf`, `viz.joint-heatmap` passthrough and param-variant tests added (`4d68226`).
+- **Evaluator branch coverage** — optional-input handling, depth guard, and `initialResults` path exercised in `evaluator.test.ts` (+98 tests, `c3e391e`).
+- **Graph-codec edge validation** — non-string handle field tests added to `graph-codec.test.ts` (+40 tests, `7aedba0`).
+- **Subgraph depth boundary and error-path tests** — `definition.test.ts` for `core.subgraph` extended with nesting-depth limit and error propagation cases (+73 tests, `5b066e5`).
+- **Test count milestone: 2001 tests** (up from 1756 at Phase 4 close).
+
 ### [previously] Phase 4 complete: 10 calc ops + 5 viz blocks + cache gate
 
 Phase 2 fully complete: all 17 linear algebra operation blocks, 3 visualization items
