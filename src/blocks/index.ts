@@ -11,6 +11,7 @@
 
 import * as calculus from "./calculus";
 import * as common from "./common";
+import * as discrete from "./discrete";
 import * as linearAlgebra from "./linear-algebra";
 import { BlockRegistry } from "./registry";
 import * as statistics from "./statistics";
@@ -21,6 +22,7 @@ export function buildRegistry(): BlockRegistry {
   linearAlgebra.register(registry);
   statistics.register(registry);
   calculus.register(registry);
+  discrete.register(registry);
   return registry;
 }
 
