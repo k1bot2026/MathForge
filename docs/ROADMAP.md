@@ -443,7 +443,7 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 
 | Area | Shipped | Pending |
 |---|---|---|
-| **Composite core foundation** | `core.input-proxy` (`5400d37`), `core.output-proxy` (`5400d37`), `BlockRegistry.registerOrReplace` (`e1159c4`) | `core.subgraph`, `core.assert`, `core.benchmark` |
+| **Composite core foundation** | `core.input-proxy` (`5400d37`), `core.output-proxy` (`5400d37`), `BlockRegistry.registerOrReplace` (`e1159c4`), `core.assert` (`209c4cf`) | `core.subgraph`, `core.benchmark` |
 | **Deferred from Phase 3** | — | `stats.bayes-net` (requires `core.subgraph`) |
 | **Deferred from Phase 4** | — | IndexedDB Layer 3 cache persistence (requires cache-invalidation strategy for URL-linked graphs) |
 | **Ecosystem** | — | Community block library; block versioning |
@@ -460,7 +460,7 @@ The Phase 4 exit criterion asked for a cache hit-rate > 50% in typical sessions.
 **Core composite blocks**
 
 - [ ] `core.subgraph` — select N blocks, name their exposed ports, package as a reusable composite block. The fundamental Phase 5 primitive; unblocks `stats.bayes-net` and community sharing.
-- [ ] `core.assert` — declare expected output behavior (e.g. "result ≈ 3.14"); node turns red on violation. Property-test scaffolding in the live canvas.
+- [x] `core.assert` — compares `actual` and `expected` Scalar inputs within an optional `tolerance` param; output port `pass: Scalar(boolean, exact)`; node turns false (red) when assertion fails. Supports Scalar, Vector, Matrix, and Expression equality (Expression uses serialized string comparison). 192 tests. (`209c4cf`)
 - [ ] `core.benchmark` — micro-benchmark for a block: measure median / P95 wall-clock over N samples; display result in inspector.
 
 **Deferred Phase 3 blocks**

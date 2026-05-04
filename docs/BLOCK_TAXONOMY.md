@@ -309,7 +309,7 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 **Composite blocks** _(composite role, stateful, slate color)_
 
 - `core.subgraph` — encapsulates a selected subgraph as a reusable composite block with named input and output ports. The user selects N connected blocks, assigns port labels, and the subgraph appears as a first-class block on the canvas. Shareable via URL; the inner graph is embedded in the outer graph's codec. Unlocks `stats.bayes-net` and the community block library.
-- `core.assert` — assertion block: declares an expected output value (or range) for any upstream output port. The node turns red when the connected value violates the assertion at eval time. Useful for property-testing graphs in the live canvas and for educational "verify your answer" scenarios.
+- `core.assert` [shipped] — asserts that `actual ≈ expected` within an optional `tolerance` param; inputs `actual: Scalar(real, approximate)`, `expected: Scalar(real, approximate)`; output port `pass: Scalar(boolean, exact)`; param `tolerance: number` (default 0). `computeAssert` handles Scalar, Vector, Matrix (element-wise), and Expression (serialized string) equality; kind mismatch returns false. Engine: native; stability: stable. 192 tests. (`209c4cf`)
 - `core.benchmark` — micro-benchmark block: measures median and P95 wall-clock time for a single upstream block over N evaluation samples. Displays results in the inspector preview. Connects to `core.assert` to gate performance regressions.
 
 **Deferred from Phase 3**
