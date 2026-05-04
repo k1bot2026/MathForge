@@ -1,6 +1,13 @@
 import * as fc from "fast-check";
 import { describe, expect, test } from "vitest";
 import type { SetPayload } from "~/math/types";
+import {
+  loadFactorintFixture,
+  loadGcdFixture,
+  loadModularFixture,
+  loadPrimeFixture,
+  loadTotientFixture,
+} from "../../../tests/sympy-reference";
 import { makeScalar } from "./combinatorics";
 import { DivisorsBlock } from "./divisors/definition";
 import { FactorBlock } from "./factor/definition";
@@ -112,6 +119,16 @@ describe("modpow", () => {
           expect(modpow(base, exp, m)).toBeLessThan(m);
         },
       ),
+    );
+  });
+
+  test("property: Fermat's little theorem — modpow(g, totient(p), p) = 1 for prime p, gcd(g,p)=1", () => {
+    const PRIMES = [5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+    fc.assert(
+      fc.property(fc.constantFrom(...PRIMES), fc.integer({ min: 1, max: 200 }), (p, g) => {
+        fc.pre(gcd(g, p) === 1);
+        expect(modpow(g, totient(p), p)).toBe(1);
+      }),
     );
   });
 });
@@ -356,4 +373,73 @@ describe("ModularInverseBlock", () => {
     const r = ModularInverseBlock.compute({ a: makeScalar(3), m: makeScalar(7) }, {}, ctx);
     expect((r as ReturnType<typeof makeScalar>).payload).toBe(5);
   });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// SymPy cross-engine verification
+// ──────────────────────────────────────────────────────────────────────
+
+describe("gcd — SymPy cross-engine (positive inputs only)", () => {
+  const fixture = loadGcdFixture();
+  // gcd(a,b) is restricted to positive integers in this implementation.
+  // SymPy fixture also contains zero-input cases; skip those here.
+  for (const { a, b, gcd: expected } of fixture.cases) {
+    if (a === 0 || b === 0) continue;
+    test(`gcd(${String(a)}, ${String(b)}) = ${String(expected)}`, () => {
+      expect(gcd(a, b)).toBe(expected);
+    });
+  }
+});
+
+describe("isPrime — SymPy cross-engine", () => {
+  const fixture = loadPrimeFixture();
+  for (const { n, isPrime: expected } of fixture.cases) {
+    test(`isPrime(${String(n)}) = ${String(expected)}`, () => {
+      expect(isPrime(n)).toBe(expected);
+    });
+  }
+});
+
+describe("primeFactorize — SymPy cross-engine (flat factors from factorint)", () => {
+  const fixture = loadFactorintFixture();
+  for (const { n, factors } of fixture.cases) {
+    // Fixture stores [prime, exponent] pairs; expand to flat sorted list.
+    const expected: number[] = [];
+    for (const [p, e] of factors) {
+      for (let i = 0; i < e; i++) expected.push(p);
+    }
+    expected.sort((a, b) => a - b);
+
+    test(`primeFactorize(${String(n)}) matches SymPy factorint`, () => {
+      const result = [...primeFactorize(n)].sort((a, b) => a - b);
+      expect(result).toEqual(expected);
+    });
+  }
+});
+
+describe("totient — SymPy cross-engine", () => {
+  const fixture = loadTotientFixture();
+  for (const { n, totient: expected } of fixture.cases) {
+    test(`totient(${String(n)}) = ${String(expected)}`, () => {
+      expect(totient(n)).toBe(expected);
+    });
+  }
+});
+
+describe("modpow — SymPy cross-engine", () => {
+  const fixture = loadModularFixture();
+  for (const { a, b, m, result } of fixture.powCases) {
+    test(`modpow(${String(a)}, ${String(b)}, ${String(m)}) = ${String(result)}`, () => {
+      expect(modpow(a, b, m)).toBe(result);
+    });
+  }
+});
+
+describe("modularInverse — SymPy cross-engine", () => {
+  const fixture = loadModularFixture();
+  for (const { a, m, inverse } of fixture.inverseCases) {
+    test(`modularInverse(${String(a)}, ${String(m)}) = ${String(inverse)}`, () => {
+      expect(modularInverse(a, m)).toBe(inverse);
+    });
+  }
 });
