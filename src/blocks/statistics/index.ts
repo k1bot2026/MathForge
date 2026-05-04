@@ -3,6 +3,7 @@
 // root in src/blocks/index.ts chooses when to call it.
 
 import type { BlockRegistry } from "../registry";
+import { BayesNetBlock } from "./bayes-net/definition";
 import { BernoulliBlock } from "./bernoulli/definition";
 import { BetaBlock } from "./beta/definition";
 import { BinomialBlock } from "./binomial/definition";
@@ -24,6 +25,7 @@ import { UniformBlock } from "./uniform/definition";
 import { VarBlock } from "./var/definition";
 
 export function register(registry: BlockRegistry): void {
+  registry.register(BayesNetBlock);
   registry.register(BernoulliBlock);
   registry.register(BetaBlock);
   registry.register(BinomialBlock);
