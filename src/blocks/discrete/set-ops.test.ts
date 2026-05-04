@@ -346,8 +346,8 @@ describe("setCartesianProduct", () => {
       fc.property(fc.array(fc.integer({ min: 0, max: 10 }), { maxLength: 6 }), (a) => {
         const s = makeSet(a);
         const empty = makeSet([]);
-        expect((setCartesianProduct(empty, s).payload as SetPayload)).toHaveLength(0);
-        expect((setCartesianProduct(s, empty).payload as SetPayload)).toHaveLength(0);
+        expect(setCartesianProduct(empty, s).payload as SetPayload).toHaveLength(0);
+        expect(setCartesianProduct(s, empty).payload as SetPayload).toHaveLength(0);
       }),
     );
   });
@@ -391,6 +391,14 @@ describe("UnionBlock", () => {
   });
   test("throws when A missing", () => {
     expect(() => UnionBlock.compute({ B: makeSet([1]) }, {}, ctx)).toThrow(SetOpError);
+  });
+  test("explain.effect: plural elements", () => {
+    const out = UnionBlock.compute({ A: makeSet([1, 2]), B: makeSet([3]) }, {}, ctx) as MathValue;
+    expect(UnionBlock.explain.effect?.({}, out)).toBe("A ∪ B has 3 elements.");
+  });
+  test("explain.effect: singular element", () => {
+    const out = UnionBlock.compute({ A: makeSet([1]), B: makeSet([]) }, {}, ctx) as MathValue;
+    expect(UnionBlock.explain.effect?.({}, out)).toBe("A ∪ B has 1 element.");
   });
 });
 

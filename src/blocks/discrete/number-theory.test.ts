@@ -299,6 +299,10 @@ describe("GcdBlock", () => {
   test("throws when a missing", () => {
     expect(() => GcdBlock.compute({ b: makeScalar(8) }, {}, ctx)).toThrow(NumberTheoryError);
   });
+  test("explain.effect shows result", () => {
+    const out = makeScalar(4);
+    expect(GcdBlock.explain.effect?.({}, out)).toBe("gcd = 4");
+  });
 });
 
 describe("LcmBlock", () => {
@@ -306,6 +310,13 @@ describe("LcmBlock", () => {
   test("lcm(4,6) = 12", () => {
     const r = LcmBlock.compute({ a: makeScalar(4), b: makeScalar(6) }, {}, ctx);
     expect((r as ReturnType<typeof makeScalar>).payload).toBe(12);
+  });
+  test("throws when b missing", () => {
+    expect(() => LcmBlock.compute({ a: makeScalar(4) }, {}, ctx)).toThrow(NumberTheoryError);
+  });
+  test("explain.effect shows result", () => {
+    const out = makeScalar(12);
+    expect(LcmBlock.explain.effect?.({}, out)).toBe("lcm = 12");
   });
 });
 
@@ -330,6 +341,25 @@ describe("IsPrimeBlock", () => {
   test("4 is not prime", () => {
     const r = IsPrimeBlock.compute({ n: makeScalar(4) }, {}, ctx);
     expect((r as ReturnType<typeof makeBooleanScalar>).payload).toBe(false);
+  });
+  test("throws when n missing", () => {
+    expect(() => IsPrimeBlock.compute({}, {}, ctx)).toThrow(NumberTheoryError);
+  });
+  test("explain.effect: prime case", () => {
+    const out = {
+      type: { kind: "Scalar", field: "boolean", precision: "exact" },
+      payload: true,
+      provenance: { blockId: "t", inputs: [], computedAt: 0, engine: "native" as const },
+    };
+    expect(IsPrimeBlock.explain.effect?.({}, out)).toBe("n is prime.");
+  });
+  test("explain.effect: composite case", () => {
+    const out = {
+      type: { kind: "Scalar", field: "boolean", precision: "exact" },
+      payload: false,
+      provenance: { blockId: "t", inputs: [], computedAt: 0, engine: "native" as const },
+    };
+    expect(IsPrimeBlock.explain.effect?.({}, out)).toBe("n is not prime.");
   });
 });
 
