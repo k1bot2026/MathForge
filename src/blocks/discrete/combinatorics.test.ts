@@ -1,5 +1,6 @@
 import * as fc from "fast-check";
 import { describe, expect, test } from "vitest";
+import { loadDiscreteBinomialFixture } from "../../../tests/sympy-reference";
 import { BinomialBlock } from "./binomial/definition";
 import {
   binomial,
@@ -186,4 +187,17 @@ describe("MultinomialBlock", () => {
     const result = MultinomialBlock.compute({}, { groups: 1, k0: 5 }, ctx);
     expect((result as ReturnType<typeof makeScalar>).payload).toBe(1);
   });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// SymPy cross-engine verification
+// ──────────────────────────────────────────────────────────────────────
+
+describe("binomial — SymPy cross-engine", () => {
+  const fixture = loadDiscreteBinomialFixture();
+  for (const { n, k, value } of fixture.cases) {
+    test(`C(${String(n)}, ${String(k)}) = ${String(value)}`, () => {
+      expect(binomial(n, k)).toBe(value);
+    });
+  }
 });
