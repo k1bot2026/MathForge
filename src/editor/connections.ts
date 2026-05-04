@@ -50,9 +50,16 @@ export function canConnect(out: MathType, into: MathType): ConnectResult {
       return checkTuple(out, into as Extract<MathType, { kind: "Tuple" }>);
     case "Set":
       return checkSet(out, into as Extract<MathType, { kind: "Set" }>);
+    case "Permutation":
+      return checkPermutation(out, into as Extract<MathType, { kind: "Permutation" }>);
+    case "Combination":
+      return checkCombination(out, into as Extract<MathType, { kind: "Combination" }>);
+    case "Graph":
+      return checkGraph(out, into as Extract<MathType, { kind: "Graph" }>);
+    case "Modular":
+      return checkModular(out, into as Extract<MathType, { kind: "Modular" }>);
     // Expression / RandomVariable / Distribution: same-kind connections
-    // are accepted in Phase 1; deeper structural rules land alongside
-    // those domains' first blocks (Phase 3+).
+    // accepted; deeper structural rules added alongside each domain.
     default:
       return { ok: true };
   }
@@ -141,6 +148,47 @@ function checkSet(
   into: Extract<MathType, { kind: "Set" }>,
 ): ConnectResult {
   return canConnect(out.element, into.element);
+}
+
+function checkPermutation(
+  out: Extract<MathType, { kind: "Permutation" }>,
+  into: Extract<MathType, { kind: "Permutation" }>,
+): ConnectResult {
+  return unifyShape(out.n, into.n, "n");
+}
+
+function checkCombination(
+  out: Extract<MathType, { kind: "Combination" }>,
+  into: Extract<MathType, { kind: "Combination" }>,
+): ConnectResult {
+  const nResult = unifyShape(out.n, into.n, "n");
+  if (!nResult.ok) return nResult;
+  const kResult = unifyShape(out.k, into.k, "k");
+  if (!kResult.ok) return kResult;
+  return mergeOk(nResult, kResult);
+}
+
+function checkGraph(
+  out: Extract<MathType, { kind: "Graph" }>,
+  into: Extract<MathType, { kind: "Graph" }>,
+): ConnectResult {
+  if (into.directed && !out.directed) {
+    return { ok: false, reason: "Undirected graph cannot connect to directed graph slot" };
+  }
+  if (into.weighted && !out.weighted) {
+    return {
+      ok: true,
+      warning: "Unweighted graph flowing into weighted slot — edge weights will be absent",
+    };
+  }
+  return { ok: true };
+}
+
+function checkModular(
+  out: Extract<MathType, { kind: "Modular" }>,
+  into: Extract<MathType, { kind: "Modular" }>,
+): ConnectResult {
+  return unifyShape(out.modulus, into.modulus, "modulus");
 }
 
 // ──────────────────────────────────────────────────────────────────────

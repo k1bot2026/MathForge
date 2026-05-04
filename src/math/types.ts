@@ -37,7 +37,12 @@ export type MathType =
   | { kind: "RandomVariable"; support: "discrete" | "continuous" | "mixed" }
   | { kind: "Distribution"; family: DistributionFamily }
   | { kind: "Set"; element: MathType }
-  | { kind: "Tuple"; elements: ReadonlyArray<MathType> };
+  | { kind: "Tuple"; elements: ReadonlyArray<MathType> }
+  // ── Phase 6 — Discrete Mathematics ──────────────────────────────────
+  | { kind: "Permutation"; n: Shape }
+  | { kind: "Combination"; n: Shape; k: Shape }
+  | { kind: "Graph"; directed: boolean; weighted: boolean }
+  | { kind: "Modular"; modulus: Shape };
 
 // ──────────────────────────────────────────────────────────────────────
 // Payloads
@@ -79,6 +84,30 @@ export type FunctionPayload = {
   variables: ReadonlyArray<string>;
 };
 
+// ── Phase 6 payload types ────────────────────────────────────────────
+
+/** Permutation stored in one-line notation: element at index i maps to value[i]. */
+export type PermutationPayload = ReadonlyArray<number>;
+
+/** Combination: the chosen elements plus the size parameter. */
+export type CombinationPayload = {
+  elements: ReadonlyArray<MathValue>;
+  size: number;
+};
+
+export type GraphVertex = { id: string; label?: string };
+export type GraphEdgeSpec = { from: string; to: string; weight?: number };
+export type GraphPayload = {
+  vertices: ReadonlyArray<GraphVertex>;
+  edges: ReadonlyArray<GraphEdgeSpec>;
+};
+
+/** Element of Z/mZ: value is always in [0, modulus - 1]. */
+export type ModularPayload = { value: number; modulus: number };
+
+/** Set payload: deduplicated, ordered collection of MathValues. */
+export type SetPayload = ReadonlyArray<MathValue>;
+
 export type Payload<T extends MathType> = T extends { kind: "Scalar" }
   ? ScalarPayload
   : T extends { kind: "Vector" }
@@ -89,7 +118,17 @@ export type Payload<T extends MathType> = T extends { kind: "Scalar" }
         ? ExpressionPayload
         : T extends { kind: "Function" }
           ? FunctionPayload
-          : unknown;
+          : T extends { kind: "Set" }
+            ? SetPayload
+            : T extends { kind: "Permutation" }
+              ? PermutationPayload
+              : T extends { kind: "Combination" }
+                ? CombinationPayload
+                : T extends { kind: "Graph" }
+                  ? GraphPayload
+                  : T extends { kind: "Modular" }
+                    ? ModularPayload
+                    : unknown;
 
 export type Provenance = {
   blockId: string;
