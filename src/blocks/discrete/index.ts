@@ -1,6 +1,7 @@
 import type { BlockRegistry } from "../registry";
 import { BinomialBlock } from "./binomial/definition";
 import { CartesianProductBlock } from "./cartesian-product/definition";
+import { CombinationsBlock } from "./combinations/definition";
 import { DifferenceBlock } from "./difference/definition";
 import { DivisorsBlock } from "./divisors/definition";
 import { FactorBlock } from "./factor/definition";
@@ -14,6 +15,7 @@ import { ModpowBlock } from "./modpow/definition";
 import { ModularInverseBlock } from "./modular-inverse/definition";
 import { MultinomialBlock } from "./multinomial/definition";
 import { PartialSumBlock } from "./partial-sum/definition";
+import { PermutationsBlock } from "./permutations/definition";
 import { PrimeFactorizeBlock } from "./prime-factorize/definition";
 import { RecurrenceBlock } from "./recurrence/definition";
 import { SetBlock } from "./set/definition";
@@ -41,4 +43,6 @@ export function register(registry: BlockRegistry): void {
   registry.register(FibonacciBlock);
   registry.register(PartialSumBlock);
   registry.register(RecurrenceBlock);
+  registry.register(PermutationsBlock);
+  registry.register(CombinationsBlock);
 }
