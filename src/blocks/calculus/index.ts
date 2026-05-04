@@ -6,6 +6,7 @@ import { IntegrateBlock } from "./integrate/definition";
 import { LimitBlock } from "./limit/definition";
 import { SeriesBlock } from "./series/definition";
 import { TaylorBlock } from "./taylor/definition";
+import { VizTangentBlock } from "./viz-tangent/definition";
 import { VizTaylorBlock } from "./viz-taylor/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -17,4 +18,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(TaylorBlock);
   registry.register(SeriesBlock);
   registry.register(VizTaylorBlock);
+  registry.register(VizTangentBlock);
 }
