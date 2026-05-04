@@ -550,12 +550,12 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 |---|---|---|
 | **Foundation** | `Permutation`, `Combination`, `Graph`, `Modular` types in `MathType`; `SetPayload`, `PermutationPayload`, `CombinationPayload`, `GraphPayload`, `ModularPayload`; `canConnect` extended for all new kinds (`1008750`); `discrete/index.ts` plugin entry (`a1d2bf7`) | — |
 | **Set blocks** | `discrete.set` (`a1d2bf7`), `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product` (all `a085ac1`) | — |
-| **Combinatorics** | `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` (`7273ac1`) | `discrete.permutations`, `discrete.combinations` |
-| **Number theory** | — | `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse` |
+| **Combinatorics** | `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` (`7273ac1`), `discrete.permutations`, `discrete.combinations` (`0ff2c81`) | — |
+| **Number theory** | `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse` (`52d4fc8`) | — |
 | **Graph theory** | — | `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring` |
-| **Sequences** | — | `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence` |
+| **Sequences** | `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence` (`4d2a9c2`) | — |
 | **Visualization** | — | `viz.graph-2d`, `viz.set-venn`, `viz.permutation-cycles`, `viz.modular-clock` |
-| **Testing** | — | SymPy `discrete-*` fixture sets; cross-engine tests; property invariants (gcd·lcm, Pascal, totient) |
+| **Testing** | SymPy `discrete-*` fixture sets (`acd093a`); Fermat property + number-theory cross-engine (`1f85c40`); binomial cross-engine (`d7cd6b3`); set-op invariants (`ede07d9`, `5dc811d`, `8731b1f`); explain.effect + error-path coverage (`b5c05d8`) | Property invariants for gcd·lcm, Pascal, totient multiplicativity |
 | **Docs** | ROADMAP.md Phase 6 section; active-phase header; BLOCK_TAXONOMY.md `discrete.*` section; TYPES.md discrete kinds; CHANGELOG entries per block | — (watching brief active) |
 
 ### Phase 6 progress
@@ -575,23 +575,23 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 
 **Combinatorics**
 
-- [ ] `discrete.permutations` — `Set × Scalar(integer) → Set<Permutation>`.
-- [ ] `discrete.combinations` — `Set × Scalar(integer) → Set<Combination>`.
+- [x] `discrete.permutations` — inputs `S: Set<Scalar(integer, exact)>`, `k: Scalar(integer, exact)`; output `result: Set<Tuple<Scalar(integer)×k>>`; enumerates all ordered k-tuples from S without repetition; throws `PermutationsError`; capped at 5040 results. (`0ff2c81`)
+- [x] `discrete.combinations` — inputs `S: Set<Scalar(integer, exact)>`, `k: Scalar(integer, exact)`; output `result: Set<Tuple<Scalar(integer)×k>>`; enumerates all unordered k-subsets from S; elements sorted before enumeration; throws `CombinationsError`; capped at 5040 results. (`0ff2c81`)
 - [x] `discrete.factorial` — input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; n!; throws `CombinatoricsError` for n > FACTORIAL_MAX_N. (`7273ac1`)
 - [x] `discrete.binomial` — inputs `n: Scalar(integer, exact)`, `k: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; C(n,k) = n! / (k!(n−k)!). Symbol: C(n,k). (`7273ac1`)
 - [x] `discrete.multinomial` — params `groups` (1–8) + `k0..k7` integer counts; no inputs; output `result: Scalar(integer, exact)`; (k₀+k₁+…)! / (k₀!·k₁!·…). Symbol: M. Up to 8 groups. (`7273ac1`)
 
 **Number theory**
 
-- [ ] `discrete.gcd` — GCD via Euclidean algorithm; SymPy cross-check.
-- [ ] `discrete.lcm` — LCM = |a·b| / gcd(a, b).
-- [ ] `discrete.modpow` — modular exponentiation aᵇ mod m.
-- [ ] `discrete.is-prime` — primality test; output `Scalar(boolean, exact)`.
-- [ ] `discrete.factor` — prime factorization; output `Vector<k, integer>` (prime factors with multiplicity).
-- [ ] `discrete.totient` — Euler's φ(n); SymPy cross-check.
-- [ ] `discrete.divisors` — all divisors of n; output `Set<Scalar(integer)>`.
-- [ ] `discrete.prime-factorize` — factored form as `Map<prime, exponent>`.
-- [ ] `discrete.modular-inverse` — a⁻¹ mod m (requires gcd(a, m) = 1).
+- [x] `discrete.gcd` — inputs `a, b: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; GCD via Euclidean algorithm; throws `NumberTheoryError`. SymPy cross-check via `discrete-gcd.json`. (`52d4fc8`)
+- [x] `discrete.lcm` — inputs `a, b: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; LCM = |a·b| / gcd(a,b). (`52d4fc8`)
+- [x] `discrete.modpow` — inputs `base, exp, m: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; aᵉ mod m via repeated squaring. (`52d4fc8`)
+- [x] `discrete.is-prime` — input `n: Scalar(integer, exact)`; output `result: Scalar(boolean, exact)`; trial-division primality test; uses `makeBooleanScalar`. (`52d4fc8`)
+- [x] `discrete.factor` — input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>` (distinct prime factors, ascending); uses `makeSetOfIntegers`. (`52d4fc8`)
+- [x] `discrete.totient` — input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; Euler's φ(n). SymPy cross-check. (`52d4fc8`)
+- [x] `discrete.divisors` — input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>` (all positive divisors, ascending); uses `makeSetOfIntegers`. (`52d4fc8`)
+- [x] `discrete.prime-factorize` — input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>` (prime factors with multiplicity, e.g. 12 → {2, 2, 3}); uses `makeSetOfIntegers`. (`52d4fc8`)
+- [x] `discrete.modular-inverse` — inputs `a, m: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; a⁻¹ mod m; requires gcd(a, m) = 1; throws `NumberTheoryError` when not coprime. (`52d4fc8`)
 
 **Graph theory**
 
@@ -604,9 +604,9 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 
 **Sequences & recurrences**
 
-- [ ] `discrete.fibonacci` — nth Fibonacci number; Binet formula for large n.
-- [ ] `discrete.partial-sum` — Σᵢ₌₀ⁿ aᵢ via input sequence `Vector<n>` → `Scalar`.
-- [ ] `discrete.recurrence` — define and evaluate a recurrence relation up to n; stability: experimental.
+- [x] `discrete.fibonacci` — no inputs; param `n` (0–78, default 10); output `result: Vector<n, integer>`; generates F(0)…F(n-1); exact integers (F(78) ≤ MAX_SAFE_INTEGER); throws `FibonacciError` for n > 78. (`4d2a9c2`)
+- [x] `discrete.partial-sum` — input `seq: Vector<any, integer>`; output `result: Vector<n, integer>`; running prefix sums S(k) = a(0)+…+a(k); throws `PartialSumError`. (`4d2a9c2`)
+- [x] `discrete.recurrence` — no inputs; params `terms` (0–50), `a0`, `a1`, `c1`, `c2`, `d`; output `result: Vector<n, real>`; evaluates a(n) = c₁·a(n-1) + c₂·a(n-2) + d; throws `RecurrenceError` on divergence. (`4d2a9c2`)
 
 **Visualization**
 
@@ -617,8 +617,8 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 
 **Testing infrastructure**
 
-- [ ] SymPy `discrete-*` fixture pattern — `scripts/generate-sympy-fixtures.mjs` extended with `generateGcdCases()`, `generatePrimeCases()`, `generateModularCases()`, `generateBinomialCases()`, `generateTotientCases()`.
-- [ ] Cross-engine tests for each number-theory block.
+- [x] SymPy `discrete-*` fixture pattern — `scripts/generate-sympy-fixtures.mjs` extended with `generateGcdCases()`, `generateIsPrimeCases()`, `generateFactorintCases()`, `generateTotientCases()`, `generateBinomialCases()`, `generateModularCases()`; 6 JSON fixture files; 6 typed loaders in `sympy-reference.ts`. (`acd093a`)
+- [x] Cross-engine tests for number-theory blocks — Fermat's little theorem property + gcd/isPrime/primeFactorize/totient/modpow/modularInverse cross-engine (`1f85c40`); binomial cross-engine (`d7cd6b3`).
 - [ ] Property invariants: `gcd(a,b) · lcm(a,b) = |a·b|`; Pascal's identity; totient multiplicativity.
 
 ### Blocks

@@ -1,6 +1,7 @@
 import * as fc from "fast-check";
 import { describe, expect, test } from "vitest";
 import type { VectorPayload } from "~/math/types";
+import { loadFibonacciFixture } from "../../../tests/sympy-reference";
 import { FibonacciBlock, FibonacciError, fibSequence } from "./fibonacci/definition";
 import { PartialSumBlock, PartialSumError } from "./partial-sum/definition";
 import { linearRecurrence, RecurrenceBlock, RecurrenceError } from "./recurrence/definition";
@@ -87,9 +88,24 @@ describe("linearRecurrence", () => {
   test("property: c2=0 first-order: a(n) = c1*a(n-1) + d", () => {
     fc.assert(
       fc.property(
-        fc.float({ min: Math.fround(-5), max: Math.fround(5), noNaN: true, noDefaultInfinity: true }),
-        fc.float({ min: Math.fround(0.1), max: Math.fround(2), noNaN: true, noDefaultInfinity: true }),
-        fc.float({ min: Math.fround(-5), max: Math.fround(5), noNaN: true, noDefaultInfinity: true }),
+        fc.float({
+          min: Math.fround(-5),
+          max: Math.fround(5),
+          noNaN: true,
+          noDefaultInfinity: true,
+        }),
+        fc.float({
+          min: Math.fround(0.1),
+          max: Math.fround(2),
+          noNaN: true,
+          noDefaultInfinity: true,
+        }),
+        fc.float({
+          min: Math.fround(-5),
+          max: Math.fround(5),
+          noNaN: true,
+          noDefaultInfinity: true,
+        }),
         fc.integer({ min: 2, max: 10 }),
         (a0, c1, d, terms) => {
           const seq = linearRecurrence(a0, a0 * c1 + d, c1, 0, d, terms);
@@ -202,5 +218,88 @@ describe("RecurrenceBlock", () => {
   test("output type is Vector", () => {
     const result = RecurrenceBlock.compute({}, { terms: 3, a0: 1, a1: 1, c1: 1, c2: 0, d: 0 }, ctx);
     expect((result as ReturnType<typeof makeVector>).type.kind).toBe("Vector");
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// SymPy cross-engine: fibonacci
+// ──────────────────────────────────────────────────────────────────────
+
+describe("fibSequence — SymPy cross-engine", () => {
+  const fixture = loadFibonacciFixture();
+  for (const { n, value } of fixture.cases) {
+    test(`F(${String(n)}) = ${String(value)}`, () => {
+      const seq = fibSequence(n + 1);
+      expect(seq[n]).toBe(value);
+    });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// Additional property tests
+// ──────────────────────────────────────────────────────────────────────
+
+describe("linearRecurrence — reproduces fibSequence (cross-check)", () => {
+  test("property: recurrence(a0=0,a1=1,c1=1,c2=1,d=0,n) = fibSequence(n) for n in [2..20]", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 2, max: 20 }), (n) => {
+        const fromRecurrence = linearRecurrence(0, 1, 1, 1, 0, n);
+        const fromFib = fibSequence(n);
+        expect(fromRecurrence).toEqual(fromFib);
+      }),
+    );
+  });
+});
+
+describe("fibSequence — additional properties", () => {
+  test("property: F(n) is strictly increasing for indices >= 3", () => {
+    // F(0)=0, F(1)=1, F(2)=1 — the duplicate is only at positions 1 and 2.
+    // From index 3 onward each term strictly exceeds the previous.
+    fc.assert(
+      fc.property(fc.integer({ min: 4, max: 20 }), (n) => {
+        const seq = fibSequence(n);
+        for (let i = 3; i < seq.length; i++) {
+          expect(seq[i] ?? 0).toBeGreaterThan(seq[i - 1] ?? 0);
+        }
+      }),
+    );
+  });
+
+  test("property: sum of first n fibonacci terms = F(n+1) - 1", () => {
+    // Identity: ∑_{i=0}^{n-1} F(i) = F(n+1) - 1
+    fc.assert(
+      fc.property(fc.integer({ min: 1, max: 18 }), (n) => {
+        const sumFirstN = fibSequence(n).reduce((a, b) => a + b, 0);
+        const seqExtended = fibSequence(n + 2);
+        expect(sumFirstN).toBe((seqExtended[n + 1] ?? 0) - 1);
+      }),
+    );
+  });
+});
+
+describe("PartialSumBlock — additional properties", () => {
+  test("property: partial-sum of fibonacci is monotonically increasing", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 1, max: 15 }), (n) => {
+        const fibs = fibSequence(n);
+        const result = PartialSumBlock.compute({ seq: makeVector(fibs as number[]) }, {}, ctx);
+        const partials = getPayload(result);
+        for (let i = 1; i < partials.length; i++) {
+          expect(partials[i] ?? 0).toBeGreaterThan(partials[i - 1] ?? 0);
+        }
+      }),
+    );
+  });
+
+  test("property: partial sums length = input length", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: -50, max: 50 }), { minLength: 0, maxLength: 20 }),
+        (vals) => {
+          const result = PartialSumBlock.compute({ seq: makeVector(vals) }, {}, ctx);
+          expect(getPayload(result)).toHaveLength(vals.length);
+        },
+      ),
+    );
   });
 });

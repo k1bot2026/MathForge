@@ -3132,6 +3132,41 @@ json.dumps({"a": ${a}, "b": ${b}, "m": ${m}, "result": int(pow(${a}, ${b}, ${m})
   };
 }
 
+/**
+ * Fibonacci sequence: F(n) where F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2).
+ * SymPy fibonacci(n) is 1-indexed (fibonacci(1)=1, fibonacci(2)=1, …)
+ * but our implementation is 0-indexed. We generate cases as {n, f_n} where
+ * f_n = the n-th term of the 0-indexed sequence (F(0)=0, F(1)=1, …).
+ * Covers 0..20 plus a selection of larger terms up to n=30.
+ */
+async function generateFibonacciCases(py) {
+  const nValues = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    25, 30,
+  ];
+
+  const cases = [];
+  for (const n of nValues) {
+    // SymPy fibonacci(k) gives the k-th Fibonacci with fibonacci(0)=0, fibonacci(1)=1
+    const result = py.runPython(`
+from sympy import fibonacci
+import json
+json.dumps({"n": ${n}, "value": int(fibonacci(${n}))})
+`);
+    cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference Fibonacci values from SymPy fibonacci(n). 0-indexed: F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2). " +
+      "Covers n=0..20 plus n=25,30. All values are exact non-negative integers.",
+    cases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -3294,6 +3329,10 @@ async function main() {
   console.log("\nGenerating discrete.modular fixtures…");
   const modularFixture = await generateModularCases(py);
   writeFixture("discrete-modular", modularFixture);
+
+  console.log("\nGenerating discrete.fibonacci fixtures…");
+  const fibonacciFixture = await generateFibonacciCases(py);
+  writeFixture("discrete-fibonacci", fibonacciFixture);
 
   console.log("\nDone.");
 }

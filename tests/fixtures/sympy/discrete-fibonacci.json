@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-05T01:17:00.000Z",
+  "description": "Reference Fibonacci values from SymPy fibonacci(n). 0-indexed: F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2). Covers n=0..20 plus n=25,30. All values are exact non-negative integers.",
+  "cases": [
+    { "n": 0, "value": 0 },
+    { "n": 1, "value": 1 },
+    { "n": 2, "value": 1 },
+    { "n": 3, "value": 2 },
+    { "n": 4, "value": 3 },
+    { "n": 5, "value": 5 },
+    { "n": 6, "value": 8 },
+    { "n": 7, "value": 13 },
+    { "n": 8, "value": 21 },
+    { "n": 9, "value": 34 },
+    { "n": 10, "value": 55 },
+    { "n": 11, "value": 89 },
+    { "n": 12, "value": 144 },
+    { "n": 13, "value": 233 },
+    { "n": 14, "value": 377 },
+    { "n": 15, "value": 610 },
+    { "n": 16, "value": 987 },
+    { "n": 17, "value": 1597 },
+    { "n": 18, "value": 2584 },
+    { "n": 19, "value": 4181 },
+    { "n": 20, "value": 6765 },
+    { "n": 25, "value": 75025 },
+    { "n": 30, "value": 832040 }
+  ]
+}

@@ -1,16 +1,21 @@
 import type { BlockRegistry } from "../registry";
+import { AdjacencyMatrixBlock } from "./adjacency-matrix/definition";
 import { BinomialBlock } from "./binomial/definition";
 import { CartesianProductBlock } from "./cartesian-product/definition";
+import { ColoringBlock } from "./coloring/definition";
 import { CombinationsBlock } from "./combinations/definition";
+import { ConnectedComponentsBlock } from "./connected-components/definition";
 import { DifferenceBlock } from "./difference/definition";
 import { DivisorsBlock } from "./divisors/definition";
 import { FactorBlock } from "./factor/definition";
 import { FactorialBlock } from "./factorial/definition";
 import { FibonacciBlock } from "./fibonacci/definition";
 import { GcdBlock } from "./gcd/definition";
+import { GraphBlock } from "./graph/definition";
 import { IntersectionBlock } from "./intersection/definition";
 import { IsPrimeBlock } from "./is-prime/definition";
 import { LcmBlock } from "./lcm/definition";
+import { MinimumSpanningTreeBlock } from "./minimum-spanning-tree/definition";
 import { ModpowBlock } from "./modpow/definition";
 import { ModularInverseBlock } from "./modular-inverse/definition";
 import { MultinomialBlock } from "./multinomial/definition";
@@ -19,6 +24,7 @@ import { PermutationsBlock } from "./permutations/definition";
 import { PrimeFactorizeBlock } from "./prime-factorize/definition";
 import { RecurrenceBlock } from "./recurrence/definition";
 import { SetBlock } from "./set/definition";
+import { ShortestPathBlock } from "./shortest-path/definition";
 import { TotientBlock } from "./totient/definition";
 import { UnionBlock } from "./union/definition";
 
@@ -45,4 +51,10 @@ export function register(registry: BlockRegistry): void {
   registry.register(RecurrenceBlock);
   registry.register(PermutationsBlock);
   registry.register(CombinationsBlock);
+  registry.register(GraphBlock);
+  registry.register(AdjacencyMatrixBlock);
+  registry.register(ShortestPathBlock);
+  registry.register(MinimumSpanningTreeBlock);
+  registry.register(ConnectedComponentsBlock);
+  registry.register(ColoringBlock);
 }

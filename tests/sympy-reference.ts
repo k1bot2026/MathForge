@@ -998,3 +998,23 @@ export type ModularFixture = {
 export function loadModularFixture(): ModularFixture {
   return loadJson<ModularFixture>("discrete-modular");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// discrete.fibonacci fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type FibonacciCase = {
+  n: number;
+  value: number;
+};
+
+export type FibonacciFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  cases: FibonacciCase[];
+};
+
+export function loadFibonacciFixture(): FibonacciFixture {
+  return loadJson<FibonacciFixture>("discrete-fibonacci");
+}

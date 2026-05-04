@@ -337,23 +337,23 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 **Combinatorics** _(operation role, violet)_
 
-- `discrete.permutations` — ordered arrangements; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (P(n,r) = n!/(n−r)!). Pending.
-- `discrete.combinations` — unordered selections; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (C(n,r) = n!/(r!(n−r)!)). Pending.
+- `discrete.permutations` [shipped] — inputs `S: Set<Scalar(integer, exact)>`, `k: Scalar(integer, exact)`; output `result: Set<Tuple<Scalar(integer)×k>>`; enumerates all ordered k-tuples drawn from S without repetition; capped at 5040 results; throws `PermutationsError`. (`0ff2c81`)
+- `discrete.combinations` [shipped] — inputs `S: Set<Scalar(integer, exact)>`, `k: Scalar(integer, exact)`; output `result: Set<Tuple<Scalar(integer)×k>>`; enumerates all unordered k-subsets drawn from S; elements sorted ascending before enumeration; capped at 5040 results; throws `CombinationsError`. (`0ff2c81`)
 - `discrete.factorial` [shipped] — input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; n!; symbol `n!`; throws `CombinatoricsError` for n exceeding `FACTORIAL_MAX_N`. Shared `combinatorics.ts` utility (factorial, binomial, multinomial, makeScalar). Stability: experimental. (`7273ac1`)
 - `discrete.binomial` [shipped] — inputs `n: Scalar(integer, exact)`, `k: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; C(n,k) = n! / (k!(n−k)!); symbol `C(n,k)`. Cross-check with SymPy `discrete-binomial.json` fixture. (`7273ac1`)
 - `discrete.multinomial` [shipped] — no inputs; params `groups` (1–8, default 3) + `k0..k7` integer group sizes (0 ≤ kᵢ ≤ FACTORIAL_MAX_N); output `result: Scalar(integer, exact)`; (k₀+k₁+…)! / (k₀!·k₁!·…); symbol `M`; up to 8 groups. (`7273ac1`)
 
 **Number theory** _(operation role, violet)_
 
-- `discrete.gcd` — GCD via Euclidean algorithm; inputs `a: Scalar(integer)`, `b: Scalar(integer)`; output `result: Scalar(integer, exact)`. SymPy cross-check.
-- `discrete.lcm` — LCM = |a·b| / gcd(a,b); inputs `a: Scalar(integer)`, `b: Scalar(integer)`; output `result: Scalar(integer, exact)`. Property test: `gcd(a,b) · lcm(a,b) = |a·b|`.
-- `discrete.modpow` — modular exponentiation aᵇ mod m; inputs `a`, `b`, `m: Scalar(integer)`; output `result: Scalar(integer, exact)`.
-- `discrete.is-prime` — primality test; input `n: Scalar(integer)`; output `result: Scalar(boolean, exact)`.
-- `discrete.factor` — prime factorization; input `n: Scalar(integer)`; output `factors: Vector<k, integer>` (prime factors with multiplicity, ascending). SymPy factorint cross-check.
-- `discrete.totient` — Euler's φ(n); input `n: Scalar(integer, exact)` (n ≥ 1); output `result: Scalar(integer, exact)`. Property test: multiplicativity for coprime inputs. SymPy cross-check.
-- `discrete.divisors` — all positive divisors of n; input `n: Scalar(integer)`; output `divs: Set<Scalar(integer, exact)>`.
-- `discrete.prime-factorize` — returns prime bases and exponents; input `n: Scalar(integer)`; output `Tuple` of `primes: Vector<k>` + `exponents: Vector<k>`.
-- `discrete.modular-inverse` — a⁻¹ mod m; inputs `a: Scalar(integer)`, `m: Scalar(integer)`; requires gcd(a, m) = 1; throws `ModularInverseError` when not coprime; output `result: Scalar(integer, exact)`.
+- `discrete.gcd` [shipped] — inputs `a, b: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; GCD via Euclidean algorithm; throws `NumberTheoryError`. Shared `number-theory.ts` utility. SymPy cross-check via `discrete-gcd.json` fixture. (`52d4fc8`)
+- `discrete.lcm` [shipped] — inputs `a, b: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; LCM = |a·b| / gcd(a,b). Shared `number-theory.ts` utility. (`52d4fc8`)
+- `discrete.modpow` [shipped] — inputs `base, exp, m: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; modular exponentiation aᵉ mod m via repeated squaring. Throws `NumberTheoryError`. (`52d4fc8`)
+- `discrete.is-prime` [shipped] — input `n: Scalar(integer, exact)`; output `result: Scalar(boolean, exact)`; trial-division primality test; uses `makeBooleanScalar`. (`52d4fc8`)
+- `discrete.factor` [shipped] — input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>` (distinct prime factors, no multiplicity, e.g. 12 → {2, 3}); uses `makeSetOfIntegers`. Throws `NumberTheoryError`. (`52d4fc8`)
+- `discrete.totient` [shipped] — input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; Euler's φ(n) = count of integers in [1,n] coprime to n. SymPy cross-check. (`52d4fc8`)
+- `discrete.divisors` [shipped] — input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>` (all positive divisors, ascending order); uses `makeSetOfIntegers`. (`52d4fc8`)
+- `discrete.prime-factorize` [shipped] — input `n: Scalar(integer, exact)`; output `result: Set<Scalar(integer, exact)>` (prime factors with multiplicity, e.g. 12 → {2, 2, 3}); uses `makeSetOfIntegers`. Distinct from `discrete.factor` which returns only unique primes. (`52d4fc8`)
+- `discrete.modular-inverse` [shipped] — inputs `a, m: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; a⁻¹ mod m; requires gcd(a, m) = 1; throws `NumberTheoryError` when not coprime. (`52d4fc8`)
 
 **Graph theory** _(operation role, violet; source role for `discrete.graph`)_
 
@@ -366,9 +366,9 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 **Sequences & recurrences** _(operation role, violet)_
 
-- `discrete.fibonacci` — nth Fibonacci number; input `n: Scalar(integer)`; output `result: Scalar(integer, exact)`. Large n via Binet formula (approximate branch); exact for n ≤ 70.
-- `discrete.partial-sum` — Σᵢ₌₀ⁿ aᵢ; input `seq: Vector<n, real>`; output `sum: Scalar(real)`.
-- `discrete.recurrence` — evaluate a recurrence relation up to n; params: `f` (string, e.g. "a[n-1]+a[n-2]"), `initial` (initial values), `n` (evaluation depth). Stability: experimental.
+- `discrete.fibonacci` [shipped] — no inputs; param `n` (integer, 0–78, default 10); output `result: Vector<n, integer>`; generates F(0), F(1), …, F(n-1); exact integers (F(78) ≤ MAX_SAFE_INTEGER); throws `FibonacciError` for n > 78. (`4d2a9c2`)
+- `discrete.partial-sum` [shipped] — input `seq: Vector<any, integer>`; output `result: Vector<n, integer>`; running prefix sums S(k) = a(0) + a(1) + … + a(k); throws `PartialSumError` on missing input. (`4d2a9c2`)
+- `discrete.recurrence` [shipped] — no inputs; params `terms` (0–50, default 10), `a0` (default 0), `a1` (default 1), `c1` (default 1), `c2` (default 1), `d` (default 0); output `result: Vector<n, real>`; evaluates a(n) = c₁·a(n-1) + c₂·a(n-2) + d; throws `RecurrenceError` on divergence. Stability: experimental. (`4d2a9c2`)
 
 **Visualization** _(visualizer role, emerald)_
 

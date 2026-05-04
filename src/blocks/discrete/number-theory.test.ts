@@ -347,7 +347,7 @@ describe("IsPrimeBlock", () => {
   });
   test("explain.effect: prime case", () => {
     const out = {
-      type: { kind: "Scalar", field: "boolean", precision: "exact" },
+      type: { kind: "Scalar" as const, field: "boolean" as const, precision: "exact" as const },
       payload: true,
       provenance: { blockId: "t", inputs: [], computedAt: 0, engine: "native" as const },
     };
@@ -355,7 +355,7 @@ describe("IsPrimeBlock", () => {
   });
   test("explain.effect: composite case", () => {
     const out = {
-      type: { kind: "Scalar", field: "boolean", precision: "exact" },
+      type: { kind: "Scalar" as const, field: "boolean" as const, precision: "exact" as const },
       payload: false,
       provenance: { blockId: "t", inputs: [], computedAt: 0, engine: "native" as const },
     };
