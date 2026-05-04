@@ -550,7 +550,7 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 |---|---|---|
 | **Foundation** | `Permutation`, `Combination`, `Graph`, `Modular` types in `MathType`; `SetPayload`, `PermutationPayload`, `CombinationPayload`, `GraphPayload`, `ModularPayload`; `canConnect` extended for all new kinds (`1008750`); `discrete/index.ts` plugin entry (`a1d2bf7`) | — |
 | **Set blocks** | `discrete.set` (`a1d2bf7`), `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product` (all `a085ac1`) | — |
-| **Combinatorics** | — | `discrete.permutations`, `discrete.combinations`, `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` |
+| **Combinatorics** | `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` (`7273ac1`) | `discrete.permutations`, `discrete.combinations` |
 | **Number theory** | — | `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse` |
 | **Graph theory** | — | `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring` |
 | **Sequences** | — | `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence` |
@@ -577,9 +577,9 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 
 - [ ] `discrete.permutations` — `Set × Scalar(integer) → Set<Permutation>`.
 - [ ] `discrete.combinations` — `Set × Scalar(integer) → Set<Combination>`.
-- [ ] `discrete.factorial` — `Scalar(integer) → Scalar(integer)`; n!.
-- [ ] `discrete.binomial` — `Scalar(integer) × Scalar(integer) → Scalar(integer)`; C(n, k).
-- [ ] `discrete.multinomial` — `Vector<k, integer> → Scalar(integer)`; n! / (n₁!·…·nₖ!).
+- [x] `discrete.factorial` — input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; n!; throws `CombinatoricsError` for n > FACTORIAL_MAX_N. (`7273ac1`)
+- [x] `discrete.binomial` — inputs `n: Scalar(integer, exact)`, `k: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; C(n,k) = n! / (k!(n−k)!). Symbol: C(n,k). (`7273ac1`)
+- [x] `discrete.multinomial` — params `groups` (1–8) + `k0..k7` integer counts; no inputs; output `result: Scalar(integer, exact)`; (k₀+k₁+…)! / (k₀!·k₁!·…). Symbol: M. Up to 8 groups. (`7273ac1`)
 
 **Number theory**
 

@@ -27,6 +27,12 @@ First block: discrete.set.
 
 - **Discrete fixture infrastructure** — `scripts/generate-sympy-fixtures.mjs` extended with six SymPy-backed generators: `generateGcdCases()` (36 cases including coprime, same-number, zero), `generateIsPrimeCases()` (30 cases: primes, composites, edge cases including 0/1/2), `generateFactorintCases()` (25 cases: primes, prime powers, composites), `generateTotientCases()` (28 cases covering multiplicativity), `generateBinomialCases()` (40 cases including Pascal's identity triples), `generateModularCases()` (31 cases: modpow + modular-inverse). Corresponding fixture JSON files: `discrete-gcd.json`, `discrete-prime.json`, `discrete-factorint.json`, `discrete-totient.json`, `discrete-binomial.json`, `discrete-modular.json`. Six typed loaders added to `tests/sympy-reference.ts`. All values are integer-exact; no floating-point tolerance needed. (`acd093a`)
 
+### Discrete blocks (Phase 6 / Combinatorics)
+
+- **`discrete.factorial`** — n! as an exact integer. Input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `n!`. Throws `CombinatoricsError` for n exceeding `FACTORIAL_MAX_N`. Shared `combinatorics.ts` utility module (`factorial`, `binomial`, `multinomial`, `makeScalar`). Stability: experimental. (`7273ac1`)
+- **`discrete.binomial`** — binomial coefficient C(n, k) = n! / (k!(n−k)!). Inputs `n: Scalar(integer, exact)`, `k: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`. Symbol: `C(n,k)`. Cross-checked against SymPy `discrete-binomial.json` fixture (40 cases including Pascal's identity triples). (`7273ac1`)
+- **`discrete.multinomial`** — multinomial coefficient (k₀+k₁+…)! / (k₀!·k₁!·…). No inputs; params `groups` (1–8, default 3) + `k0..k7` group sizes. Output `result: Scalar(integer, exact)`. Symbol: `M`. Up to 8 groups; total n ≤ `FACTORIAL_MAX_N`. Generalizes the binomial coefficient for more than two groups. 189 tests across all three combinatorics blocks (unit cases, error paths, fast-check properties: Pascal's identity, C(n,0)=C(n,n)=1, multinomial sum). (`7273ac1`)
+
 ### Discrete blocks (Phase 6 / Set operations)
 
 - **`discrete.union`** — set union A ∪ B. Inputs `A, B: Set<Scalar(integer, exact)>`; output `S: Set<Scalar(integer, exact)>`. Symbol: ∪. Shared `set-ops.ts` utility module (`setUnion`, `setIntersection`, `setDifference`, `setCartesianProduct`); all four set-op blocks register from `discrete/index.ts`. Throws `SetOpError` on missing inputs. (`a085ac1`)

@@ -337,11 +337,11 @@ Status markers: `[shipped]` = in main; `[in progress]` = implementation underway
 
 **Combinatorics** _(operation role, violet)_
 
-- `discrete.permutations` — ordered arrangements; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (P(n,r) = n!/(n−r)!).
-- `discrete.combinations` — unordered selections; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (C(n,r) = n!/(r!(n−r)!)).
-- `discrete.factorial` — n!; input `n: Scalar(integer, exact)` (n ≥ 0); output `result: Scalar(integer, exact)`.
-- `discrete.binomial` — C(n, k); inputs `n: Scalar(integer)`, `k: Scalar(integer)`; output `result: Scalar(integer, exact)`. Property test: Pascal's identity C(n,k) = C(n−1,k−1) + C(n−1,k).
-- `discrete.multinomial` — n! / (n₁!·…·nₖ!); input `counts: Vector<k, integer>`; output `result: Scalar(integer, exact)`.
+- `discrete.permutations` — ordered arrangements; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (P(n,r) = n!/(n−r)!). Pending.
+- `discrete.combinations` — unordered selections; inputs `set: Set`, `r: Scalar(integer)`; output `count: Scalar(integer, exact)` (C(n,r) = n!/(r!(n−r)!)). Pending.
+- `discrete.factorial` [shipped] — input `n: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; n!; symbol `n!`; throws `CombinatoricsError` for n exceeding `FACTORIAL_MAX_N`. Shared `combinatorics.ts` utility (factorial, binomial, multinomial, makeScalar). Stability: experimental. (`7273ac1`)
+- `discrete.binomial` [shipped] — inputs `n: Scalar(integer, exact)`, `k: Scalar(integer, exact)`; output `result: Scalar(integer, exact)`; C(n,k) = n! / (k!(n−k)!); symbol `C(n,k)`. Cross-check with SymPy `discrete-binomial.json` fixture. (`7273ac1`)
+- `discrete.multinomial` [shipped] — no inputs; params `groups` (1–8, default 3) + `k0..k7` integer group sizes (0 ≤ kᵢ ≤ FACTORIAL_MAX_N); output `result: Scalar(integer, exact)`; (k₀+k₁+…)! / (k₀!·k₁!·…); symbol `M`; up to 8 groups. (`7273ac1`)
 
 **Number theory** _(operation role, violet)_
 
