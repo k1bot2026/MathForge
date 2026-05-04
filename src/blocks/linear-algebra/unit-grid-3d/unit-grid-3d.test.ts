@@ -62,3 +62,19 @@ describe("viz.unit-grid-3d definition", () => {
     }
   });
 });
+
+describe("la.unit-grid-3d definition explain.impact", () => {
+  test("impact shows downstream matrix dimensions", () => {
+    const M: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 3, field: "real" },
+      payload: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ] as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const text = UnitGrid3dBlock.explain.impact?.({ M }, M) ?? "";
+    expect(text).toMatch(/3×3/);
+  });
+});

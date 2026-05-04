@@ -166,3 +166,25 @@ describe("la.rref compute", () => {
     );
   });
 });
+
+describe("la.rref definition explain", () => {
+  test("effect returns shape string with same shape as input", async () => {
+    const { RrefBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 4, field: "real", precision: "approximate" },
+      payload: [] as unknown as number,
+      provenance: { blockId: "la.rref", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(RrefBlock.explain.effect?.({}, output)).toMatch(/3×4/);
+  });
+
+  test("impact returns canonical form description", async () => {
+    const { RrefBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 4, field: "real", precision: "approximate" },
+      payload: [] as unknown as number,
+      provenance: { blockId: "la.rref", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(RrefBlock.explain.impact?.({}, output)).toMatch(/canonical/i);
+  });
+});

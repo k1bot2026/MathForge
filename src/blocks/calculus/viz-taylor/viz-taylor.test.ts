@@ -24,9 +24,7 @@ describe("viz.taylor compute", () => {
 
   test("throws when fn input is missing", async () => {
     const { VizTaylorBlock } = await import("./definition");
-    expect(() => VizTaylorBlock.compute({}, {})).toThrow(
-      "viz.taylor requires f(x) on the fn port",
-    );
+    expect(() => VizTaylorBlock.compute({}, {})).toThrow("viz.taylor requires f(x) on the fn port");
   });
 });
 
@@ -50,10 +48,7 @@ describe("viz.taylor definition explain", () => {
     const { VizTaylorBlock } = await import("./definition");
     const effect = VizTaylorBlock.explain.effect;
     if (effect === undefined) throw new Error("effect undefined");
-    const msg = effect(
-      { fn: makeFn("cos(x)"), taylor: makeFn("1 - x**2/2") },
-      undefined as never,
-    );
+    const msg = effect({ fn: makeFn("cos(x)"), taylor: makeFn("1 - x**2/2") }, undefined as never);
     expect(msg).toMatch(/Taylor approximation overlay/);
   });
 });

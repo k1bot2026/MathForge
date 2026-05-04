@@ -124,3 +124,25 @@ describe("la.transpose compute", () => {
     );
   });
 });
+
+describe("la.transpose definition explain", () => {
+  test("effect returns transposed dimensions string", async () => {
+    const { TransposeBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 2, field: "real", precision: "approximate" },
+      payload: [] as unknown as number,
+      provenance: { blockId: "la.transpose", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(TransposeBlock.explain.effect?.({}, output)).toMatch(/3×2/);
+  });
+
+  test("impact notes rows and columns are swapped", async () => {
+    const { TransposeBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 2, field: "real", precision: "approximate" },
+      payload: [] as unknown as number,
+      provenance: { blockId: "la.transpose", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(TransposeBlock.explain.impact?.({}, output)).toMatch(/3×2/);
+  });
+});

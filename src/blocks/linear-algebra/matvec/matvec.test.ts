@@ -218,3 +218,15 @@ describe("la.matvec definition — explain.effect and output type", () => {
     expect(result.payload).toEqual([1, 3]);
   });
 });
+
+describe("la.matvec definition explain.impact", () => {
+  test("impact shows output vector components", () => {
+    const out: MathValue = {
+      type: { kind: "Vector", n: 3, field: "real" },
+      payload: [1, 2, 3] as number[],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const text = MatVecBlock.explain.impact?.({}, out) ?? "";
+    expect(text).toMatch(/1, 2, 3/);
+  });
+});

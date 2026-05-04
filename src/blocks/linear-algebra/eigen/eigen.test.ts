@@ -140,3 +140,16 @@ describe("la.eigen compute", () => {
     );
   });
 });
+
+describe("la.eigen definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { EigenBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.eigen", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(EigenBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(EigenBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

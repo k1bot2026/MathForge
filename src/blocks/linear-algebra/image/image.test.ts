@@ -198,3 +198,39 @@ describe("la.image compute", () => {
     );
   });
 });
+
+describe("la.image definition explain", () => {
+  test("effect reports zero map for zero-column output", async () => {
+    const { ImageBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 0, field: "real" },
+      payload: [[], [], []] as unknown as number,
+      provenance: { blockId: "la.image", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(ImageBlock.explain.effect?.({}, output)).toMatch(/zero map/i);
+  });
+
+  test("effect reports rank for non-trivial column space", async () => {
+    const { ImageBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 2, field: "real" },
+      payload: [
+        [1, 0],
+        [0, 1],
+        [0, 0],
+      ] as unknown as number,
+      provenance: { blockId: "la.image", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(ImageBlock.explain.effect?.({}, output)).toMatch(/rank/i);
+  });
+
+  test("impact states rank-nullity theorem", async () => {
+    const { ImageBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.image", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(ImageBlock.explain.impact?.({}, scalarOut)).toMatch(/rank-nullity/i);
+  });
+});

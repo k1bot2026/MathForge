@@ -256,3 +256,15 @@ describe("la.matmul definition — explain.effect and output type", () => {
     ]);
   });
 });
+
+describe("la.matmul definition explain.impact", () => {
+  test("impact shows output matrix dimensions", () => {
+    const out: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 5, field: "real" },
+      payload: Array.from({ length: 3 }, () => Array(5).fill(0)) as number[][],
+      provenance: { blockId: "test", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const text = MatMulBlock.explain.impact?.({}, out) ?? "";
+    expect(text).toMatch(/3×5/);
+  });
+});

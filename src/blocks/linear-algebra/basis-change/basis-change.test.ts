@@ -198,3 +198,44 @@ describe("la.basis-change compute", () => {
     );
   });
 });
+
+describe("la.basis-change definition explain", () => {
+  test("effect returns awaiting prompt when inputs are missing", async () => {
+    const { BasisChangeBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.basis-change", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(BasisChangeBlock.explain.effect?.({}, scalarOut)).toMatch(/Awaiting/);
+  });
+
+  test("effect shows matrix dimension when inputs are connected", async () => {
+    const { BasisChangeBlock } = await import("./definition");
+    const matVal: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 2, field: "real" },
+      payload: [
+        [1, 0],
+        [0, 1],
+      ] as unknown as number,
+      provenance: { blockId: "la.matrix", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.basis-change", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = BasisChangeBlock.explain.effect?.({ T: matVal, P: matVal }, scalarOut);
+    expect(msg).toMatch(/2×2/);
+  });
+
+  test("impact states similarity invariants are preserved", async () => {
+    const { BasisChangeBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.basis-change", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(BasisChangeBlock.explain.impact?.({}, scalarOut)).toMatch(/Similarity/);
+  });
+});

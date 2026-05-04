@@ -77,3 +77,27 @@ describe("la.vector compute", () => {
     );
   });
 });
+
+describe("la.vector definition explain", () => {
+  test("effect shows vector components", async () => {
+    const { VectorBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Vector", n: 3, field: "real" },
+      payload: [1, 2, 3] as unknown as number,
+      provenance: { blockId: "la.vector", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(VectorBlock.explain.effect?.({}, output)).toMatch(/1, 2, 3/);
+  });
+
+  test("impact shows vector length and dimension", async () => {
+    const { VectorBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [3, 4] as unknown as number,
+      provenance: { blockId: "la.vector", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = VectorBlock.explain.impact?.({}, output);
+    expect(msg).toMatch(/5\.000/);
+    expect(msg).toMatch(/2-vector/);
+  });
+});

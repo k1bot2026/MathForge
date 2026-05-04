@@ -127,3 +127,16 @@ describe("la.trace compute", () => {
     );
   });
 });
+
+describe("la.trace definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { TraceBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 6,
+      provenance: { blockId: "la.trace", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(TraceBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(TraceBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

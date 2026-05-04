@@ -134,3 +134,31 @@ describe("la.add compute", () => {
     );
   });
 });
+
+describe("la.add definition explain", () => {
+  test("effect returns output dimensions string", async () => {
+    const { AddBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 3, field: "real", precision: "approximate" },
+      payload: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ] as unknown as number,
+      provenance: { blockId: "la.add", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(AddBlock.explain.effect?.({}, output)).toMatch(/2×3/);
+  });
+
+  test("impact returns dimension info string", async () => {
+    const { AddBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 3, field: "real", precision: "approximate" },
+      payload: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ] as unknown as number,
+      provenance: { blockId: "la.add", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(AddBlock.explain.impact?.({}, output)).toMatch(/2×3/);
+  });
+});

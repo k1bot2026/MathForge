@@ -189,3 +189,35 @@ describe("la.kernel compute", () => {
     );
   });
 });
+
+describe("la.kernel definition explain", () => {
+  test("effect reports trivial null space for zero-column output", async () => {
+    const { KernelBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 0, field: "real" },
+      payload: [[], [], []] as unknown as number,
+      provenance: { blockId: "la.kernel", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(KernelBlock.explain.effect?.({}, output)).toMatch(/trivial/i);
+  });
+
+  test("effect reports nullity for non-trivial null space", async () => {
+    const { KernelBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 1, field: "real" },
+      payload: [[1], [0], [0]] as unknown as number,
+      provenance: { blockId: "la.kernel", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(KernelBlock.explain.effect?.({}, output)).toMatch(/nullity/i);
+  });
+
+  test("impact states rank-nullity theorem", async () => {
+    const { KernelBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.kernel", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(KernelBlock.explain.impact?.({}, scalarOut)).toMatch(/rank-nullity/i);
+  });
+});

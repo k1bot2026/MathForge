@@ -121,3 +121,34 @@ describe("la.matrix compute", () => {
     );
   });
 });
+
+describe("la.matrix definition explain", () => {
+  test("effect shows matrix shape and top-left entry", async () => {
+    const { MatrixBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 2, field: "real" },
+      payload: [
+        [7, 0],
+        [0, 1],
+      ] as unknown as number,
+      provenance: { blockId: "la.matrix", inputs: [], computedAt: 0, engine: "native" },
+    };
+    const msg = MatrixBlock.explain.effect?.({}, output);
+    expect(msg).toMatch(/2×2/);
+    expect(msg).toMatch(/7/);
+  });
+
+  test("impact shows matrix dimensions in ℝ^(m×n)", async () => {
+    const { MatrixBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 3, n: 3, field: "real" },
+      payload: [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ] as unknown as number,
+      provenance: { blockId: "la.matrix", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(MatrixBlock.explain.impact?.({}, output)).toMatch(/3×3/);
+  });
+});

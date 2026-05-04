@@ -198,3 +198,16 @@ describe("la.svd compute", () => {
     );
   });
 });
+
+describe("la.svd definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { SvdBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.svd", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(SvdBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(SvdBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

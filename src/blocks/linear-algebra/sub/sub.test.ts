@@ -110,3 +110,31 @@ describe("la.sub compute", () => {
     );
   });
 });
+
+describe("la.sub definition explain", () => {
+  test("effect returns output dimensions string", async () => {
+    const { SubBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 3, field: "real", precision: "approximate" },
+      payload: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ] as unknown as number,
+      provenance: { blockId: "la.sub", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(SubBlock.explain.effect?.({}, output)).toMatch(/2×3/);
+  });
+
+  test("impact returns dimension info string", async () => {
+    const { SubBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Matrix", m: 2, n: 3, field: "real", precision: "approximate" },
+      payload: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ] as unknown as number,
+      provenance: { blockId: "la.sub", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(SubBlock.explain.impact?.({}, output)).toMatch(/2×3/);
+  });
+});

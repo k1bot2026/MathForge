@@ -164,3 +164,16 @@ describe("la.lu compute", () => {
     );
   });
 });
+
+describe("la.lu definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { LuBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.lu", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(LuBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(LuBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

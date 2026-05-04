@@ -167,3 +167,16 @@ describe("la.solve compute", () => {
     );
   });
 });
+
+describe("la.solve definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { SolveBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.solve", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(SolveBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(SolveBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

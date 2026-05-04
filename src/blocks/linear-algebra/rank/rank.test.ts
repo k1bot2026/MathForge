@@ -159,3 +159,16 @@ describe("la.rank compute", () => {
     );
   });
 });
+
+describe("la.rank definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { RankBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.rank", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(RankBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(RankBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

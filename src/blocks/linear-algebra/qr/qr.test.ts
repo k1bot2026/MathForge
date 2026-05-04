@@ -143,3 +143,16 @@ describe("la.qr compute", () => {
     );
   });
 });
+
+describe("la.qr definition explain", () => {
+  test("effect and impact return non-empty static strings", async () => {
+    const { QrBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.qr", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(QrBlock.explain.effect?.({}, scalarOut)).toBeTruthy();
+    expect(QrBlock.explain.impact?.({}, scalarOut)).toBeTruthy();
+  });
+});

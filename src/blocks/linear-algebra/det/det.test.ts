@@ -140,3 +140,29 @@ describe("la.det compute", () => {
     );
   });
 });
+
+describe("la.det definition explain", () => {
+  test("effect returns scalar description string", async () => {
+    const { DetBlock } = await import("./definition");
+    const effect = DetBlock.explain.effect;
+    if (effect === undefined) throw new Error("effect undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 6,
+      provenance: { blockId: "la.det", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(effect({}, output)).toMatch(/scalar/i);
+  });
+
+  test("impact returns downstream info string", async () => {
+    const { DetBlock } = await import("./definition");
+    const impact = DetBlock.explain.impact;
+    if (impact === undefined) throw new Error("impact undefined");
+    const output: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 6,
+      provenance: { blockId: "la.det", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(impact({}, output)).toMatch(/real number/i);
+  });
+});

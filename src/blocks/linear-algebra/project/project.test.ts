@@ -282,3 +282,25 @@ describe("la.project compute", () => {
 
   void matVec; // referenced only in comments above for clarity
 });
+
+describe("la.project definition explain", () => {
+  test("effect shows projection norm", async () => {
+    const { ProjectBlock } = await import("./definition");
+    const output: MathValue = {
+      type: { kind: "Vector", n: 2, field: "real" },
+      payload: [3, 4] as unknown as number,
+      provenance: { blockId: "la.project", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(ProjectBlock.explain.effect?.({}, output)).toMatch(/5\.0000/);
+  });
+
+  test("impact states orthogonality of residual", async () => {
+    const { ProjectBlock } = await import("./definition");
+    const scalarOut: MathValue = {
+      type: { kind: "Scalar", field: "real", precision: "approximate" },
+      payload: 0,
+      provenance: { blockId: "la.project", inputs: [], computedAt: 0, engine: "native" },
+    };
+    expect(ProjectBlock.explain.impact?.({}, scalarOut)).toMatch(/orthogonal/i);
+  });
+});
