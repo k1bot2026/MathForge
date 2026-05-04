@@ -13,6 +13,7 @@ import * as calculus from "./calculus";
 import * as common from "./common";
 import * as discrete from "./discrete";
 import * as linearAlgebra from "./linear-algebra";
+import * as optimization from "./optimization";
 import { BlockRegistry } from "./registry";
 import * as statistics from "./statistics";
 
@@ -23,6 +24,7 @@ export function buildRegistry(): BlockRegistry {
   statistics.register(registry);
   calculus.register(registry);
   discrete.register(registry);
+  optimization.register(registry);
   return registry;
 }
 
