@@ -340,6 +340,39 @@ describe("setCartesianProduct", () => {
       ),
     );
   });
+
+  test("property: ∅ × B = ∅ and A × ∅ = ∅ for any sets", () => {
+    fc.assert(
+      fc.property(fc.array(fc.integer({ min: 0, max: 10 }), { maxLength: 6 }), (a) => {
+        const s = makeSet(a);
+        const empty = makeSet([]);
+        expect((setCartesianProduct(empty, s).payload as SetPayload)).toHaveLength(0);
+        expect((setCartesianProduct(s, empty).payload as SetPayload)).toHaveLength(0);
+      }),
+    );
+  });
+
+  test("property: each pair (u, v) in A × B has u ∈ A and v ∈ B", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 0, max: 10 }), { maxLength: 5 }),
+        fc.array(fc.integer({ min: 0, max: 10 }), { maxLength: 5 }),
+        (a, b) => {
+          const aSet = makeSet(a);
+          const bSet = makeSet(b);
+          const aElems = asSortedSet(getIntegers(aSet));
+          const bElems = asSortedSet(getIntegers(bSet));
+          const product = setCartesianProduct(aSet, bSet);
+          const pairs = product.payload as SetPayload;
+          for (const pair of pairs) {
+            const [u, v] = pair.payload as [{ payload: number }, { payload: number }];
+            expect(aElems.has(u.payload)).toBe(true);
+            expect(bElems.has(v.payload)).toBe(true);
+          }
+        },
+      ),
+    );
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────
