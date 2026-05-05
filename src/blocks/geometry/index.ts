@@ -20,6 +20,7 @@ import { PerimeterBlock } from "./perimeter/definition";
 import { PerpendicularBisectorBlock } from "./perpendicular-bisector/definition";
 import { PointBlock } from "./point/definition";
 import { PolygonBlock } from "./polygon/definition";
+import { ProjectBlock } from "./project/definition";
 import { ReflectBlock } from "./reflect/definition";
 import { RegularPolygonBlock } from "./regular-polygon/definition";
 import { RotateBlock } from "./rotate/definition";
@@ -53,4 +54,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(ScaleBlock);
   registry.register(GlideBlock);
   registry.register(AffineBlock);
+  registry.register(ProjectBlock);
 }
