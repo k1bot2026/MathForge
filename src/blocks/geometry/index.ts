@@ -29,6 +29,7 @@ import { RotateBlock } from "./rotate/definition";
 import { ScaleBlock } from "./scale/definition";
 import { TranslateBlock } from "./translate/definition";
 import { VizConicClassifyBlock } from "./viz-conic-classify/definition";
+import { VizDynamicGeometryBlock } from "./viz-dynamic-geometry/definition";
 import { VizGeometry2dBlock } from "./viz-geometry-2d/definition";
 import { VizGeometry3dBlock } from "./viz-geometry-3d/definition";
 import { VizTransformationAnimationBlock } from "./viz-transformation-animation/definition";
@@ -67,4 +68,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(VizGeometry3dBlock);
   registry.register(VizConicClassifyBlock);
   registry.register(VizTransformationAnimationBlock);
+  registry.register(VizDynamicGeometryBlock);
 }
