@@ -9,6 +9,7 @@ import { DistanceBlock } from "./distance/definition";
 import { LineFromEquationBlock } from "./line-from-equation/definition";
 import { LineFromPointsBlock } from "./line-from-points/definition";
 import { MidpointBlock } from "./midpoint/definition";
+import { PerimeterBlock } from "./perimeter/definition";
 import { PerpendicularBisectorBlock } from "./perpendicular-bisector/definition";
 import { PointBlock } from "./point/definition";
 import { PolygonBlock } from "./polygon/definition";
@@ -29,4 +30,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(DistanceBlock);
   registry.register(AngleBlock);
   registry.register(AreaBlock);
+  registry.register(PerimeterBlock);
 }
