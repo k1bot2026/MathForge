@@ -19,6 +19,7 @@ import { PerpendicularBisectorBlock } from "./perpendicular-bisector/definition"
 import { PointBlock } from "./point/definition";
 import { PolygonBlock } from "./polygon/definition";
 import { RegularPolygonBlock } from "./regular-polygon/definition";
+import { RotateBlock } from "./rotate/definition";
 import { TranslateBlock } from "./translate/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -43,4 +44,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(IsParallelBlock);
   registry.register(IsPerpendicularBlock);
   registry.register(TranslateBlock);
+  registry.register(RotateBlock);
 }
