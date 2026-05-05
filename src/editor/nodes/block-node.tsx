@@ -12,7 +12,7 @@
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
-import type { BlockDefinition, ColorToken, ResolvedInputs } from "~/blocks/types";
+import type { BlockDefinition, ColorToken, ParamSpec, ResolvedInputs } from "~/blocks/types";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import type { EvalResult } from "~/engine/types";
 import type { MathValue } from "~/math/types";
@@ -27,12 +27,17 @@ const fillByRole: Readonly<Record<ColorToken, string>> = {
   control: "bg-role-control-fill border-role-control-border",
 };
 
+// Blocks with more than this many params get a read-only strip instead
+// of inline editors to avoid overwhelming the node body.
+const INLINE_PARAM_LIMIT = 3;
+
 export function BlockNode({ id, data }: NodeProps) {
   const blockData = data as Partial<BlockNodeData> & { justAppeared?: boolean };
   const blockId = blockData.blockId ?? "unknown";
   const def = blockRegistry.get(blockId);
   const result = useGraphStore((s) => s.results[id]);
   const inputs = useNodeInputs(id);
+  const updateNodeParams = useGraphStore((s) => s.updateNodeParams);
   const justAppeared = blockData.justAppeared === true;
 
   if (def === undefined) {
@@ -50,6 +55,12 @@ export function BlockNode({ id, data }: NodeProps) {
   const baseClasses = fillByRole[def.color];
   const errorClasses = isError ? "ring-2 ring-error" : "";
   const params = (blockData.params ?? {}) as Record<string, unknown>;
+  const paramEntries = Object.entries(def.params ?? {});
+  const useInlineParams = paramEntries.length > 0 && paramEntries.length <= INLINE_PARAM_LIMIT;
+
+  function handleParamChange(key: string, value: unknown) {
+    updateNodeParams(id, { ...params, [key]: value });
+  }
 
   return (
     <div
@@ -60,7 +71,11 @@ export function BlockNode({ id, data }: NodeProps) {
     >
       <BlockHeader def={def} />
       <PortLabels def={def} />
-      <ParamStrip def={def} params={params} />
+      {useInlineParams ? (
+        <InlineParams entries={paramEntries} params={params} onChange={handleParamChange} />
+      ) : (
+        <ParamStrip entries={paramEntries} params={params} />
+      )}
       <BlockBody def={def} result={result} inputs={inputs} />
       <BlockHandles def={def} />
     </div>
@@ -106,14 +121,14 @@ function PortLabels({ def }: { def: BlockDefinition }) {
     <div className="mt-1.5 flex justify-between gap-2">
       <div className="flex flex-col gap-0.5">
         {def.inputs.map((port) => (
-          <span key={port.id} className="font-mono text-[10px] text-fg-faint leading-none">
+          <span key={port.id} className="font-mono text-[10px] leading-none text-fg-faint">
             {port.label}
           </span>
         ))}
       </div>
       <div className="flex flex-col items-end gap-0.5">
         {def.outputs.map((port) => (
-          <span key={port.id} className="font-mono text-[10px] text-fg-faint leading-none">
+          <span key={port.id} className="font-mono text-[10px] leading-none text-fg-faint">
             {port.label}
           </span>
         ))}
@@ -122,16 +137,178 @@ function PortLabels({ def }: { def: BlockDefinition }) {
   );
 }
 
-function ParamStrip({ def, params }: { def: BlockDefinition; params: Record<string, unknown> }) {
-  const specs = def.params;
-  if (specs === undefined) return null;
-  const entries = Object.entries(specs);
+function InlineParams({
+  entries,
+  params,
+  onChange,
+}: {
+  entries: [string, ParamSpec][];
+  params: Record<string, unknown>;
+  onChange: (key: string, value: unknown) => void;
+}) {
+  return (
+    // nodrag prevents React Flow from starting a node-drag when the user
+    // clicks/drags inside an input or select element.
+    <div className="nodrag mt-2 flex flex-col gap-1.5">
+      {entries.map(([key, spec]) => {
+        const value = params[key] ?? spec.default;
+        const label = spec.label ?? key;
+        return (
+          <InlineControl
+            key={key}
+            paramKey={key}
+            label={label}
+            spec={spec}
+            value={value}
+            onChange={onChange}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function InlineControl({
+  paramKey,
+  label,
+  spec,
+  value,
+  onChange,
+}: {
+  paramKey: string;
+  label: string;
+  spec: ParamSpec;
+  value: unknown;
+  onChange: (key: string, value: unknown) => void;
+}) {
+  const baseClass =
+    "w-full rounded border border-border bg-bg/70 px-1.5 py-0.5 font-mono text-xs text-fg focus:outline-none focus:ring-1 focus:ring-role-control-border";
+
+  if (spec.kind === "number" || spec.kind === "integer") {
+    const numVal = typeof value === "number" ? value : Number(value ?? spec.default);
+    const hasRange = spec.min !== undefined && spec.max !== undefined;
+
+    if (hasRange) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] text-fg-muted">{label}</span>
+            <span className="font-mono text-[10px] text-fg">
+              {Number.isInteger(numVal) ? numVal : numVal.toPrecision(4)}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={spec.min}
+            max={spec.max}
+            step={spec.kind === "integer" ? 1 : "step" in spec ? (spec.step ?? 0.01) : 0.01}
+            value={Number.isFinite(numVal) ? numVal : spec.default}
+            onChange={(e) => {
+              const raw =
+                spec.kind === "integer"
+                  ? Number.parseInt(e.target.value, 10)
+                  : Number(e.target.value);
+              onChange(paramKey, Number.isFinite(raw) ? raw : spec.default);
+            }}
+            className="nodrag h-1.5 w-full cursor-pointer accent-role-control-border"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <span className="w-12 shrink-0 font-mono text-[10px] text-fg-muted">{label}</span>
+        <input
+          type="number"
+          value={Number.isFinite(numVal) ? numVal : spec.default}
+          step={spec.kind === "integer" ? 1 : "step" in spec ? (spec.step ?? "any") : "any"}
+          {...(spec.min !== undefined ? { min: spec.min } : {})}
+          {...(spec.max !== undefined ? { max: spec.max } : {})}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              onChange(paramKey, spec.default);
+              return;
+            }
+            const next = spec.kind === "integer" ? Number.parseInt(raw, 10) : Number(raw);
+            onChange(paramKey, Number.isFinite(next) ? next : spec.default);
+          }}
+          className={baseClass}
+        />
+      </div>
+    );
+  }
+
+  if (spec.kind === "boolean") {
+    const checked = typeof value === "boolean" ? value : spec.default;
+    return (
+      <label className="flex cursor-pointer items-center gap-2">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => {
+            onChange(paramKey, e.target.checked);
+          }}
+          className="h-3.5 w-3.5 rounded border border-border accent-role-control-border"
+        />
+        <span className="font-mono text-[10px] text-fg-muted">{label}</span>
+      </label>
+    );
+  }
+
+  if (spec.kind === "select") {
+    const current = typeof value === "string" ? value : spec.default;
+    return (
+      <div className="flex items-center gap-2">
+        <span className="w-12 shrink-0 font-mono text-[10px] text-fg-muted">{label}</span>
+        <select
+          value={current}
+          onChange={(e) => {
+            onChange(paramKey, e.target.value);
+          }}
+          className={baseClass}
+        >
+          {spec.options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  // string
+  const stringVal = typeof value === "string" ? value : spec.default;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-12 shrink-0 font-mono text-[10px] text-fg-muted">{label}</span>
+      <input
+        type="text"
+        value={stringVal}
+        onChange={(e) => {
+          onChange(paramKey, e.target.value);
+        }}
+        className={baseClass}
+      />
+    </div>
+  );
+}
+
+function ParamStrip({
+  entries,
+  params,
+}: {
+  entries: [string, ParamSpec][];
+  params: Record<string, unknown>;
+}) {
   if (entries.length === 0) return null;
 
   const snippets = entries
     .slice(0, 4)
-    .map(([key, _spec]) => {
-      const val = params[key] ?? _spec.default;
+    .map(([key, spec]) => {
+      const val = params[key] ?? spec.default;
       return `${key}=${String(val)}`;
     })
     .join(" · ");
