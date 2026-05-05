@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   type ConstructionEvent,
+  type EdgeSnapshot,
   projectGraph,
   synthesizeFromSnapshot,
 } from "./construction-events";
@@ -210,7 +211,7 @@ describe("projectGraph", () => {
           target: "b",
           sourceHandle: null,
           targetHandle: null,
-        } as Parameters<typeof ev>[0]["edge"] & { sourceHandle: null; targetHandle: null },
+        } satisfies EdgeSnapshot,
       }),
     ];
     const out = projectGraph(events, 3);
