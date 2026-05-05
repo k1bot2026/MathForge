@@ -27,6 +27,7 @@ import { RegularPolygonBlock } from "./regular-polygon/definition";
 import { RotateBlock } from "./rotate/definition";
 import { ScaleBlock } from "./scale/definition";
 import { TranslateBlock } from "./translate/definition";
+import { VizConicClassifyBlock } from "./viz-conic-classify/definition";
 import { VizGeometry2dBlock } from "./viz-geometry-2d/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -59,4 +60,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(ProjectBlock);
   registry.register(IntersectionBlock);
   registry.register(VizGeometry2dBlock);
+  registry.register(VizConicClassifyBlock);
 }
