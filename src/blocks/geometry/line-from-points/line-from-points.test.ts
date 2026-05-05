@@ -1,6 +1,6 @@
 import * as fc from "fast-check";
 import { describe, expect, test } from "vitest";
-import type { LinePayload, MathValue, PointPayload } from "~/math/types";
+import type { LinePayload, MathValue } from "~/math/types";
 import { LineFromPointsBlock } from "./definition";
 
 const ctx = { signal: new AbortController().signal };
