@@ -7,6 +7,10 @@ import { CircleFromCenterRadiusBlock } from "./circle-from-center-radius/definit
 import { CircleFromThreePointsBlock } from "./circle-from-three-points/definition";
 import { ConicFromFivePointsBlock } from "./conic-from-five-points/definition";
 import { DistanceBlock } from "./distance/definition";
+import { IsCollinearBlock } from "./is-collinear/definition";
+import { IsConcurrentBlock } from "./is-concurrent/definition";
+import { IsParallelBlock } from "./is-parallel/definition";
+import { IsPerpendicularBlock } from "./is-perpendicular/definition";
 import { LineFromEquationBlock } from "./line-from-equation/definition";
 import { LineFromPointsBlock } from "./line-from-points/definition";
 import { MidpointBlock } from "./midpoint/definition";
@@ -33,4 +37,8 @@ export function register(registry: BlockRegistry): void {
   registry.register(AreaBlock);
   registry.register(PerimeterBlock);
   registry.register(CentroidBlock);
+  registry.register(IsCollinearBlock);
+  registry.register(IsConcurrentBlock);
+  registry.register(IsParallelBlock);
+  registry.register(IsPerpendicularBlock);
 }
