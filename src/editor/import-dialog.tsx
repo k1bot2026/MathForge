@@ -8,33 +8,10 @@ import { type Edge, type Node, useReactFlow } from "@xyflow/react";
 import { parse as mathjsParse } from "mathjs";
 import { useCallback, useRef, useState } from "react";
 import type { BlockNodeData } from "~/engine/graph-spec";
+import { latexToPlain } from "~/lib/latex-to-plain";
 import { useGraphStore } from "~/store/graph-store";
 
 type ImportFormat = "plain" | "latex";
-
-// ── LaTeX pre-processor ──────────────────────────────────────────────────────
-// Converts a small subset of LaTeX into math.js-compatible syntax, then
-// math.js parse() validates and normalises it.
-
-function latexToPlain(latex: string): string {
-  return latex
-    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1)/($2)")
-    .replace(/\\sqrt\{([^}]+)\}/g, "sqrt($1)")
-    .replace(/\\sqrt\s+(\S+)/g, "sqrt($1)")
-    .replace(/\\sin\b/g, "sin")
-    .replace(/\\cos\b/g, "cos")
-    .replace(/\\tan\b/g, "tan")
-    .replace(/\\ln\b/g, "log")
-    .replace(/\\log\b/g, "log10")
-    .replace(/\\exp\b/g, "exp")
-    .replace(/\\pi\b/g, "pi")
-    .replace(/\\infty\b/g, "Infinity")
-    .replace(/\\cdot/g, "*")
-    .replace(/\\times/g, "*")
-    .replace(/\^(\w+)/g, "^($1)")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 // Detect the free variable in a plain expression. Returns "x" as default.
 function detectVariable(expr: string): string {

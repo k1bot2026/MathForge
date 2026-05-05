@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import type { ParamSpec } from "~/blocks/types";
+import { ExpressionEditor } from "./expression-editor";
 
 export type ParamControlProps = {
   name: string;
@@ -10,13 +11,25 @@ export type ParamControlProps = {
   onChange: (value: unknown) => void;
 };
 
+// Params named "expression" get the MathLive editor regardless of kind.
+const EXPRESSION_PARAM_NAMES = new Set(["expression"]);
+
 export function ParamControl({ name, spec, value, onChange }: ParamControlProps) {
   const id = useId();
   const label = spec.label ?? name;
+  const useExprEditor = EXPRESSION_PARAM_NAMES.has(name) && spec.kind === "string";
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-2 p-3">
       <ParamLabel id={id} label={label} spec={spec} value={value} />
-      <Control id={id} spec={spec} value={value} onChange={onChange} />
+      {useExprEditor ? (
+        <ExpressionEditor
+          id={id}
+          value={typeof value === "string" ? value : (spec.default as string)}
+          onChange={(plain) => onChange(plain)}
+        />
+      ) : (
+        <Control id={id} spec={spec} value={value} onChange={onChange} />
+      )}
     </div>
   );
 }

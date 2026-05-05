@@ -42,6 +42,7 @@
     "framer-motion": "12.38.0",
     "idb-keyval": "^6.2.2",
     "mathjs": "15.2.0",
+    "mathlive": "0.109.2",
     "next": "16.2.4",
     "pyodide": "0.29.3",
     "react": "19.2.5",
