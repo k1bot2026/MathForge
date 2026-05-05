@@ -197,6 +197,44 @@ function buildImportGraph(plain: string, originX: number, originY: number): Impo
   return { nodes: [fnNode, opNode], edges: [edge] };
 }
 
+// ── Smart positioning ────────────────────────────────────────────────────────
+// Shifts a graph so its bounding-box centre lands on the viewport centre.
+// Node positions are set at the top-left corner of the block (no size info
+// available here), so we treat each node as a point for bounding-box purposes.
+
+const NODE_W = 180; // approximate block width used for centering
+
+function centerGraph(graph: ImportGraph, vcx: number, vcy: number): ImportGraph {
+  if (graph.nodes.length === 0) return graph;
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const n of graph.nodes) {
+    minX = Math.min(minX, n.position.x);
+    maxX = Math.max(maxX, n.position.x);
+    minY = Math.min(minY, n.position.y);
+    maxY = Math.max(maxY, n.position.y);
+  }
+
+  // Treat maxX node as having NODE_W width, then find bbox centre
+  const graphCx = (minX + maxX + NODE_W) / 2;
+  const graphCy = (minY + maxY) / 2;
+  const dx = vcx - graphCx;
+  const dy = vcy - graphCy;
+
+  if (dx === 0 && dy === 0) return graph;
+
+  return {
+    ...graph,
+    nodes: graph.nodes.map((n) => ({
+      ...n,
+      position: { x: n.position.x + dx, y: n.position.y + dy },
+    })),
+  };
+}
+
 // ── Shared form logic ────────────────────────────────────────────────────────
 
 const EXAMPLES: Record<ImportFormat, string[]> = {
@@ -224,16 +262,17 @@ function useImportForm(onDone: () => void) {
       return;
     }
     const vp = getViewport();
-    // Centre the first block on the viewport; subsequent blocks extend rightward
-    const x = (-vp.x + window.innerWidth / 2) / vp.zoom - 90;
-    const y = (-vp.y + window.innerHeight / 2) / vp.zoom - 40;
+    // Viewport centre in flow coordinates (node coordinate space)
+    const vcx = (-vp.x + window.innerWidth / 2) / vp.zoom;
+    const vcy = (-vp.y + window.innerHeight / 2) / vp.zoom;
 
     // Matrix environments bypass the expression path entirely
     if (format === "latex") {
-      const matrixGraph = parseBmatrixLatex(raw, x, y);
+      const matrixGraph = parseBmatrixLatex(raw, vcx, vcy);
       if (matrixGraph !== null) {
-        for (const node of matrixGraph.nodes) addNode(node);
-        for (const edge of matrixGraph.edges) connect(edge);
+        const centered = centerGraph(matrixGraph, vcx, vcy);
+        for (const node of centered.nodes) addNode(node);
+        for (const edge of centered.edges) connect(edge);
         setInput("");
         setError(null);
         onDone();
@@ -248,9 +287,10 @@ function useImportForm(onDone: () => void) {
       setError(e instanceof Error ? e.message : "Invalid expression.");
       return;
     }
-    const graph = buildImportGraph(plain, x, y);
-    for (const node of graph.nodes) addNode(node);
-    for (const edge of graph.edges) connect(edge);
+    const graph = buildImportGraph(plain, vcx, vcy);
+    const centered = centerGraph(graph, vcx, vcy);
+    for (const node of centered.nodes) addNode(node);
+    for (const edge of centered.edges) connect(edge);
     setInput("");
     setError(null);
     onDone();
