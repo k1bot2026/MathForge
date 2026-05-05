@@ -1,10 +1,11 @@
 "use client";
 
 // Import dialog — lets users paste a plain-math or LaTeX expression and
-// builds a calc.function block from it. MVP: single-block output.
-// Follow-up commits will add multi-block AST decomposition and matrix syntax.
+// builds a block graph from it. Top-level ops (diff, integrate) decompose
+// into a calc.function + operation block chain; everything else → calc.function.
 
-import { type Node, useReactFlow } from "@xyflow/react";
+import { type Edge, type Node, useReactFlow } from "@xyflow/react";
+import { parse as mathjsParse } from "mathjs";
 import { useCallback, useRef, useState } from "react";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import { useGraphStore } from "~/store/graph-store";
@@ -44,10 +45,103 @@ function detectVariable(expr: string): string {
   return "x";
 }
 
+// ── AST decomposition ─────────────────────────────────────────────────────
+// Returns a list of nodes + edges to add to the canvas. For top-level
+// diff/integrate calls, emits a calc.function + operation block chained
+// left-to-right. Otherwise emits a single calc.function.
+
+type ImportGraph = { nodes: Node[]; edges: Edge[] };
+
+const BLOCK_GAP = 280;
+
+function buildImportGraph(plain: string, originX: number, originY: number): ImportGraph {
+  const stamp = Date.now();
+
+  let rootFnName: string | null = null;
+  let innerExpr: string = plain;
+  let variable: string = detectVariable(plain);
+
+  try {
+    const ast = mathjsParse(plain);
+    if (
+      ast.type === "FunctionNode" &&
+      "fn" in ast &&
+      typeof (ast as { fn: { name?: string } }).fn === "object" &&
+      (ast as { fn: { name?: string } }).fn.name !== undefined
+    ) {
+      const name = (ast as { fn: { name: string } }).fn.name;
+      if (
+        (name === "diff" || name === "derivative" || name === "integrate") &&
+        "args" in ast &&
+        Array.isArray((ast as { args: unknown[] }).args)
+      ) {
+        const args = (ast as { args: { toString(): string }[] }).args;
+        const firstArg = args[0];
+        if (args.length >= 1 && firstArg !== undefined) {
+          rootFnName = name;
+          innerExpr = firstArg.toString();
+          const secondArg = args[1];
+          if (args.length >= 2 && secondArg !== undefined) {
+            const varArg = secondArg.toString().trim();
+            if (/^[a-zA-Z]$/.test(varArg)) variable = varArg;
+          } else {
+            variable = detectVariable(innerExpr);
+          }
+        }
+      }
+    }
+  } catch {
+    // parse failure — fall back to single block
+  }
+
+  const opBlockId =
+    rootFnName === "diff" || rootFnName === "derivative"
+      ? "calc.derivative"
+      : rootFnName === "integrate"
+        ? "calc.integrate"
+        : null;
+
+  const fnId = `import-fn-${stamp}`;
+  const fnNode: Node = {
+    id: fnId,
+    type: "block",
+    position: { x: originX, y: originY },
+    data: {
+      blockId: "calc.function",
+      params: { expression: innerExpr, variable },
+    } satisfies BlockNodeData as Record<string, unknown>,
+  };
+
+  if (opBlockId === null) {
+    return { nodes: [fnNode], edges: [] };
+  }
+
+  const opId = `import-op-${stamp}`;
+  const opNode: Node = {
+    id: opId,
+    type: "block",
+    position: { x: originX + BLOCK_GAP, y: originY },
+    data: {
+      blockId: opBlockId,
+      params: {},
+    } satisfies BlockNodeData as Record<string, unknown>,
+  };
+
+  const edge: Edge = {
+    id: `e-${fnId}-fn-${opId}-fn`,
+    source: fnId,
+    sourceHandle: "fn",
+    target: opId,
+    targetHandle: "fn",
+  };
+
+  return { nodes: [fnNode, opNode], edges: [edge] };
+}
+
 // ── Shared form logic ────────────────────────────────────────────────────────
 
 const EXAMPLES: Record<ImportFormat, string[]> = {
-  plain: ["sin(x) + cos(x)", "2*x^2 + 3*x - 1", "exp(-x^2 / 2)"],
+  plain: ["sin(x) + cos(x)", "diff(sin(x), x)", "integrate(x^2, x)", "exp(-x^2 / 2)"],
   latex: ["\\sin(x) + \\cos(x)", "\\frac{x^2 - 1}{x + 1}", "\\sqrt{1 - x^2}"],
 };
 
@@ -56,6 +150,7 @@ function useImportForm(onDone: () => void) {
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const addNode = useGraphStore((s) => s.addNode);
+  const connect = useGraphStore((s) => s.connect);
   const { getViewport } = useReactFlow();
 
   const handleBuild = useCallback(() => {
@@ -71,26 +166,17 @@ function useImportForm(onDone: () => void) {
       setError(e instanceof Error ? e.message : "Invalid expression.");
       return;
     }
-    const variable = detectVariable(plain);
     const vp = getViewport();
+    // Centre the first block on the viewport; subsequent blocks extend rightward
     const x = (-vp.x + window.innerWidth / 2) / vp.zoom - 90;
     const y = (-vp.y + window.innerHeight / 2) / vp.zoom - 40;
-    const nodeId = `import-${Date.now()}`;
-    const nodeData: BlockNodeData = {
-      blockId: "calc.function",
-      params: { expression: plain, variable },
-    };
-    const node: Node = {
-      id: nodeId,
-      type: "block",
-      position: { x, y },
-      data: nodeData as Record<string, unknown>,
-    };
-    addNode(node);
+    const graph = buildImportGraph(plain, x, y);
+    for (const node of graph.nodes) addNode(node);
+    for (const edge of graph.edges) connect(edge);
     setInput("");
     setError(null);
     onDone();
-  }, [input, format, addNode, getViewport, onDone]);
+  }, [input, format, addNode, connect, getViewport, onDone]);
 
   const clearError = useCallback(() => setError(null), []);
 
