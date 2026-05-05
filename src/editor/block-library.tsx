@@ -4,6 +4,7 @@ import type { Edge, Node } from "@xyflow/react";
 import { useMemo, useState } from "react";
 import { blockRegistry } from "~/blocks";
 import type { BlockDefinition, BlockDomain, ColorToken } from "~/blocks/types";
+import { BLOCK_PREVIEWS } from "~/editor/block-previews";
 import { TEMPLATES } from "~/lib/templates";
 import { useGraphStore } from "~/store/graph-store";
 
@@ -27,13 +28,13 @@ const DOMAIN_ORDER: BlockDomain[] = [
   "discrete",
 ];
 
-const COLOR_DOT: Record<ColorToken, string> = {
-  source: "bg-role-source-border",
-  operation: "bg-role-operation-border",
-  function: "bg-role-function-border",
-  visualizer: "bg-role-visualizer-border",
-  stochastic: "bg-role-stochastic-border",
-  control: "bg-role-control-border",
+const COLOR_DOT_BG: Record<ColorToken, string> = {
+  source: "bg-role-source-fill border border-role-source-border",
+  operation: "bg-role-operation-fill border border-role-operation-border",
+  function: "bg-role-function-fill border border-role-function-border",
+  visualizer: "bg-role-visualizer-fill border border-role-visualizer-border",
+  stochastic: "bg-role-stochastic-fill border border-role-stochastic-border",
+  control: "bg-role-control-fill border border-role-control-border",
 };
 
 function normalize(s: string): string {
@@ -89,7 +90,7 @@ export function BlockLibrary() {
   return (
     <aside
       data-testid="block-library"
-      className="flex h-full w-56 shrink-0 flex-col border-r border-border bg-surface"
+      className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-surface"
     >
       <header className="border-b border-border px-3 pt-3 pb-2">
         <span className="mb-2 block font-mono text-[10px] uppercase tracking-wider text-fg-muted">
@@ -175,6 +176,8 @@ function BlockLibraryItem({
   def: BlockDefinition;
   onDragStart: (e: React.DragEvent, def: BlockDefinition) => void;
 }) {
+  const preview = BLOCK_PREVIEWS[def.id] ?? def.preview;
+
   return (
     <button
       type="button"
@@ -184,14 +187,23 @@ function BlockLibraryItem({
       }}
       title={`${def.id} — drag to canvas to add`}
       aria-label={`${def.label} block — drag to canvas to add`}
-      className="mx-1 mb-0.5 flex w-[calc(100%-0.5rem)] cursor-grab items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-surface-2 active:cursor-grabbing"
+      className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
       data-testid={`library-item-${def.id}`}
     >
-      <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${COLOR_DOT[def.color]}`} />
-      <span className="min-w-0 flex-1 truncate text-xs text-fg">{def.label}</span>
-      {def.symbol !== undefined ? (
-        <span className="shrink-0 font-mono text-[10px] text-fg-faint">{def.symbol}</span>
-      ) : null}
+      <span
+        aria-hidden="true"
+        className={`flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md ${COLOR_DOT_BG[def.color]}`}
+      >
+        {preview !== undefined ? (
+          preview
+        ) : (
+          <span className="font-mono text-base text-fg-muted">{def.symbol ?? "?"}</span>
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-fg">{def.label}</span>
+        <span className="block truncate font-mono text-[10px] text-fg-faint">{def.id}</span>
+      </span>
     </button>
   );
 }

@@ -7,7 +7,7 @@
 // side-effect-free `register(registry)` pattern (the user's Phase-1
 // decision).
 
-import type { ComponentType } from "react";
+import type { ComponentType, ReactElement } from "react";
 import type { MathType, MathValue } from "~/math/types";
 
 export type BlockRole = "source" | "operation" | "visualizer" | "sink" | "control" | "composite";
@@ -114,6 +114,12 @@ export type BlockDefinition = {
     effect?: ExplainEffect;
     impact?: ExplainEffect;
   };
+  /**
+   * Optional small preview shown in the block library card (56×56px).
+   * Falls back to rendering the block's `symbol` in a styled glyph box
+   * when absent. Use inline JSX (no hooks, no side-effects).
+   */
+  preview?: ReactElement;
   /**
    * Optional in-node visualization. When set, BlockNode renders this
    * component instead of the textual value preview. Used for visualizer
