@@ -14,7 +14,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { blockRegistry, hydrateUserBlocksIntoRegistry } from "~/blocks";
 import type { BlockDefinition } from "~/blocks/types";
 import type { BlockNodeData } from "~/engine/graph-spec";
@@ -24,10 +24,9 @@ import { useUrlSync } from "~/engine/use-url-sync";
 import type { MathType } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 import { useHistoryStore } from "~/store/history-store";
-import { BlockLibrary } from "./block-library";
 import { canConnect } from "./connections";
-import { ImportDialog } from "./import-dialog";
 import { InspectorPanel } from "./inspector/inspector-panel";
+import { LeftPanel } from "./left-panel";
 import { BlockNode } from "./nodes/block-node";
 import { OnboardingHint } from "./onboarding-hint";
 import { ReplayBar } from "./replay-bar";
@@ -52,8 +51,6 @@ function CanvasInner() {
   useEffect(() => {
     void hydrateUserBlocksIntoRegistry(blockRegistry);
   }, []);
-
-  const [importOpen, setImportOpen] = useState(false);
 
   const liveNodes = useGraphStore((s) => s.nodes);
   const liveEdges = useGraphStore((s) => s.edges);
@@ -204,10 +201,9 @@ function CanvasInner() {
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
         {isEmpty ? <CanvasEmptyState /> : null}
       </ReactFlow>
-      <CanvasToolbar onImport={() => setImportOpen(true)} />
+      <CanvasToolbar />
       <InspectorPanel />
       {isReplay ? <ReplayBar /> : null}
-      {importOpen ? <ImportDialog onClose={() => setImportOpen(false)} /> : null}
     </div>
   );
 }
@@ -224,7 +220,7 @@ function CanvasEmptyState() {
   );
 }
 
-function CanvasToolbar({ onImport }: { onImport: () => void }) {
+function CanvasToolbar() {
   const replaceGraph = useGraphStore((s) => s.replaceGraph);
   const liveNodes = useGraphStore((s) => s.nodes);
 
@@ -247,15 +243,6 @@ function CanvasToolbar({ onImport }: { onImport: () => void }) {
       >
         New Graph
       </button>
-      <button
-        type="button"
-        onClick={onImport}
-        className="rounded border border-border bg-surface px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-fg-muted shadow-block-1 hover:bg-surface-2 hover:text-fg"
-        data-testid="import-btn"
-        title="Import an expression and build a block graph"
-      >
-        Import
-      </button>
     </div>
   );
 }
@@ -263,7 +250,7 @@ function CanvasToolbar({ onImport }: { onImport: () => void }) {
 export function EditorCanvas() {
   return (
     <div className="flex h-dvh w-full">
-      <BlockLibrary />
+      <LeftPanel />
       <div className="relative flex min-w-0 flex-1 flex-col">
         <ReplayToggle />
         <ReactFlowProvider>

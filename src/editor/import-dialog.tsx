@@ -44,19 +44,19 @@ function detectVariable(expr: string): string {
   return "x";
 }
 
-// ── Dialog ──────────────────────────────────────────────────────────────────
+// ── Shared form logic ────────────────────────────────────────────────────────
 
-export type ImportDialogProps = {
-  onClose: () => void;
+const EXAMPLES: Record<ImportFormat, string[]> = {
+  plain: ["sin(x) + cos(x)", "2*x^2 + 3*x - 1", "exp(-x^2 / 2)"],
+  latex: ["\\sin(x) + \\cos(x)", "\\frac{x^2 - 1}{x + 1}", "\\sqrt{1 - x^2}"],
 };
 
-export function ImportDialog({ onClose }: ImportDialogProps) {
+function useImportForm(onDone: () => void) {
   const [format, setFormat] = useState<ImportFormat>("plain");
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const addNode = useGraphStore((s) => s.addNode);
   const { getViewport } = useReactFlow();
-  const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleBuild = useCallback(() => {
     const raw = input.trim();
@@ -64,27 +64,17 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
       setError("Enter an expression to import.");
       return;
     }
-
     const plain = format === "latex" ? latexToPlain(raw) : raw;
-
-    // Validate via math.js parse — catches syntax errors early
     try {
-      // Dynamic import not suitable here; use the already-loaded mathjs via
-      // the window global that Next.js bundles. We validate by attempting
-      // string-level sanity checks instead and let SymPy surface errors later.
       if (/[<>|&]/.test(plain)) throw new Error("Expression contains unsupported characters.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Invalid expression.");
       return;
     }
-
     const variable = detectVariable(plain);
-
-    // Place node at viewport center
     const vp = getViewport();
     const x = (-vp.x + window.innerWidth / 2) / vp.zoom - 90;
     const y = (-vp.y + window.innerHeight / 2) / vp.zoom - 40;
-
     const nodeId = `import-${Date.now()}`;
     const nodeData: BlockNodeData = {
       blockId: "calc.function",
@@ -96,19 +86,137 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
       position: { x, y },
       data: nodeData as Record<string, unknown>,
     };
-
     addNode(node);
-    onClose();
-  }, [input, format, addNode, getViewport, onClose]);
+    setInput("");
+    setError(null);
+    onDone();
+  }, [input, format, addNode, getViewport, onDone]);
+
+  const clearError = useCallback(() => setError(null), []);
+
+  return { format, setFormat, input, setInput, error, handleBuild, clearError };
+}
+
+// ── Panel (inline, no modal wrapper) ────────────────────────────────────────
+
+/** Inline import form for use inside the left-panel Import tab. */
+export function ImportPanel() {
+  const { format, setFormat, input, setInput, error, handleBuild, clearError } = useImportForm(
+    () => {
+      /* stay on tab after build */
+    },
+  );
+
+  return (
+    <div className="flex flex-col gap-4 p-3" data-testid="import-panel">
+      <p className="text-[11px] text-fg-muted">
+        Paste a formula — MathForge builds the block graph for you.
+      </p>
+
+      {/* Format selector */}
+      <div className="flex gap-1 rounded-lg border border-border bg-surface-2 p-1">
+        {(["plain", "latex"] as ImportFormat[]).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => {
+              setFormat(f);
+              clearError();
+            }}
+            className={`flex-1 rounded-md px-3 py-1.5 font-mono text-xs transition-colors ${
+              f === format ? "bg-surface text-fg shadow-block-1" : "text-fg-muted hover:text-fg"
+            }`}
+          >
+            {f === "plain" ? "Plain math" : "LaTeX"}
+          </button>
+        ))}
+      </div>
+
+      {/* Textarea */}
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="import-panel-expr"
+          className="font-mono text-[10px] uppercase tracking-wider text-fg-muted"
+        >
+          {format === "plain" ? "Expression" : "LaTeX expression"}
+        </label>
+        <textarea
+          id="import-panel-expr"
+          value={input}
+          onChange={(e) => {
+            setInput(e.target.value);
+            clearError();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleBuild();
+          }}
+          placeholder={EXAMPLES[format][0]}
+          rows={3}
+          className="w-full resize-none rounded-md border border-border bg-bg px-3 py-2 font-mono text-sm text-fg placeholder:text-fg-faint focus:outline-none focus:ring-1 focus:ring-role-control-border"
+          data-testid="import-expr-input"
+        />
+        {error !== null ? (
+          <p className="font-mono text-[11px] text-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+
+      {/* Examples */}
+      <div className="flex flex-col gap-1">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-faint">
+          Examples
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {EXAMPLES[format].map((ex) => (
+            <button
+              key={ex}
+              type="button"
+              onClick={() => {
+                setInput(ex);
+                clearError();
+              }}
+              className="rounded border border-border bg-surface-2 px-2 py-0.5 font-mono text-[10px] text-fg-muted hover:text-fg"
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="font-mono text-[10px] text-fg-faint">
+        {format === "plain"
+          ? "Supports: sin, cos, sqrt, ^, *, +, −, /"
+          : "Supported: \\frac, \\sqrt, \\sin/cos/tan/ln, \\pi, \\cdot"}
+      </p>
+
+      <button
+        type="button"
+        onClick={handleBuild}
+        disabled={input.trim().length === 0}
+        className="w-full rounded bg-role-control-border py-2 font-mono text-xs text-bg hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+        data-testid="import-build-btn"
+      >
+        Build Graph
+      </button>
+    </div>
+  );
+}
+
+// ── Dialog (modal overlay, kept for backward compat) ─────────────────────────
+
+export type ImportDialogProps = {
+  onClose: () => void;
+};
+
+export function ImportDialog({ onClose }: ImportDialogProps) {
+  const { format, setFormat, input, setInput, error, handleBuild, clearError } =
+    useImportForm(onClose);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   function handleOverlayClick(e: React.MouseEvent) {
     if (e.target === overlayRef.current) onClose();
   }
-
-  const EXAMPLES: Record<ImportFormat, string[]> = {
-    plain: ["sin(x) + cos(x)", "2*x^2 + 3*x - 1", "exp(-x^2 / 2)"],
-    latex: ["\\sin(x) + \\cos(x)", "\\frac{x^2 - 1}{x + 1}", "\\sqrt{1 - x^2}"],
-  };
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: overlay backdrop handles click-to-dismiss; keyboard users close via the ✕ button inside
@@ -123,7 +231,6 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
         className="flex w-[480px] flex-col gap-4 rounded-xl border border-border bg-surface p-6 shadow-block-3"
         data-testid="import-dialog"
       >
-        {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-sm font-semibold text-fg">Import Expression</h2>
@@ -141,7 +248,6 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
           </button>
         </div>
 
-        {/* Format selector */}
         <div className="flex gap-1 rounded-lg border border-border bg-surface-2 p-1">
           {(["plain", "latex"] as ImportFormat[]).map((f) => (
             <button
@@ -149,7 +255,7 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
               type="button"
               onClick={() => {
                 setFormat(f);
-                setError(null);
+                clearError();
               }}
               className={`flex-1 rounded-md px-3 py-1.5 font-mono text-xs transition-colors ${
                 f === format ? "bg-surface text-fg shadow-block-1" : "text-fg-muted hover:text-fg"
@@ -160,7 +266,6 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
           ))}
         </div>
 
-        {/* Textarea */}
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="import-expr"
@@ -173,7 +278,7 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
-              setError(null);
+              clearError();
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleBuild();
@@ -190,7 +295,6 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
           ) : null}
         </div>
 
-        {/* Examples */}
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[10px] uppercase tracking-wider text-fg-faint">
             Examples
@@ -202,7 +306,7 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
                 type="button"
                 onClick={() => {
                   setInput(ex);
-                  setError(null);
+                  clearError();
                 }}
                 className="rounded border border-border bg-surface-2 px-2 py-0.5 font-mono text-[10px] text-fg-muted hover:text-fg"
               >
@@ -212,14 +316,12 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
           </div>
         </div>
 
-        {/* Footer hint */}
         <p className="font-mono text-[10px] text-fg-faint">
           {format === "plain"
             ? "Supports standard math.js syntax: sin, cos, sqrt, ^, *, +, −, /"
             : "Supported: \\frac, \\sqrt, \\sin/cos/tan/ln, \\pi, \\cdot, \\times, ^"}
         </p>
 
-        {/* Actions */}
         <div className="flex justify-end gap-2">
           <button
             type="button"

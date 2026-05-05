@@ -1,13 +1,10 @@
 "use client";
 
-import type { Edge, Node } from "@xyflow/react";
 import { useMemo, useState } from "react";
 import { blockRegistry } from "~/blocks";
 import type { BlockDefinition, BlockDomain, ColorToken } from "~/blocks/types";
 import { Tooltip } from "~/components/tooltip";
 import { BLOCK_PREVIEWS } from "~/editor/block-previews";
-import { TEMPLATES } from "~/lib/templates";
-import { useGraphStore } from "~/store/graph-store";
 
 const DOMAIN_LABELS: Record<BlockDomain, string> = {
   common: "Core",
@@ -102,10 +99,7 @@ export function BlockLibrary() {
   }
 
   return (
-    <aside
-      data-testid="block-library"
-      className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-surface"
-    >
+    <div data-testid="block-library" className="flex h-full flex-col">
       <header className="border-b border-border px-3 pt-3 pb-2">
         <span className="mb-2 block font-mono text-[10px] uppercase tracking-wider text-fg-muted">
           Block Library
@@ -144,8 +138,7 @@ export function BlockLibrary() {
           })
         )}
       </div>
-      <TemplateGallery />
-    </aside>
+    </div>
   );
 }
 
@@ -285,44 +278,5 @@ function BlockLibraryItem({
         </span>
       </button>
     </Tooltip>
-  );
-}
-
-function TemplateGallery() {
-  const replaceGraph = useGraphStore((s) => s.replaceGraph);
-
-  function loadTemplate(templateId: string) {
-    const tpl = TEMPLATES.find((t) => t.id === templateId);
-    if (tpl === undefined) return;
-    const nodes = tpl.graph.nodes.map((n) => ({ ...n })) as Node[];
-    const edges = tpl.graph.edges.map((e) => ({ ...e })) as Edge[];
-    replaceGraph(nodes, edges, "template");
-  }
-
-  return (
-    <div className="border-t border-border px-3 py-2" data-testid="template-gallery">
-      <span className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-fg-muted">
-        Templates
-      </span>
-      <div className="flex flex-col gap-1">
-        {TEMPLATES.map((tpl) => (
-          <button
-            key={tpl.id}
-            type="button"
-            onClick={() => {
-              loadTemplate(tpl.id);
-            }}
-            title={tpl.description}
-            className="w-full rounded border border-border px-2 py-1.5 text-left hover:bg-surface-2"
-            data-testid={`template-${tpl.id}`}
-          >
-            <span className="block text-xs font-medium text-fg">{tpl.label}</span>
-            <span className="block truncate font-mono text-[10px] text-fg-faint">
-              {tpl.description}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }
