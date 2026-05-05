@@ -10,6 +10,9 @@ import { LpDualBlock } from "./lp-dual/definition";
 import { LpStandardBlock } from "./lp-standard/definition";
 import { MinimizeBlock } from "./minimize/definition";
 import { NewtonOptBlock } from "./newton/definition";
+import { GaussQuadratureBlock } from "./numerical-integration/gauss-quadrature";
+import { SimpsonBlock } from "./numerical-integration/simpson";
+import { TrapezoidBlock } from "./numerical-integration/trapezoid";
 import { PolynomialRegressionBlock } from "./polynomial-regression/definition";
 import { BisectionBlock } from "./root-finding/bisection";
 import { FixedPointBlock } from "./root-finding/fixed-point";
@@ -35,4 +38,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(PolynomialRegressionBlock);
   registry.register(LeastSquaresBlock);
   registry.register(LagrangeBlock);
+  registry.register(TrapezoidBlock);
+  registry.register(SimpsonBlock);
+  registry.register(GaussQuadratureBlock);
 }
