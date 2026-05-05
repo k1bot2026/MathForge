@@ -22,6 +22,15 @@ import { saveUserBlock } from "~/lib/user-blocks";
 import type { MathValue } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 import { INSPECTOR_WIDTH_LIMITS, useUiStore } from "~/store/ui-store";
+import {
+  BernoulliEditor,
+  BetaEditor,
+  BinomialEditor,
+  GammaEditor,
+  NormalEditor,
+  PoissonEditor,
+  UniformEditor,
+} from "./distribution-editor";
 import { ExplanationTabs } from "./explanation-tabs";
 import { derivePanelState } from "./panel-state";
 import { ParamControl } from "./param-control";
@@ -160,6 +169,7 @@ function InspectorBody({
 
               {/* ── Param controls ───────────────────────────────── */}
               <ParamSection
+                blockId={def.id}
                 params={params}
                 specs={def.params ?? {}}
                 onUpdate={(next) => {
@@ -262,16 +272,59 @@ const CELL_PARAM_RE = /^r(\d+)c(\d+)$/;
 // Matches la.vector component params: c{index}
 const COMP_PARAM_RE = /^c(\d+)$/;
 
+// Map block ids to their DistributionEditor component
+function DistributionEditor({
+  blockId,
+  params,
+  onUpdate,
+}: {
+  blockId: string;
+  params: ResolvedParams;
+  onUpdate: (next: ResolvedParams) => void;
+}) {
+  switch (blockId) {
+    case "stats.normal":
+      return <NormalEditor params={params} onUpdate={onUpdate} />;
+    case "stats.beta":
+      return <BetaEditor params={params} onUpdate={onUpdate} />;
+    case "stats.bernoulli":
+      return <BernoulliEditor params={params} onUpdate={onUpdate} />;
+    case "stats.binomial":
+      return <BinomialEditor params={params} onUpdate={onUpdate} />;
+    case "stats.poisson":
+      return <PoissonEditor params={params} onUpdate={onUpdate} />;
+    case "stats.gamma":
+      return <GammaEditor params={params} onUpdate={onUpdate} />;
+    case "stats.uniform":
+      return <UniformEditor params={params} onUpdate={onUpdate} />;
+    default:
+      return null;
+  }
+}
+
+const DIST_BLOCK_IDS = new Set([
+  "stats.normal",
+  "stats.beta",
+  "stats.bernoulli",
+  "stats.binomial",
+  "stats.poisson",
+  "stats.gamma",
+  "stats.uniform",
+]);
+
 function ParamSection({
+  blockId,
   params,
   specs,
   onUpdate,
 }: {
+  blockId: string;
   params: ResolvedParams;
   specs: NonNullable<BlockDefinition["params"]>;
   onUpdate: (next: ResolvedParams) => void;
 }) {
   const entries = Object.entries(specs);
+  const isDistBlock = DIST_BLOCK_IDS.has(blockId);
 
   // Separate cell/component params from regular params
   const cellEntries = entries.filter(([k]) => CELL_PARAM_RE.test(k));
@@ -287,6 +340,9 @@ function ParamSection({
         Parameters
       </span>
       <div className="flex flex-col gap-2">
+        {isDistBlock ? (
+          <DistributionEditor blockId={blockId} params={params} onUpdate={onUpdate} />
+        ) : null}
         {regularEntries.map(([key, spec]) => (
           <Tooltip key={key} content={paramTooltip(key, spec)} side="left" delay={400}>
             <div>
