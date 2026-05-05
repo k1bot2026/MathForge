@@ -2,6 +2,7 @@ import type { BlockRegistry } from "../registry";
 import { AngleBlock } from "./angle/definition";
 import { AngleBisectorBlock } from "./angle-bisector/definition";
 import { AreaBlock } from "./area/definition";
+import { CentroidBlock } from "./centroid/definition";
 import { CircleFromCenterRadiusBlock } from "./circle-from-center-radius/definition";
 import { CircleFromThreePointsBlock } from "./circle-from-three-points/definition";
 import { ConicFromFivePointsBlock } from "./conic-from-five-points/definition";
@@ -31,4 +32,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(AngleBlock);
   registry.register(AreaBlock);
   registry.register(PerimeterBlock);
+  registry.register(CentroidBlock);
 }
