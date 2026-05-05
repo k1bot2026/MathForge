@@ -266,3 +266,117 @@ describe("canConnect — shape-variable unification edge cases", () => {
     if (!result.ok) expect(result.reason).toMatch(/m mismatch/);
   });
 });
+
+// ── Phase 8 — Geometry canConnect ────────────────────────────────────
+
+const point = (n: number | "any"): MathType => ({ kind: "Point", n });
+const line = (n: 2 | 3): MathType => ({ kind: "Line", n });
+const transform = (n: 2 | 3): MathType => ({ kind: "Transformation", n });
+
+describe("canConnect — Point<n>", () => {
+  test("Point<2> → Point<2> accepted", () => {
+    expect(canConnect(point(2), point(2)).ok).toBe(true);
+  });
+
+  test("Point<3> → Point<3> accepted", () => {
+    expect(canConnect(point(3), point(3)).ok).toBe(true);
+  });
+
+  test("Point<2> → Point<3> rejected (dimension mismatch)", () => {
+    const result = canConnect(point(2), point(3));
+    expect(result.ok).toBe(false);
+  });
+
+  test('Point<"any"> → Point<2> accepted', () => {
+    expect(canConnect(point("any"), point(2)).ok).toBe(true);
+  });
+
+  test('Point<2> → Point<"any"> accepted', () => {
+    expect(canConnect(point(2), point("any")).ok).toBe(true);
+  });
+});
+
+describe("canConnect — Line<n>", () => {
+  test("Line<2> → Line<2> accepted", () => {
+    expect(canConnect(line(2), line(2)).ok).toBe(true);
+  });
+
+  test("Line<3> → Line<3> accepted", () => {
+    expect(canConnect(line(3), line(3)).ok).toBe(true);
+  });
+
+  test("Line<2> → Line<3> rejected", () => {
+    const result = canConnect(line(2), line(3));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toMatch(/dimension mismatch/);
+  });
+});
+
+describe("canConnect — Transformation<n>", () => {
+  test("Transformation<2> → Transformation<2> accepted", () => {
+    expect(canConnect(transform(2), transform(2)).ok).toBe(true);
+  });
+
+  test("Transformation<2> → Transformation<3> rejected", () => {
+    const result = canConnect(transform(2), transform(3));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toMatch(/dimension mismatch/);
+  });
+
+  test("Transformation cannot connect to Point (hard type wall)", () => {
+    expect(canConnect(transform(2), point(2)).ok).toBe(false);
+  });
+});
+
+describe("canConnect — Circle / Sphere / Polygon / Conic", () => {
+  test("Circle → Circle accepted", () => {
+    expect(canConnect({ kind: "Circle" }, { kind: "Circle" }).ok).toBe(true);
+  });
+
+  test("Sphere → Sphere accepted", () => {
+    expect(canConnect({ kind: "Sphere" }, { kind: "Sphere" }).ok).toBe(true);
+  });
+
+  test("Circle → Sphere rejected (different kinds)", () => {
+    expect(canConnect({ kind: "Circle" }, { kind: "Sphere" }).ok).toBe(false);
+  });
+
+  test("Polygon → Polygon accepted", () => {
+    expect(canConnect({ kind: "Polygon" }, { kind: "Polygon" }).ok).toBe(true);
+  });
+
+  test("Conic → Conic accepted", () => {
+    expect(canConnect({ kind: "Conic" }, { kind: "Conic" }).ok).toBe(true);
+  });
+
+  test("Polygon → Conic rejected", () => {
+    expect(canConnect({ kind: "Polygon" }, { kind: "Conic" }).ok).toBe(false);
+  });
+});
+
+describe("canConnect — Vector ↔ Point soft-coerce", () => {
+  test("Vector<2> → Point<2>: ok with warning", () => {
+    const result = canConnect(vector(2), point(2));
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.warning).toMatch(/position vector/);
+  });
+
+  test("Point<2> → Vector<2>: ok with warning", () => {
+    const result = canConnect(point(2), vector(2));
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.warning).toMatch(/position vector/);
+  });
+
+  test("Vector<3> → Point<3>: ok with warning", () => {
+    const result = canConnect(vector(3), point(3));
+    expect(result.ok).toBe(true);
+  });
+
+  test("Vector<2> → Point<3>: rejected (dimension mismatch)", () => {
+    expect(canConnect(vector(2), point(3)).ok).toBe(false);
+  });
+
+  test('Vector<"any"> → Point<2>: ok', () => {
+    expect(canConnect(vector("any"), point(2)).ok).toBe(true);
+  });
+});

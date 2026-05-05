@@ -31,6 +31,22 @@ export type ConnectResult =
 // ──────────────────────────────────────────────────────────────────────
 
 export function canConnect(out: MathType, into: MathType): ConnectResult {
+  // Vector ↔ Point soft-coerce: a position vector can flow into a Point slot.
+  if (
+    (out.kind === "Vector" && into.kind === "Point") ||
+    (out.kind === "Point" && into.kind === "Vector")
+  ) {
+    const outN = out.kind === "Vector" ? out.n : (out as Extract<MathType, { kind: "Point" }>).n;
+    const intoN =
+      into.kind === "Vector" ? into.n : (into as Extract<MathType, { kind: "Point" }>).n;
+    const shapeResult = unifyShape(outN, intoN, "n");
+    if (!shapeResult.ok) return shapeResult;
+    return {
+      ...shapeResult,
+      warning: "Vector flowing into Point slot (or vice versa) — interpreted as position vector",
+    };
+  }
+
   if (out.kind !== into.kind) {
     return {
       ok: false,
@@ -58,6 +74,18 @@ export function canConnect(out: MathType, into: MathType): ConnectResult {
       return checkGraph(out, into as Extract<MathType, { kind: "Graph" }>);
     case "Modular":
       return checkModular(out, into as Extract<MathType, { kind: "Modular" }>);
+    case "Point":
+      return checkPoint(out, into as Extract<MathType, { kind: "Point" }>);
+    case "Line":
+      return checkLine(out, into as Extract<MathType, { kind: "Line" }>);
+    case "Transformation":
+      return checkTransformation(out, into as Extract<MathType, { kind: "Transformation" }>);
+    // Circle, Sphere, Polygon, Conic: exact kind match, no structural params.
+    case "Circle":
+    case "Sphere":
+    case "Polygon":
+    case "Conic":
+      return { ok: true };
     // Expression / RandomVariable / Distribution: same-kind connections
     // accepted; deeper structural rules added alongside each domain.
     default:
@@ -189,6 +217,33 @@ function checkModular(
   into: Extract<MathType, { kind: "Modular" }>,
 ): ConnectResult {
   return unifyShape(out.modulus, into.modulus, "modulus");
+}
+
+function checkPoint(
+  out: Extract<MathType, { kind: "Point" }>,
+  into: Extract<MathType, { kind: "Point" }>,
+): ConnectResult {
+  return unifyShape(out.n, into.n, "n");
+}
+
+function checkLine(
+  out: Extract<MathType, { kind: "Line" }>,
+  into: Extract<MathType, { kind: "Line" }>,
+): ConnectResult {
+  if (out.n !== into.n) {
+    return { ok: false, reason: `Line dimension mismatch: ${out.n}D → ${into.n}D` };
+  }
+  return { ok: true };
+}
+
+function checkTransformation(
+  out: Extract<MathType, { kind: "Transformation" }>,
+  into: Extract<MathType, { kind: "Transformation" }>,
+): ConnectResult {
+  if (out.n !== into.n) {
+    return { ok: false, reason: `Transformation dimension mismatch: ${out.n}D → ${into.n}D` };
+  }
+  return { ok: true };
 }
 
 // ──────────────────────────────────────────────────────────────────────

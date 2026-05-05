@@ -1,5 +1,6 @@
 import type { BlockRegistry } from "../registry";
+import { PointBlock } from "./point/definition";
 
-export function register(_registry: BlockRegistry): void {
-  // Phase 8 geometry blocks register here as they ship.
+export function register(registry: BlockRegistry): void {
+  registry.register(PointBlock);
 }

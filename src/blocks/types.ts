@@ -18,6 +18,7 @@ export type BlockDomain =
   | "calculus"
   | "discrete"
   | "optimization"
+  | "geometry"
   | "common";
 
 /** Maps to a colour family from docs/BRAND.md. */

@@ -42,7 +42,15 @@ export type MathType =
   | { kind: "Permutation"; n: Shape }
   | { kind: "Combination"; n: Shape; k: Shape }
   | { kind: "Graph"; directed: boolean; weighted: boolean }
-  | { kind: "Modular"; modulus: Shape };
+  | { kind: "Modular"; modulus: Shape }
+  // ── Phase 8 — Geometry ───────────────────────────────────────────────
+  | { kind: "Point"; n: Shape }
+  | { kind: "Line"; n: 2 | 3 }
+  | { kind: "Circle" }
+  | { kind: "Sphere" }
+  | { kind: "Polygon" }
+  | { kind: "Conic" }
+  | { kind: "Transformation"; n: 2 | 3 };
 
 // ──────────────────────────────────────────────────────────────────────
 // Payloads
@@ -108,6 +116,58 @@ export type ModularPayload = { value: number; modulus: number };
 /** Set payload: deduplicated, ordered collection of MathValues. */
 export type SetPayload = ReadonlyArray<MathValue>;
 
+// ── Phase 8 payload types ────────────────────────────────────────────
+
+/** n-D point: component array, index i = coordinate i. */
+export type PointPayload = ReadonlyArray<number>;
+
+/**
+ * Line in parametric form (canonical representation).
+ * `direction` is always unit-length (normalised at construction).
+ * For 2D lines, `implicit` caches ax + by + c = 0 coefficients so
+ * consumers that need implicit form pay zero recomputation cost.
+ * Using a single parametric canonical form means canConnect never
+ * needs to branch on Line representation — all Lines are compatible.
+ */
+export type LinePayload = {
+  point: PointPayload;
+  direction: PointPayload;
+  implicit?: { a: number; b: number; c: number };
+};
+
+export type CirclePayload = { center: PointPayload; radius: number };
+
+export type SpherePayload = { center: PointPayload; radius: number };
+
+/**
+ * Ordered polygon vertices, minimum 3.
+ * Vertex count is a runtime property, not a type-level constraint
+ * (a triangle and a hexagon are both Polygons — vertex count matters
+ * to area/perimeter computations, not to canConnect).
+ */
+export type PolygonPayload = ReadonlyArray<PointPayload>;
+
+/**
+ * General conic section: Ax² + Bxy + Cy² + Dx + Ey + F = 0.
+ * Uppercase fields match standard conic literature and avoid shadowing
+ * lowercase loop variables in compute functions.
+ */
+export type ConicPayload = {
+  A: number;
+  B: number;
+  C: number;
+  D: number;
+  E: number;
+  F: number;
+};
+
+/**
+ * Affine transformation as a (n+1)×(n+1) homogeneous matrix.
+ * 2D: 3×3. 3D: 4×4.
+ * Homogeneous form means compose(T1, T2) = matmul — bridges la.matmul.
+ */
+export type TransformationPayload = { matrix: number[][]; n: 2 | 3 };
+
 export type Payload<T extends MathType> = T extends { kind: "Scalar" }
   ? ScalarPayload
   : T extends { kind: "Vector" }
@@ -128,7 +188,21 @@ export type Payload<T extends MathType> = T extends { kind: "Scalar" }
                   ? GraphPayload
                   : T extends { kind: "Modular" }
                     ? ModularPayload
-                    : unknown;
+                    : T extends { kind: "Point" }
+                      ? PointPayload
+                      : T extends { kind: "Line" }
+                        ? LinePayload
+                        : T extends { kind: "Circle" }
+                          ? CirclePayload
+                          : T extends { kind: "Sphere" }
+                            ? SpherePayload
+                            : T extends { kind: "Polygon" }
+                              ? PolygonPayload
+                              : T extends { kind: "Conic" }
+                                ? ConicPayload
+                                : T extends { kind: "Transformation" }
+                                  ? TransformationPayload
+                                  : unknown;
 
 export type Provenance = {
   blockId: string;
