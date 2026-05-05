@@ -1,4 +1,5 @@
 import type { BlockRegistry } from "../registry";
+import { AffineBlock } from "./affine/definition";
 import { AngleBlock } from "./angle/definition";
 import { AngleBisectorBlock } from "./angle-bisector/definition";
 import { AreaBlock } from "./area/definition";
@@ -51,4 +52,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(ReflectBlock);
   registry.register(ScaleBlock);
   registry.register(GlideBlock);
+  registry.register(AffineBlock);
 }
