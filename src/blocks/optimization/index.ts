@@ -8,6 +8,7 @@ import { LpDualBlock } from "./lp-dual/definition";
 import { LpStandardBlock } from "./lp-standard/definition";
 import { MinimizeBlock } from "./minimize/definition";
 import { NewtonOptBlock } from "./newton/definition";
+import { PolynomialRegressionBlock } from "./polynomial-regression/definition";
 import { BisectionBlock } from "./root-finding/bisection";
 import { FixedPointBlock } from "./root-finding/fixed-point";
 import { NewtonRootBlock } from "./root-finding/newton-root";
@@ -29,4 +30,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(SecantBlock);
   registry.register(FixedPointBlock);
   registry.register(LinearRegressionBlock);
+  registry.register(PolynomialRegressionBlock);
 }
