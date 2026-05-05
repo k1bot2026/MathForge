@@ -7,6 +7,10 @@ import { LpDualBlock } from "./lp-dual/definition";
 import { LpStandardBlock } from "./lp-standard/definition";
 import { MinimizeBlock } from "./minimize/definition";
 import { NewtonOptBlock } from "./newton/definition";
+import { BisectionBlock } from "./root-finding/bisection";
+import { FixedPointBlock } from "./root-finding/fixed-point";
+import { NewtonRootBlock } from "./root-finding/newton-root";
+import { SecantBlock } from "./root-finding/secant";
 import { SimplexBlock } from "./simplex/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -19,4 +23,8 @@ export function register(registry: BlockRegistry): void {
   registry.register(BfgsBlock);
   registry.register(LineSearchBlock);
   registry.register(MinimizeBlock);
+  registry.register(BisectionBlock);
+  registry.register(NewtonRootBlock);
+  registry.register(SecantBlock);
+  registry.register(FixedPointBlock);
 }

@@ -18,7 +18,7 @@
 // the named-payload path can be revisited with a proper ADR.
 
 import type { BlockDefinition } from "~/blocks/types";
-import type { MatrixPayload, MathValue, VectorPayload } from "~/math/types";
+import type { MathValue, MatrixPayload, VectorPayload } from "~/math/types";
 
 export class LpStandardError extends Error {
   constructor(message: string) {

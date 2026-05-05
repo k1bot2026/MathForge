@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { MatrixPayload, MathValue, VectorPayload } from "~/math/types";
+import type { MathValue, MatrixPayload, VectorPayload } from "~/math/types";
 import { LpStandardBlock, LpStandardError } from "./definition";
 
 const ctx = { signal: new AbortController().signal };

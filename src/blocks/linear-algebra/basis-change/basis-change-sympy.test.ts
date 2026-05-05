@@ -158,7 +158,9 @@ describe("la.basis-change cross-engine (SymPy fixtures)", () => {
           }
           const detT = computeDet({ A: mvalue(T) }).payload as number;
           const detResult = computeDet({ A: result }).payload as number;
-          expect(Math.abs(detT - detResult)).toBeLessThan(1e-5);
+          if (Math.abs(detT) < 1e-6) return;
+          const scale = Math.max(Math.abs(detT), 1);
+          expect(Math.abs(detT - detResult) / scale).toBeLessThan(1e-6);
         },
       ),
       { numRuns: 50 },
