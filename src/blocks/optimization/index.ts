@@ -23,6 +23,7 @@ import { SplineBlock } from "./spline/definition";
 import { ConvergencePlotBlock } from "./viz/convergence-plot";
 import { FeasiblePolytopeBlock } from "./viz/feasible-polytope";
 import { RegressionLineBlock } from "./viz/regression-line";
+import { RootFindingVizBlock } from "./viz/root-finding";
 
 export function register(registry: BlockRegistry): void {
   registry.register(LpStandardBlock);
@@ -49,4 +50,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(RegressionLineBlock);
   registry.register(FeasiblePolytopeBlock);
   registry.register(ConvergencePlotBlock);
+  registry.register(RootFindingVizBlock);
 }
