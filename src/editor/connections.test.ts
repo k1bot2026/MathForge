@@ -352,6 +352,22 @@ describe("canConnect — Circle / Sphere / Polygon / Conic", () => {
   test("Polygon → Conic rejected", () => {
     expect(canConnect({ kind: "Polygon" }, { kind: "Conic" }).ok).toBe(false);
   });
+
+  test("Circle → Polygon rejected", () => {
+    expect(canConnect({ kind: "Circle" }, { kind: "Polygon" }).ok).toBe(false);
+  });
+
+  test("Conic → Circle rejected", () => {
+    expect(canConnect({ kind: "Conic" }, { kind: "Circle" }).ok).toBe(false);
+  });
+
+  test("Line<2> → Circle rejected (cross-kind)", () => {
+    expect(canConnect(line(2), { kind: "Circle" }).ok).toBe(false);
+  });
+
+  test("Point<2> → Conic rejected (cross-kind)", () => {
+    expect(canConnect(point(2), { kind: "Conic" }).ok).toBe(false);
+  });
 });
 
 describe("canConnect — Vector ↔ Point soft-coerce", () => {
