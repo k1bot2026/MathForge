@@ -12,10 +12,18 @@
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
-import type { BlockDefinition, ColorToken, ParamSpec, ResolvedInputs } from "~/blocks/types";
+import type {
+  BlockDefinition,
+  ColorToken,
+  InputPort,
+  OutputPort,
+  ParamSpec,
+  ResolvedInputs,
+} from "~/blocks/types";
+import { Tooltip } from "~/components/tooltip";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import type { EvalResult } from "~/engine/types";
-import type { MathValue } from "~/math/types";
+import type { MathType, MathValue } from "~/math/types";
 import { useGraphStore } from "~/store/graph-store";
 
 const fillByRole: Readonly<Record<ColorToken, string>> = {
@@ -121,20 +129,68 @@ function PortLabels({ def }: { def: BlockDefinition }) {
     <div className="mt-1.5 flex justify-between gap-2">
       <div className="flex flex-col gap-0.5">
         {def.inputs.map((port) => (
-          <span key={port.id} className="font-mono text-[10px] leading-none text-fg-faint">
-            {port.label}
-          </span>
+          <Tooltip key={port.id} content={portTooltip(port)} side="left" delay={250}>
+            <span className="font-mono text-[10px] leading-none text-fg-faint cursor-default">
+              {port.label}
+            </span>
+          </Tooltip>
         ))}
       </div>
       <div className="flex flex-col items-end gap-0.5">
         {def.outputs.map((port) => (
-          <span key={port.id} className="font-mono text-[10px] leading-none text-fg-faint">
-            {port.label}
-          </span>
+          <Tooltip key={port.id} content={portTooltip(port)} side="right" delay={250}>
+            <span className="font-mono text-[10px] leading-none text-fg-faint cursor-default">
+              {port.label}
+            </span>
+          </Tooltip>
         ))}
       </div>
     </div>
   );
+}
+
+function portTooltip(port: InputPort | OutputPort): React.ReactNode {
+  const typeStr = formatMathType(typeof port.type === "function" ? null : port.type);
+  return (
+    <span className="flex flex-col gap-0.5">
+      <span className="font-semibold text-fg">{port.label}</span>
+      <span className="text-fg-muted">{typeStr}</span>
+    </span>
+  );
+}
+
+function formatMathType(t: MathType | null): string {
+  if (t === null) return "polymorphic";
+  switch (t.kind) {
+    case "Scalar":
+      return `Scalar(${t.field})`;
+    case "Vector":
+      return `Vector<${String(t.n)}, ${t.field}>`;
+    case "Matrix":
+      return `Matrix<${String(t.m)}×${String(t.n)}, ${t.field}>`;
+    case "Point":
+      return `Point<${String(t.n)}>`;
+    case "Line":
+      return `Line(${t.n}D)`;
+    case "Circle":
+      return "Circle";
+    case "Sphere":
+      return "Sphere";
+    case "Polygon":
+      return "Polygon";
+    case "Distribution":
+      return `Distribution(${typeof t.family === "string" ? t.family : t.family.custom})`;
+    case "Function":
+      return `Function(arity=${t.arity})`;
+    case "Expression":
+      return `Expression[${t.freeVars.join(",")}]`;
+    case "Tuple":
+      return `Tuple(${t.elements.length})`;
+    case "Set":
+      return `Set<${formatMathType(t.element)}>`;
+    default:
+      return t.kind;
+  }
 }
 
 function InlineParams({
@@ -313,10 +369,24 @@ function ParamStrip({
     })
     .join(" · ");
 
+  const fullSnippets = entries
+    .map(([key, spec]) => {
+      const val = params[key] ?? spec.default;
+      const label = spec.label ?? key;
+      return `${label}: ${String(val)}`;
+    })
+    .join("\n");
+
   return (
-    <div className="mt-1 truncate font-mono text-[10px] text-fg-faint" title={snippets}>
-      {snippets}
-    </div>
+    <Tooltip
+      content={<span className="whitespace-pre-line">{fullSnippets}</span>}
+      side="bottom"
+      delay={200}
+    >
+      <div className="mt-1 truncate font-mono text-[10px] text-fg-faint cursor-default">
+        {snippets}
+      </div>
+    </Tooltip>
   );
 }
 

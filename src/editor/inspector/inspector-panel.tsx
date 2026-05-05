@@ -13,6 +13,7 @@ import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
 import type { SubgraphDefinition } from "~/blocks/common/subgraph/types";
 import type { BlockDefinition, ResolvedInputs, ResolvedParams } from "~/blocks/types";
+import { Tooltip } from "~/components/tooltip";
 import { BLOCK_PREVIEWS } from "~/editor/block-previews";
 import type { BlockNodeData } from "~/engine/graph-spec";
 import type { EvalResult } from "~/engine/types";
@@ -164,9 +165,9 @@ function LivePreview({
       style={{ minHeight: 160 }}
       data-testid="inspector-live-preview"
     >
-      {hasViz ? (
+      {hasViz && def.visualization !== undefined ? (
         (() => {
-          const Viz = def.visualization!;
+          const Viz = def.visualization;
           const output = result?.kind === "value" ? result.value : undefined;
           return (
             <div className="p-2">
@@ -174,9 +175,9 @@ function LivePreview({
             </div>
           );
         })()
-      ) : hasPreviewRenderer ? (
+      ) : hasPreviewRenderer && def.previewRenderer !== undefined ? (
         (() => {
-          const Preview = def.previewRenderer!;
+          const Preview = def.previewRenderer;
           const value = (result as { kind: "value"; value: MathValue }).value;
           return (
             <div className="p-2" data-testid="inspector-preview">
@@ -217,26 +218,56 @@ function ParamSection({
 
   return (
     <div className="border-b border-border p-4" data-testid="inspector-params">
-      {entries.length === 0 ? (
-        <p className="text-xs text-fg-faint">No parameters.</p>
-      ) : null}
+      {entries.length === 0 ? <p className="text-xs text-fg-faint">No parameters.</p> : null}
       <span className="mb-3 block font-mono text-[10px] uppercase tracking-wider text-fg-muted">
         Parameters
       </span>
       <div className="flex flex-col gap-2">
         {entries.map(([key, spec]) => (
-          <ParamControl
-            key={key}
-            name={key}
-            spec={spec}
-            value={params[key] ?? spec.default}
-            onChange={(v) => {
-              onUpdate({ ...params, [key]: v });
-            }}
-          />
+          <Tooltip key={key} content={paramTooltip(key, spec)} side="left" delay={400}>
+            <div>
+              <ParamControl
+                name={key}
+                spec={spec}
+                value={params[key] ?? spec.default}
+                onChange={(v) => {
+                  onUpdate({ ...params, [key]: v });
+                }}
+              />
+            </div>
+          </Tooltip>
         ))}
       </div>
     </div>
+  );
+}
+
+function paramTooltip(
+  key: string,
+  spec: NonNullable<BlockDefinition["params"]>[string],
+): React.ReactNode {
+  const label = spec.label ?? key;
+  const lines: string[] = [`Type: ${spec.kind}`];
+  if ((spec.kind === "number" || spec.kind === "integer") && spec.min !== undefined) {
+    lines.push(`Range: ${spec.min} – ${spec.max ?? "∞"}`);
+  }
+  if (
+    (spec.kind === "number" || spec.kind === "integer") &&
+    "step" in spec &&
+    spec.step !== undefined
+  ) {
+    lines.push(`Step: ${spec.step}`);
+  }
+  lines.push(`Default: ${String(spec.default)}`);
+  return (
+    <span className="flex flex-col gap-0.5">
+      <span className="font-semibold text-fg">{label}</span>
+      {lines.map((l) => (
+        <span key={l} className="text-fg-muted">
+          {l}
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -283,19 +314,30 @@ function ExplanationSection({
 
 function ValueStrip({ result }: { result: EvalResult | undefined }) {
   if (result === undefined || result.kind !== "value") return null;
+  const { value } = result;
+  const tooltipContent = (
+    <span className="flex flex-col gap-0.5">
+      <span className="text-fg">Type: {value.type.kind}</span>
+      <span className="text-fg-muted">Engine: {value.provenance.engine}</span>
+      <span className="text-fg-muted">Block: {value.provenance.blockId}</span>
+    </span>
+  );
+
   return (
-    <div
-      data-testid="inspector-value-strip"
-      className="-mb-0 mt-auto border-t border-border bg-surface-2 px-4 py-2"
-    >
-      <span className="font-mono text-[10px] uppercase tracking-wider text-fg-muted">value</span>
-      <p className="mt-0.5 truncate font-mono text-xs text-fg">
-        {formatPayload(result.value.payload)}
-      </p>
-      <p className="mt-0.5 font-mono text-[10px] text-fg-faint">
-        {result.value.type.kind} · {result.value.provenance.engine}
-      </p>
-    </div>
+    <Tooltip content={tooltipContent} side="top" delay={200}>
+      <div
+        data-testid="inspector-value-strip"
+        className="-mb-0 mt-auto border-t border-border bg-surface-2 px-4 py-2 cursor-default"
+      >
+        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-muted">value</span>
+        <p className="mt-0.5 truncate font-mono text-xs text-fg">
+          {formatPayload(result.value.payload)}
+        </p>
+        <p className="mt-0.5 font-mono text-[10px] text-fg-faint">
+          {result.value.type.kind} · {result.value.provenance.engine}
+        </p>
+      </div>
+    </Tooltip>
   );
 }
 

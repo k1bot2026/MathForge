@@ -4,6 +4,7 @@ import type { Edge, Node } from "@xyflow/react";
 import { useMemo, useState } from "react";
 import { blockRegistry } from "~/blocks";
 import type { BlockDefinition, BlockDomain, ColorToken } from "~/blocks/types";
+import { Tooltip } from "~/components/tooltip";
 import { BLOCK_PREVIEWS } from "~/editor/block-previews";
 import { TEMPLATES } from "~/lib/templates";
 import { useGraphStore } from "~/store/graph-store";
@@ -169,6 +170,17 @@ function DomainSection({
   );
 }
 
+function blockTooltipContent(def: BlockDefinition): React.ReactNode {
+  const what = typeof def.explain.what === "string" ? def.explain.what : null;
+  return (
+    <span className="flex flex-col gap-1">
+      <span className="font-semibold text-fg">{def.label}</span>
+      {what !== null ? <span className="text-fg-muted">{what}</span> : null}
+      <span className="text-fg-faint">Drag to canvas to add</span>
+    </span>
+  );
+}
+
 function BlockLibraryItem({
   def,
   onDragStart,
@@ -179,32 +191,33 @@ function BlockLibraryItem({
   const preview = BLOCK_PREVIEWS[def.id] ?? def.preview;
 
   return (
-    <button
-      type="button"
-      draggable
-      onDragStart={(e) => {
-        onDragStart(e, def);
-      }}
-      title={`${def.id} — drag to canvas to add`}
-      aria-label={`${def.label} block — drag to canvas to add`}
-      className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
-      data-testid={`library-item-${def.id}`}
-    >
-      <span
-        aria-hidden="true"
-        className={`flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md ${COLOR_DOT_BG[def.color]}`}
+    <Tooltip content={blockTooltipContent(def)} side="right" delay={400}>
+      <button
+        type="button"
+        draggable
+        onDragStart={(e) => {
+          onDragStart(e, def);
+        }}
+        aria-label={`${def.label} block — drag to canvas to add`}
+        className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
+        data-testid={`library-item-${def.id}`}
       >
-        {preview !== undefined ? (
-          preview
-        ) : (
-          <span className="font-mono text-base text-fg-muted">{def.symbol ?? "?"}</span>
-        )}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-xs font-medium text-fg">{def.label}</span>
-        <span className="block truncate font-mono text-[10px] text-fg-faint">{def.id}</span>
-      </span>
-    </button>
+        <span
+          aria-hidden="true"
+          className={`flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md ${COLOR_DOT_BG[def.color]}`}
+        >
+          {preview !== undefined ? (
+            preview
+          ) : (
+            <span className="font-mono text-base text-fg-muted">{def.symbol ?? "?"}</span>
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-xs font-medium text-fg">{def.label}</span>
+          <span className="block truncate font-mono text-[10px] text-fg-faint">{def.id}</span>
+        </span>
+      </button>
+    </Tooltip>
   );
 }
 
