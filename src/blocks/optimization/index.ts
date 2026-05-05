@@ -20,6 +20,7 @@ import { NewtonRootBlock } from "./root-finding/newton-root";
 import { SecantBlock } from "./root-finding/secant";
 import { SimplexBlock } from "./simplex/definition";
 import { SplineBlock } from "./spline/definition";
+import { RegressionLineBlock } from "./viz/regression-line";
 
 export function register(registry: BlockRegistry): void {
   registry.register(LpStandardBlock);
@@ -43,4 +44,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(SimpsonBlock);
   registry.register(GaussQuadratureBlock);
   registry.register(SplineBlock);
+  registry.register(RegressionLineBlock);
 }
