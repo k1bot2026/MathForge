@@ -6,6 +6,7 @@ import { AreaBlock } from "./area/definition";
 import { CentroidBlock } from "./centroid/definition";
 import { CircleFromCenterRadiusBlock } from "./circle-from-center-radius/definition";
 import { CircleFromThreePointsBlock } from "./circle-from-three-points/definition";
+import { ComposeBlock } from "./compose/definition";
 import { ConicFromFivePointsBlock } from "./conic-from-five-points/definition";
 import { DistanceBlock } from "./distance/definition";
 import { GlideBlock } from "./glide/definition";
@@ -58,6 +59,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(ScaleBlock);
   registry.register(GlideBlock);
   registry.register(AffineBlock);
+  registry.register(ComposeBlock);
   registry.register(ProjectBlock);
   registry.register(IntersectionBlock);
   registry.register(VizGeometry2dBlock);
