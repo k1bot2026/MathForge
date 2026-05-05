@@ -1,4 +1,5 @@
 import type { BlockRegistry } from "../registry";
+import { AngleBlock } from "./angle/definition";
 import { AngleBisectorBlock } from "./angle-bisector/definition";
 import { CircleFromCenterRadiusBlock } from "./circle-from-center-radius/definition";
 import { CircleFromThreePointsBlock } from "./circle-from-three-points/definition";
@@ -25,4 +26,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(PerpendicularBisectorBlock);
   registry.register(AngleBisectorBlock);
   registry.register(DistanceBlock);
+  registry.register(AngleBlock);
 }
