@@ -30,6 +30,7 @@ import { ScaleBlock } from "./scale/definition";
 import { TranslateBlock } from "./translate/definition";
 import { VizConicClassifyBlock } from "./viz-conic-classify/definition";
 import { VizGeometry2dBlock } from "./viz-geometry-2d/definition";
+import { VizGeometry3dBlock } from "./viz-geometry-3d/definition";
 import { VizTransformationAnimationBlock } from "./viz-transformation-animation/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -63,6 +64,7 @@ export function register(registry: BlockRegistry): void {
   registry.register(ProjectBlock);
   registry.register(IntersectionBlock);
   registry.register(VizGeometry2dBlock);
+  registry.register(VizGeometry3dBlock);
   registry.register(VizConicClassifyBlock);
   registry.register(VizTransformationAnimationBlock);
 }
