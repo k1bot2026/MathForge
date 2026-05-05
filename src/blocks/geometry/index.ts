@@ -7,6 +7,7 @@ import { CircleFromCenterRadiusBlock } from "./circle-from-center-radius/definit
 import { CircleFromThreePointsBlock } from "./circle-from-three-points/definition";
 import { ConicFromFivePointsBlock } from "./conic-from-five-points/definition";
 import { DistanceBlock } from "./distance/definition";
+import { GlideBlock } from "./glide/definition";
 import { IsCollinearBlock } from "./is-collinear/definition";
 import { IsConcurrentBlock } from "./is-concurrent/definition";
 import { IsParallelBlock } from "./is-parallel/definition";
@@ -49,4 +50,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(RotateBlock);
   registry.register(ReflectBlock);
   registry.register(ScaleBlock);
+  registry.register(GlideBlock);
 }
