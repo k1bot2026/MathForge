@@ -49,6 +49,7 @@ export function BlockNode({ id, data }: NodeProps) {
   const isError = result?.kind === "error";
   const baseClasses = fillByRole[def.color];
   const errorClasses = isError ? "ring-2 ring-error" : "";
+  const params = (blockData.params ?? {}) as Record<string, unknown>;
 
   return (
     <div
@@ -58,6 +59,8 @@ export function BlockNode({ id, data }: NodeProps) {
       className={`replay-glow-target min-w-[180px] rounded-[10px] border ${baseClasses} ${errorClasses} px-3 py-2 shadow-block-1 transition-shadow hover:shadow-block-2`}
     >
       <BlockHeader def={def} />
+      <PortLabels def={def} />
+      <ParamStrip def={def} params={params} />
       <BlockBody def={def} result={result} inputs={inputs} />
       <BlockHandles def={def} />
     </div>
@@ -86,10 +89,56 @@ function useNodeInputs(nodeId: string): ResolvedInputs {
 function BlockHeader({ def }: { def: BlockDefinition }) {
   return (
     <div className="flex items-baseline justify-between gap-2 text-fg">
-      <span className="text-sm font-medium">{def.label}</span>
+      <span className="text-sm font-semibold leading-tight">{def.label}</span>
       {def.symbol !== undefined ? (
         <span className="font-mono text-xs text-fg-muted">{def.symbol}</span>
       ) : null}
+    </div>
+  );
+}
+
+function PortLabels({ def }: { def: BlockDefinition }) {
+  const hasInputs = def.inputs.length > 0;
+  const hasOutputs = def.outputs.length > 0;
+  if (!hasInputs && !hasOutputs) return null;
+
+  return (
+    <div className="mt-1.5 flex justify-between gap-2">
+      <div className="flex flex-col gap-0.5">
+        {def.inputs.map((port) => (
+          <span key={port.id} className="font-mono text-[10px] text-fg-faint leading-none">
+            {port.label}
+          </span>
+        ))}
+      </div>
+      <div className="flex flex-col items-end gap-0.5">
+        {def.outputs.map((port) => (
+          <span key={port.id} className="font-mono text-[10px] text-fg-faint leading-none">
+            {port.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ParamStrip({ def, params }: { def: BlockDefinition; params: Record<string, unknown> }) {
+  const specs = def.params;
+  if (specs === undefined) return null;
+  const entries = Object.entries(specs);
+  if (entries.length === 0) return null;
+
+  const snippets = entries
+    .slice(0, 4)
+    .map(([key, _spec]) => {
+      const val = params[key] ?? _spec.default;
+      return `${key}=${String(val)}`;
+    })
+    .join(" · ");
+
+  return (
+    <div className="mt-1 truncate font-mono text-[10px] text-fg-faint" title={snippets}>
+      {snippets}
     </div>
   );
 }
@@ -128,7 +177,7 @@ function BlockBody({
   }
   if (result?.kind === "value") {
     return (
-      <div className="mt-1" data-testid="block-value">
+      <div className="mt-1.5 rounded bg-bg/50 px-2 py-1" data-testid="block-value">
         <ValuePreview value={result.value} />
       </div>
     );
@@ -143,14 +192,12 @@ function ValuePreview({ value }: { value: import("~/math/types").MathValue }) {
   }
   if (t.kind === "Vector") {
     const arr = value.payload as ReadonlyArray<unknown>;
-    return (
-      <span className="font-mono text-xs text-fg-muted">[{arr.map(formatScalar).join(", ")}]</span>
-    );
+    return <span className="font-mono text-xs text-fg">[{arr.map(formatScalar).join(", ")}]</span>;
   }
   if (t.kind === "Matrix") {
     const rows = value.payload as ReadonlyArray<ReadonlyArray<unknown>>;
     return (
-      <div className="font-mono text-xs text-fg-muted">
+      <div className="font-mono text-xs text-fg">
         {rows.map((row, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: matrix rows are positionally addressed; row reordering is not a thing here.
           <div key={i}>[{row.map(formatScalar).join(", ")}]</div>
