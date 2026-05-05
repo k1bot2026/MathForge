@@ -20,6 +20,7 @@ import { NewtonRootBlock } from "./root-finding/newton-root";
 import { SecantBlock } from "./root-finding/secant";
 import { SimplexBlock } from "./simplex/definition";
 import { SplineBlock } from "./spline/definition";
+import { ConvergencePlotBlock } from "./viz/convergence-plot";
 import { FeasiblePolytopeBlock } from "./viz/feasible-polytope";
 import { RegressionLineBlock } from "./viz/regression-line";
 
@@ -47,4 +48,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(SplineBlock);
   registry.register(RegressionLineBlock);
   registry.register(FeasiblePolytopeBlock);
+  registry.register(ConvergencePlotBlock);
 }
