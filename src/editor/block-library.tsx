@@ -109,7 +109,7 @@ export function BlockLibrary() {
         />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto py-1">
+      <div className="themed-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-1">
         {domains.length === 0 ? (
           <p className="px-3 py-4 text-xs text-fg-faint">No blocks match your search.</p>
         ) : (
@@ -199,7 +199,7 @@ function BlockLibraryItem({
           onDragStart(e, def);
         }}
         aria-label={`${def.label} block — drag to canvas to add`}
-        className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
+        className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] min-w-0 cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
         data-testid={`library-item-${def.id}`}
       >
         <span

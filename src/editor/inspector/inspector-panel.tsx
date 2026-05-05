@@ -93,7 +93,7 @@ export function InspectorPanel() {
         </div>
       </header>
 
-      <div className="inspector-body flex flex-1 flex-col overflow-y-auto">
+      <div className="inspector-body themed-scrollbar flex flex-1 flex-col overflow-y-auto">
         {def === undefined ? (
           <p className="p-4 text-sm text-fg-muted">Block not registered: {data.blockId}</p>
         ) : (

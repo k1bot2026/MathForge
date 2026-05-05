@@ -276,6 +276,31 @@
   }
 }
 
+/* Themed scrollbar — applied via .themed-scrollbar utility class to opt-in
+   containers (block library, inspector body). Webkit-only; other browsers
+   fall back to the native scrollbar which is acceptable. */
+.themed-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.themed-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.themed-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+}
+.themed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--fg-faint);
+}
+@media (prefers-color-scheme: dark) {
+  .themed-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+  }
+  .themed-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--fg-faint);
+  }
+}
+
 /* Construction Protocol replay-mode glow. Applied to BlockNode roots
    whose id was touched by the last applied event. Duration 400 ms,
    centred in the 300-600 ms band specified in
