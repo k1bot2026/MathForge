@@ -3167,6 +3167,408 @@ json.dumps({"n": ${n}, "value": int(fibonacci(${n}))})
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// geom.distance — point-point (as distSq) and point-line distances
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference distance values using sympy.geometry.
+ * - Point-point: stored as distSq (exact integer) to avoid irrational serialisation.
+ * - Point-line: stored as exact rational {n, d} via SymPy Rational arithmetic.
+ * All inputs are integer coordinates.
+ */
+async function generateGeomDistanceCases(py) {
+  const ppPairs = [
+    [[0, 0], [3, 4]],
+    [[0, 0], [5, 12]],
+    [[1, 1], [4, 5]],
+    [[-3, -4], [0, 0]],
+    [[0, 0], [8, 15]],
+    [[1, 2], [4, 6]],
+    [[-1, -1], [2, 3]],
+    [[0, 0], [0, 0]],
+    [[7, 0], [0, 0]],
+    [[3, 4], [6, 8]],
+  ];
+
+  const pointPointCases = [];
+  for (const [p1, p2] of ppPairs) {
+    const result = py.runPython(`
+from sympy.geometry import Point2D
+import json
+p1 = Point2D(${p1[0]}, ${p1[1]})
+p2 = Point2D(${p2[0]}, ${p2[1]})
+dx = p2.x - p1.x
+dy = p2.y - p1.y
+dist_sq = int(dx**2 + dy**2)
+json.dumps({"p1": [${p1[0]}, ${p1[1]}], "p2": [${p2[0]}, ${p2[1]}], "distSq": dist_sq})
+`);
+    pointPointCases.push(JSON.parse(result));
+  }
+
+  const plCases = [
+    { point: [0, 0], lp1: [1, 0], lp2: [1, 1] },
+    { point: [0, 0], lp1: [0, 1], lp2: [1, 1] },
+    { point: [2, 3], lp1: [0, 0], lp2: [4, 3] },
+    { point: [1, 1], lp1: [0, 0], lp2: [1, 0] },
+    { point: [3, 4], lp1: [0, 0], lp2: [3, 0] },
+    { point: [6, 0], lp1: [0, 0], lp2: [3, 4] },
+  ];
+
+  const pointLineCases = [];
+  for (const c of plCases) {
+    const result = py.runPython(`
+from sympy.geometry import Point2D, Line2D
+from sympy import Rational
+import json
+pt = Point2D(${c.point[0]}, ${c.point[1]})
+line = Line2D(Point2D(${c.lp1[0]}, ${c.lp1[1]}), Point2D(${c.lp2[0]}, ${c.lp2[1]}))
+dist = line.distance(pt)
+frac = dist.as_numer_denom()
+json.dumps({
+  "point": [${c.point[0]}, ${c.point[1]}],
+  "line": {"p1": [${c.lp1[0]}, ${c.lp1[1]}], "p2": [${c.lp2[0]}, ${c.lp2[1]}]},
+  "distN": int(frac[0]),
+  "distD": int(frac[1])
+})
+`);
+    pointLineCases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference geometry distances from sympy.geometry. point-point stored as distSq (exact integer). " +
+      "point-line stored as exact rational {distN, distD} where distance = distN/distD.",
+    pointPointCases,
+    pointLineCases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.intersection — line-line (exact rational), line-circle, parallel check
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference intersection values using sympy.geometry.
+ * Restricted to integer inputs so results are exact rationals.
+ * - line-line: {intersectionX: {n,d}, intersectionY: {n,d}}
+ * - line-circle: {intersectionCount, intersections: [{x,y}]}
+ * - parallel lines: {parallel: true}
+ */
+async function generateGeomIntersectionCases(py) {
+  const llPairs = [
+    { l1p1: [0, 0], l1p2: [1, 1], l2p1: [0, 1], l2p2: [1, 0] },
+    { l1p1: [0, 0], l1p2: [2, 1], l2p1: [0, 2], l2p2: [2, 0] },
+    { l1p1: [0, 0], l1p2: [1, 0], l2p1: [0, 0], l2p2: [0, 1] },
+    { l1p1: [0, 1], l1p2: [4, 1], l2p1: [2, 0], l2p2: [2, 4] },
+    { l1p1: [0, 0], l1p2: [3, 2], l2p1: [0, 4], l2p2: [3, 0] },
+  ];
+
+  const lineLineCases = [];
+  for (const c of llPairs) {
+    const result = py.runPython(`
+from sympy.geometry import Line2D, Point2D
+import json
+l1 = Line2D(Point2D(${c.l1p1[0]}, ${c.l1p1[1]}), Point2D(${c.l1p2[0]}, ${c.l1p2[1]}))
+l2 = Line2D(Point2D(${c.l2p1[0]}, ${c.l2p1[1]}), Point2D(${c.l2p2[0]}, ${c.l2p2[1]}))
+pts = l1.intersection(l2)
+pt = pts[0]
+xn, xd = pt.x.as_numer_denom()
+yn, yd = pt.y.as_numer_denom()
+json.dumps({
+  "l1": {"p1": [${c.l1p1[0]}, ${c.l1p1[1]}], "p2": [${c.l1p2[0]}, ${c.l1p2[1]}]},
+  "l2": {"p1": [${c.l2p1[0]}, ${c.l2p1[1]}], "p2": [${c.l2p2[0]}, ${c.l2p2[1]}]},
+  "intersectionX": {"n": int(xn), "d": int(xd)},
+  "intersectionY": {"n": int(yn), "d": int(yd)}
+})
+`);
+    lineLineCases.push(JSON.parse(result));
+  }
+
+  const parallelPairs = [
+    { l1p1: [0, 0], l1p2: [1, 1], l2p1: [0, 1], l2p2: [1, 2] },
+    { l1p1: [0, 0], l1p2: [2, 0], l2p1: [0, 3], l2p2: [2, 3] },
+  ];
+
+  const parallelLinesCases = [];
+  for (const c of parallelPairs) {
+    const result = py.runPython(`
+from sympy.geometry import Line2D, Point2D
+import json
+l1 = Line2D(Point2D(${c.l1p1[0]}, ${c.l1p1[1]}), Point2D(${c.l1p2[0]}, ${c.l1p2[1]}))
+l2 = Line2D(Point2D(${c.l2p1[0]}, ${c.l2p1[1]}), Point2D(${c.l2p2[0]}, ${c.l2p2[1]}))
+json.dumps({
+  "l1": {"p1": [${c.l1p1[0]}, ${c.l1p1[1]}], "p2": [${c.l1p2[0]}, ${c.l1p2[1]}]},
+  "l2": {"p1": [${c.l2p1[0]}, ${c.l2p1[1]}], "p2": [${c.l2p2[0]}, ${c.l2p2[1]}]},
+  "parallel": l1.is_parallel(l2)
+})
+`);
+    parallelLinesCases.push(JSON.parse(result));
+  }
+
+  const lcCases = [
+    { cx: 0, cy: 0, r: 5, lp1: [0, 5], lp2: [1, 5] },
+    { cx: 0, cy: 0, r: 5, lp1: [0, 0], lp2: [3, 4] },
+    { cx: 0, cy: 0, r: 5, lp1: [0, 7], lp2: [1, 7] },
+  ];
+
+  const lineCircleCases = [];
+  for (const c of lcCases) {
+    const result = py.runPython(`
+from sympy.geometry import Circle, Line2D, Point2D
+import json
+circle = Circle(Point2D(${c.cx}, ${c.cy}), ${c.r})
+line = Line2D(Point2D(${c.lp1[0]}, ${c.lp1[1]}), Point2D(${c.lp2[0]}, ${c.lp2[1]}))
+pts = circle.intersection(line)
+intersections = []
+for pt in pts:
+  xn, xd = pt.x.as_numer_denom()
+  yn, yd = pt.y.as_numer_denom()
+  intersections.append({"x": {"n": int(xn), "d": int(xd)}, "y": {"n": int(yn), "d": int(yd)}})
+intersections.sort(key=lambda p: (p["x"]["n"] / p["x"]["d"], p["y"]["n"] / p["y"]["d"]))
+json.dumps({
+  "center": [${c.cx}, ${c.cy}],
+  "radius": ${c.r},
+  "line": {"p1": [${c.lp1[0]}, ${c.lp1[1]}], "p2": [${c.lp2[0]}, ${c.lp2[1]}]},
+  "intersectionCount": len(pts),
+  "intersections": intersections
+})
+`);
+    lineCircleCases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference intersection results from sympy.geometry. Integer inputs only. " +
+      "Coordinates as exact rational {n, d}.",
+    lineLineCases,
+    parallelLinesCases,
+    lineCircleCases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.transformation — translation, reflection, rotation by multiples of 90°
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference transformation values using sympy.geometry.
+ * - Translation: Point2D.translate(dx, dy)
+ * - Reflection: across x-axis, y-axis, y=x, y=-x
+ * - Rotation: by 90°, 180°, -90° (exact integer results for integer inputs)
+ * Results stored as exact rational {n, d}.
+ */
+async function generateGeomTransformationCases(py) {
+  const translationInputs = [
+    { point: [0, 0], dx: 3, dy: 4 },
+    { point: [1, 2], dx: -1, dy: -2 },
+    { point: [3, -1], dx: 0, dy: 5 },
+    { point: [-2, -3], dx: 5, dy: 7 },
+  ];
+
+  const translationCases = [];
+  for (const c of translationInputs) {
+    const result = py.runPython(`
+from sympy.geometry import Point2D
+import json
+pt = Point2D(${c.point[0]}, ${c.point[1]})
+translated = pt.translate(${c.dx}, ${c.dy})
+xn, xd = translated.x.as_numer_denom()
+yn, yd = translated.y.as_numer_denom()
+json.dumps({
+  "point": [${c.point[0]}, ${c.point[1]}],
+  "dx": ${c.dx},
+  "dy": ${c.dy},
+  "result": {"x": {"n": int(xn), "d": int(xd)}, "y": {"n": int(yn), "d": int(yd)}}
+})
+`);
+    translationCases.push(JSON.parse(result));
+  }
+
+  const reflectionInputs = [
+    { point: [3, 4], axis: "x" },
+    { point: [3, 4], axis: "y" },
+    { point: [3, 4], axis: "y=x" },
+    { point: [3, 4], axis: "y=-x" },
+    { point: [0, 0], axis: "x" },
+    { point: [5, 0], axis: "y" },
+  ];
+
+  const reflectionCases = [];
+  for (const c of reflectionInputs) {
+    const axisCode =
+      c.axis === "x"
+        ? "Line2D(Point2D(0,0), Point2D(1,0))"
+        : c.axis === "y"
+          ? "Line2D(Point2D(0,0), Point2D(0,1))"
+          : c.axis === "y=x"
+            ? "Line2D(Point2D(0,0), Point2D(1,1))"
+            : "Line2D(Point2D(0,0), Point2D(1,-1))";
+    const result = py.runPython(`
+from sympy.geometry import Point2D, Line2D
+import json
+pt = Point2D(${c.point[0]}, ${c.point[1]})
+axis = ${axisCode}
+reflected = pt.reflect(axis)
+xn, xd = reflected.x.as_numer_denom()
+yn, yd = reflected.y.as_numer_denom()
+json.dumps({
+  "point": [${c.point[0]}, ${c.point[1]}],
+  "axis": "${c.axis}",
+  "result": {"x": {"n": int(xn), "d": int(xd)}, "y": {"n": int(yn), "d": int(yd)}}
+})
+`);
+    reflectionCases.push(JSON.parse(result));
+  }
+
+  const rotationInputs = [
+    { point: [1, 0], angleDeg: 90 },
+    { point: [0, 1], angleDeg: 90 },
+    { point: [3, 4], angleDeg: 90 },
+    { point: [3, 4], angleDeg: 180 },
+    { point: [1, 0], angleDeg: -90 },
+    { point: [0, 0], angleDeg: 90 },
+  ];
+
+  const rotation90Cases = [];
+  for (const c of rotationInputs) {
+    const result = py.runPython(`
+from sympy.geometry import Point2D
+from sympy import pi, cos, sin, Rational, simplify
+import json
+pt = Point2D(${c.point[0]}, ${c.point[1]})
+angle_rad = pi * ${c.angleDeg} / 180
+c_val = cos(angle_rad)
+s_val = sin(angle_rad)
+# Rotation matrix: [[c,-s],[s,c]]
+rx = simplify(c_val * pt.x - s_val * pt.y)
+ry = simplify(s_val * pt.x + c_val * pt.y)
+xn, xd = rx.as_numer_denom()
+yn, yd = ry.as_numer_denom()
+json.dumps({
+  "point": [${c.point[0]}, ${c.point[1]}],
+  "angleDeg": ${c.angleDeg},
+  "result": {"x": {"n": int(xn), "d": int(xd)}, "y": {"n": int(yn), "d": int(yd)}}
+})
+`);
+    rotation90Cases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference transformation values from sympy.geometry. Integer inputs. " +
+      "Rotations restricted to multiples of 90° for exact integer results. " +
+      "Coordinates as exact rational {n, d}.",
+    translationCases,
+    reflectionCases,
+    rotation90Cases,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.area — polygon (shoelace) and circle areas
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Generates reference area values using sympy.geometry.
+ * - Triangle and polygon areas via shoelace (exact rational {areaN, areaD}).
+ * - Circle areas stored as {rSq} where area = rSq * π (avoids π serialisation).
+ */
+async function generateGeomAreaCases(py) {
+  const triangleInputs = [
+    [[0, 0], [4, 0], [0, 3]],
+    [[0, 0], [1, 0], [0, 1]],
+    [[0, 0], [6, 0], [3, 4]],
+    [[1, 1], [5, 1], [3, 4]],
+    [[0, 0], [3, 0], [3, 3]],
+    [[-1, 0], [1, 0], [0, 2]],
+  ];
+
+  const triangleAreaCases = [];
+  for (const verts of triangleInputs) {
+    const vertStr = verts.map((v) => `Point2D(${v[0]},${v[1]})`).join(", ");
+    const result = py.runPython(`
+from sympy.geometry import Triangle, Point2D
+import json
+tri = Triangle(${vertStr})
+area = tri.area
+an, ad = area.as_numer_denom()
+json.dumps({
+  "vertices": ${JSON.stringify(verts)},
+  "areaN": int(an),
+  "areaD": int(ad)
+})
+`);
+    triangleAreaCases.push(JSON.parse(result));
+  }
+
+  const polygonInputs = [
+    [[0, 0], [4, 0], [4, 3], [0, 3]],
+    [[0, 0], [2, 0], [2, 2], [0, 2]],
+    [[0, 0], [4, 0], [3, 2], [1, 2]],
+    [[0, 0], [3, 0], [4, 2], [2, 4], [0, 3]],
+  ];
+
+  const polygonAreaCases = [];
+  for (const verts of polygonInputs) {
+    const vertStr = verts.map((v) => `Point2D(${v[0]},${v[1]})`).join(", ");
+    const result = py.runPython(`
+from sympy.geometry import Polygon, Point2D
+import json
+poly = Polygon(${vertStr})
+area = poly.area
+an, ad = area.as_numer_denom()
+json.dumps({
+  "vertices": ${JSON.stringify(verts)},
+  "areaN": int(an),
+  "areaD": int(ad)
+})
+`);
+    polygonAreaCases.push(JSON.parse(result));
+  }
+
+  const circleInputs = [
+    { cx: 0, cy: 0, r: 1 },
+    { cx: 0, cy: 0, r: 3 },
+    { cx: 1, cy: 2, r: 5 },
+    { cx: 0, cy: 0, r: 2 },
+  ];
+
+  const circleAreaCases = [];
+  for (const c of circleInputs) {
+    const result = py.runPython(`
+from sympy.geometry import Circle, Point2D
+import json
+circle = Circle(Point2D(${c.cx}, ${c.cy}), ${c.r})
+# area = pi * r^2; store rSq to avoid serialising pi
+r_sq = int(circle.radius**2)
+json.dumps({
+  "center": [${c.cx}, ${c.cy}],
+  "radius": ${c.r},
+  "rSq": r_sq
+})
+`);
+    circleAreaCases.push(JSON.parse(result));
+  }
+
+  return {
+    schemaVersion: 1,
+    generated: new Date().toISOString(),
+    description:
+      "Reference area values from sympy.geometry. Triangle/polygon areas as exact rational {areaN, areaD}. " +
+      "Circle areas as {rSq} where area = rSq * π.",
+    triangleAreaCases,
+    polygonAreaCases,
+    circleAreaCases,
+  };
+}
+
 async function main() {
   console.log("Loading Pyodide…");
   const py = await loadPyodide({ indexURL: PYODIDE_INDEX + "/" });
@@ -3333,6 +3735,22 @@ async function main() {
   console.log("\nGenerating discrete.fibonacci fixtures…");
   const fibonacciFixture = await generateFibonacciCases(py);
   writeFixture("discrete-fibonacci", fibonacciFixture);
+
+  console.log("\nGenerating geom.distance fixtures…");
+  const geomDistanceFixture = await generateGeomDistanceCases(py);
+  writeFixture("geom-distance", geomDistanceFixture);
+
+  console.log("\nGenerating geom.intersection fixtures…");
+  const geomIntersectionFixture = await generateGeomIntersectionCases(py);
+  writeFixture("geom-intersection", geomIntersectionFixture);
+
+  console.log("\nGenerating geom.transformation fixtures…");
+  const geomTransformationFixture = await generateGeomTransformationCases(py);
+  writeFixture("geom-transformation", geomTransformationFixture);
+
+  console.log("\nGenerating geom.area fixtures…");
+  const geomAreaFixture = await generateGeomAreaCases(py);
+  writeFixture("geom-area", geomAreaFixture);
 
   console.log("\nDone.");
 }

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "Reference geometry distances computed by SymPy sympy.geometry. All inputs are integer-coordinate points/lines. Distances are exact rationals serialised as {n, d} where value = n/d. point-point distances are stored as distSq (exact integer) to avoid irrational sqrt serialisation.",
+  "pointPointCases": [
+    { "p1": [0, 0], "p2": [3, 4], "distSq": 25 },
+    { "p1": [0, 0], "p2": [5, 12], "distSq": 169 },
+    { "p1": [1, 1], "p2": [4, 5], "distSq": 25 },
+    { "p1": [-3, -4], "p2": [0, 0], "distSq": 25 },
+    { "p1": [0, 0], "p2": [8, 15], "distSq": 289 },
+    { "p1": [1, 2], "p2": [4, 6], "distSq": 25 },
+    { "p1": [-1, -1], "p2": [2, 3], "distSq": 25 },
+    { "p1": [0, 0], "p2": [0, 0], "distSq": 0 },
+    { "p1": [7, 0], "p2": [0, 0], "distSq": 49 },
+    { "p1": [3, 4], "p2": [6, 8], "distSq": 25 }
+  ],
+  "pointLineCases": [
+    {
+      "point": [0, 0],
+      "line": { "p1": [1, 0], "p2": [1, 1] },
+      "distN": 1,
+      "distD": 1,
+      "note": "point (0,0) to vertical line x=1, distance=1"
+    },
+    {
+      "point": [0, 0],
+      "line": { "p1": [0, 1], "p2": [1, 1] },
+      "distN": 1,
+      "distD": 1,
+      "note": "point (0,0) to horizontal line y=1, distance=1"
+    },
+    {
+      "point": [2, 3],
+      "line": { "p1": [0, 0], "p2": [4, 3] },
+      "distN": 6,
+      "distD": 5,
+      "note": "point (2,3) to line through (0,0),(4,3): 3x-4y=0, dist=|6-12|/5=6/5"
+    },
+    {
+      "point": [1, 1],
+      "line": { "p1": [0, 0], "p2": [1, 0] },
+      "distN": 1,
+      "distD": 1,
+      "note": "point (1,1) to x-axis, distance=1"
+    },
+    {
+      "point": [3, 4],
+      "line": { "p1": [0, 0], "p2": [3, 0] },
+      "distN": 4,
+      "distD": 1,
+      "note": "point (3,4) to x-axis, distance=4"
+    },
+    {
+      "point": [6, 0],
+      "line": { "p1": [0, 0], "p2": [3, 4] },
+      "distN": 24,
+      "distD": 5,
+      "note": "point (6,0) to line 4x-3y=0 through origin: dist=|24|/5=24/5"
+    }
+  ]
+}

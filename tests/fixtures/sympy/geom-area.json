@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "Reference area values from sympy.geometry. Polygon areas via shoelace formula (exact rational). Triangle areas stored as {areaN, areaD} where area = areaN/areaD. Circle areas stored as {rSq} where area = rSq * π.",
+  "triangleAreaCases": [
+    {
+      "vertices": [[0, 0], [4, 0], [0, 3]],
+      "areaN": 6,
+      "areaD": 1,
+      "note": "3-4 right triangle"
+    },
+    {
+      "vertices": [[0, 0], [1, 0], [0, 1]],
+      "areaN": 1,
+      "areaD": 2,
+      "note": "unit right triangle"
+    },
+    {
+      "vertices": [[0, 0], [6, 0], [3, 4]],
+      "areaN": 12,
+      "areaD": 1,
+      "note": "base=6, height=4"
+    },
+    {
+      "vertices": [[1, 1], [5, 1], [3, 4]],
+      "areaN": 6,
+      "areaD": 1,
+      "note": "base=4, height=3"
+    },
+    {
+      "vertices": [[0, 0], [3, 0], [3, 3]],
+      "areaN": 9,
+      "areaD": 2,
+      "note": "right isoceles with legs 3"
+    },
+    {
+      "vertices": [[-1, 0], [1, 0], [0, 2]],
+      "areaN": 2,
+      "areaD": 1,
+      "note": "isoceles: base=2, height=2"
+    }
+  ],
+  "polygonAreaCases": [
+    {
+      "vertices": [[0, 0], [4, 0], [4, 3], [0, 3]],
+      "areaN": 12,
+      "areaD": 1,
+      "note": "4x3 rectangle"
+    },
+    {
+      "vertices": [[0, 0], [2, 0], [2, 2], [0, 2]],
+      "areaN": 4,
+      "areaD": 1,
+      "note": "2x2 square"
+    },
+    {
+      "vertices": [[0, 0], [4, 0], [3, 2], [1, 2]],
+      "areaN": 6,
+      "areaD": 1,
+      "note": "trapezoid: parallel sides 4 and 2, height 2"
+    },
+    {
+      "vertices": [[0, 0], [3, 0], [4, 2], [2, 4], [0, 3]],
+      "areaN": 12,
+      "areaD": 1,
+      "note": "convex pentagon"
+    }
+  ],
+  "circleAreaCases": [
+    {
+      "center": [0, 0],
+      "radius": 1,
+      "rSq": 1,
+      "note": "unit circle, area=π"
+    },
+    {
+      "center": [0, 0],
+      "radius": 3,
+      "rSq": 9,
+      "note": "circle r=3, area=9π"
+    },
+    {
+      "center": [1, 2],
+      "radius": 5,
+      "rSq": 25,
+      "note": "circle r=5 at (1,2), area=25π"
+    },
+    {
+      "center": [0, 0],
+      "radius": 2,
+      "rSq": 4,
+      "note": "circle r=2, area=4π"
+    }
+  ]
+}

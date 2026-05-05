@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "Reference intersection results from sympy.geometry. Restricted to integer-coordinate inputs so all intersection coordinates are exact rationals. Stored as {n, d} pairs where value = n/d.",
+  "lineLineCases": [
+    {
+      "l1": { "p1": [0, 0], "p2": [1, 1] },
+      "l2": { "p1": [0, 1], "p2": [1, 0] },
+      "intersectionX": { "n": 1, "d": 2 },
+      "intersectionY": { "n": 1, "d": 2 },
+      "note": "y=x and y=-x+1 intersect at (1/2, 1/2)"
+    },
+    {
+      "l1": { "p1": [0, 0], "p2": [2, 1] },
+      "l2": { "p1": [0, 2], "p2": [2, 0] },
+      "intersectionX": { "n": 4, "d": 3 },
+      "intersectionY": { "n": 2, "d": 3 },
+      "note": "y=x/2 and y=-x+2 intersect at (4/3, 2/3)"
+    },
+    {
+      "l1": { "p1": [0, 0], "p2": [1, 0] },
+      "l2": { "p1": [0, 0], "p2": [0, 1] },
+      "intersectionX": { "n": 0, "d": 1 },
+      "intersectionY": { "n": 0, "d": 1 },
+      "note": "x-axis and y-axis intersect at origin"
+    },
+    {
+      "l1": { "p1": [0, 1], "p2": [4, 1] },
+      "l2": { "p1": [2, 0], "p2": [2, 4] },
+      "intersectionX": { "n": 2, "d": 1 },
+      "intersectionY": { "n": 1, "d": 1 },
+      "note": "horizontal y=1 and vertical x=2 intersect at (2,1)"
+    },
+    {
+      "l1": { "p1": [0, 0], "p2": [3, 2] },
+      "l2": { "p1": [0, 4], "p2": [3, 0] },
+      "intersectionX": { "n": 2, "d": 1 },
+      "intersectionY": { "n": 4, "d": 3 },
+      "note": "2x-3y=0 and 4x+3y=12 intersect at (2, 4/3)"
+    }
+  ],
+  "parallelLinesCases": [
+    {
+      "l1": { "p1": [0, 0], "p2": [1, 1] },
+      "l2": { "p1": [0, 1], "p2": [1, 2] },
+      "parallel": true,
+      "note": "parallel lines y=x and y=x+1 do not intersect"
+    },
+    {
+      "l1": { "p1": [0, 0], "p2": [2, 0] },
+      "l2": { "p1": [0, 3], "p2": [2, 3] },
+      "parallel": true,
+      "note": "parallel horizontals y=0 and y=3"
+    }
+  ],
+  "lineCircleCases": [
+    {
+      "center": [0, 0],
+      "radius": 5,
+      "line": { "p1": [0, 5], "p2": [1, 5] },
+      "intersectionCount": 1,
+      "intersections": [{ "x": { "n": 0, "d": 1 }, "y": { "n": 5, "d": 1 } }],
+      "note": "tangent line y=5 touches circle x²+y²=25 at (0,5)"
+    },
+    {
+      "center": [0, 0],
+      "radius": 5,
+      "line": { "p1": [0, 0], "p2": [3, 4] },
+      "intersectionCount": 2,
+      "intersections": [
+        { "x": { "n": -3, "d": 1 }, "y": { "n": -4, "d": 1 } },
+        { "x": { "n": 3, "d": 1 }, "y": { "n": 4, "d": 1 } }
+      ],
+      "note": "line through origin and (3,4) is a diameter of x²+y²=25"
+    },
+    {
+      "center": [0, 0],
+      "radius": 5,
+      "line": { "p1": [0, 7], "p2": [1, 7] },
+      "intersectionCount": 0,
+      "intersections": [],
+      "note": "line y=7 misses circle x²+y²=25"
+    }
+  ]
+}

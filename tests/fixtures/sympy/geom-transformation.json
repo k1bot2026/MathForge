@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-05-03T00:00:00.000Z",
+  "description": "Reference transformation results from sympy.geometry. Translation uses integer vectors. Reflections across coordinate axes and the lines y=x and y=-x have exact integer results for integer inputs. Rotation by 90° and 180° also yields exact integers. Results stored as exact rational {n, d} pairs.",
+  "translationCases": [
+    {
+      "point": [0, 0],
+      "dx": 3,
+      "dy": 4,
+      "result": { "x": { "n": 3, "d": 1 }, "y": { "n": 4, "d": 1 } },
+      "note": "translate origin by (3,4)"
+    },
+    {
+      "point": [1, 2],
+      "dx": -1,
+      "dy": -2,
+      "result": { "x": { "n": 0, "d": 1 }, "y": { "n": 0, "d": 1 } },
+      "note": "translate back to origin (round-trip)"
+    },
+    {
+      "point": [3, -1],
+      "dx": 0,
+      "dy": 5,
+      "result": { "x": { "n": 3, "d": 1 }, "y": { "n": 4, "d": 1 } },
+      "note": "translate vertically only"
+    },
+    {
+      "point": [-2, -3],
+      "dx": 5,
+      "dy": 7,
+      "result": { "x": { "n": 3, "d": 1 }, "y": { "n": 4, "d": 1 } },
+      "note": "translate from negative quadrant"
+    }
+  ],
+  "reflectionCases": [
+    {
+      "point": [3, 4],
+      "axis": "x",
+      "result": { "x": { "n": 3, "d": 1 }, "y": { "n": -4, "d": 1 } },
+      "note": "reflect (3,4) across x-axis"
+    },
+    {
+      "point": [3, 4],
+      "axis": "y",
+      "result": { "x": { "n": -3, "d": 1 }, "y": { "n": 4, "d": 1 } },
+      "note": "reflect (3,4) across y-axis"
+    },
+    {
+      "point": [3, 4],
+      "axis": "y=x",
+      "result": { "x": { "n": 4, "d": 1 }, "y": { "n": 3, "d": 1 } },
+      "note": "reflect (3,4) across y=x swaps coordinates"
+    },
+    {
+      "point": [3, 4],
+      "axis": "y=-x",
+      "result": { "x": { "n": -4, "d": 1 }, "y": { "n": -3, "d": 1 } },
+      "note": "reflect (3,4) across y=-x gives (-4,-3)"
+    },
+    {
+      "point": [0, 0],
+      "axis": "x",
+      "result": { "x": { "n": 0, "d": 1 }, "y": { "n": 0, "d": 1 } },
+      "note": "origin is fixed under any axis reflection"
+    },
+    {
+      "point": [5, 0],
+      "axis": "y",
+      "result": { "x": { "n": -5, "d": 1 }, "y": { "n": 0, "d": 1 } },
+      "note": "reflect (5,0) across y-axis"
+    }
+  ],
+  "rotation90Cases": [
+    {
+      "point": [1, 0],
+      "angleDeg": 90,
+      "result": { "x": { "n": 0, "d": 1 }, "y": { "n": 1, "d": 1 } },
+      "note": "rotate (1,0) by 90° CCW gives (0,1)"
+    },
+    {
+      "point": [0, 1],
+      "angleDeg": 90,
+      "result": { "x": { "n": -1, "d": 1 }, "y": { "n": 0, "d": 1 } },
+      "note": "rotate (0,1) by 90° CCW gives (-1,0)"
+    },
+    {
+      "point": [3, 4],
+      "angleDeg": 90,
+      "result": { "x": { "n": -4, "d": 1 }, "y": { "n": 3, "d": 1 } },
+      "note": "rotate (3,4) by 90° CCW"
+    },
+    {
+      "point": [3, 4],
+      "angleDeg": 180,
+      "result": { "x": { "n": -3, "d": 1 }, "y": { "n": -4, "d": 1 } },
+      "note": "rotate (3,4) by 180° (negate both)"
+    },
+    {
+      "point": [1, 0],
+      "angleDeg": -90,
+      "result": { "x": { "n": 0, "d": 1 }, "y": { "n": -1, "d": 1 } },
+      "note": "rotate (1,0) by -90° (clockwise) gives (0,-1)"
+    },
+    {
+      "point": [0, 0],
+      "angleDeg": 90,
+      "result": { "x": { "n": 0, "d": 1 }, "y": { "n": 0, "d": 1 } },
+      "note": "origin is fixed under any rotation"
+    }
+  ]
+}

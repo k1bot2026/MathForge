@@ -1018,3 +1018,157 @@ export type FibonacciFixture = {
 export function loadFibonacciFixture(): FibonacciFixture {
   return loadJson<FibonacciFixture>("discrete-fibonacci");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.distance fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type GeomRational = { n: number; d: number };
+
+export type GeomPointPointCase = {
+  p1: [number, number];
+  p2: [number, number];
+  distSq: number;
+};
+
+export type GeomPointLineCase = {
+  point: [number, number];
+  line: { p1: [number, number]; p2: [number, number] };
+  distN: number;
+  distD: number;
+  note?: string;
+};
+
+export type GeomDistanceFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  pointPointCases: GeomPointPointCase[];
+  pointLineCases: GeomPointLineCase[];
+};
+
+export function loadGeomDistanceFixture(): GeomDistanceFixture {
+  return loadJson<GeomDistanceFixture>("geom-distance");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.intersection fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type GeomLineSpec = { p1: [number, number]; p2: [number, number] };
+
+export type GeomLineLineCase = {
+  l1: GeomLineSpec;
+  l2: GeomLineSpec;
+  intersectionX: GeomRational;
+  intersectionY: GeomRational;
+  note?: string;
+};
+
+export type GeomParallelCase = {
+  l1: GeomLineSpec;
+  l2: GeomLineSpec;
+  parallel: boolean;
+  note?: string;
+};
+
+export type GeomLineCircleCase = {
+  center: [number, number];
+  radius: number;
+  line: GeomLineSpec;
+  intersectionCount: number;
+  intersections: Array<{ x: GeomRational; y: GeomRational }>;
+  note?: string;
+};
+
+export type GeomIntersectionFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  lineLineCases: GeomLineLineCase[];
+  parallelLinesCases: GeomParallelCase[];
+  lineCircleCases: GeomLineCircleCase[];
+};
+
+export function loadGeomIntersectionFixture(): GeomIntersectionFixture {
+  return loadJson<GeomIntersectionFixture>("geom-intersection");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.transformation fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type GeomPointResult = { x: GeomRational; y: GeomRational };
+
+export type GeomTranslationCase = {
+  point: [number, number];
+  dx: number;
+  dy: number;
+  result: GeomPointResult;
+  note?: string;
+};
+
+export type GeomReflectionCase = {
+  point: [number, number];
+  axis: "x" | "y" | "y=x" | "y=-x";
+  result: GeomPointResult;
+  note?: string;
+};
+
+export type GeomRotation90Case = {
+  point: [number, number];
+  angleDeg: number;
+  result: GeomPointResult;
+  note?: string;
+};
+
+export type GeomTransformationFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  translationCases: GeomTranslationCase[];
+  reflectionCases: GeomReflectionCase[];
+  rotation90Cases: GeomRotation90Case[];
+};
+
+export function loadGeomTransformationFixture(): GeomTransformationFixture {
+  return loadJson<GeomTransformationFixture>("geom-transformation");
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// geom.area fixture types
+// ──────────────────────────────────────────────────────────────────────────
+
+export type GeomTriangleAreaCase = {
+  vertices: [[number, number], [number, number], [number, number]];
+  areaN: number;
+  areaD: number;
+  note?: string;
+};
+
+export type GeomPolygonAreaCase = {
+  vertices: Array<[number, number]>;
+  areaN: number;
+  areaD: number;
+  note?: string;
+};
+
+export type GeomCircleAreaCase = {
+  center: [number, number];
+  radius: number;
+  rSq: number;
+  note?: string;
+};
+
+export type GeomAreaFixture = {
+  schemaVersion: number;
+  generated: string;
+  description: string;
+  triangleAreaCases: GeomTriangleAreaCase[];
+  polygonAreaCases: GeomPolygonAreaCase[];
+  circleAreaCases: GeomCircleAreaCase[];
+};
+
+export function loadGeomAreaFixture(): GeomAreaFixture {
+  return loadJson<GeomAreaFixture>("geom-area");
+}

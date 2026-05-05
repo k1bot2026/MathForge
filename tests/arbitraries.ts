@@ -219,6 +219,77 @@ export function permutationOf(n: number): fc.Arbitrary<number[]> {
     });
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// Phase 8 geometry arbitraries
+// ──────────────────────────────────────────────────────────────────────────
+
+/** A 2D point as [x, y]. */
+export type Point2D = [number, number];
+
+/**
+ * Generates a random 2D integer point with both coordinates in [min, max].
+ * Used for: geometry distance/intersection/transformation property tests.
+ * Shrinks toward [min, min].
+ */
+export function pointInBox(min: number, max: number): fc.Arbitrary<Point2D> {
+  return fc.tuple(fc.integer({ min, max }), fc.integer({ min, max }));
+}
+
+/**
+ * Generates three non-collinear integer points in the box [-10, 10]².
+ * Non-collinearity verified via the cross product of (B-A) and (C-A);
+ * accepted only when the signed area is non-zero.
+ *
+ * Used for: triangle area, circumscribed circle, non-degenerate geometry tests.
+ * Shrinks toward the smallest non-collinear triple.
+ */
+export const nonCollinearTriple: fc.Arbitrary<[Point2D, Point2D, Point2D]> = fc
+  .tuple(pointInBox(-10, 10), pointInBox(-10, 10), pointInBox(-10, 10))
+  .filter(([a, b, c]) => {
+    const cross = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+    return cross !== 0;
+  });
+
+/**
+ * Generates a random triangle (alias for nonCollinearTriple).
+ * Area is always > 0. Used for: triangle area property tests.
+ * Shrinks toward the smallest non-degenerate triangle.
+ */
+export const triangle: fc.Arbitrary<[Point2D, Point2D, Point2D]> = nonCollinearTriple;
+
+/**
+ * Generates a random convex polygon with exactly n integer vertices (n ≥ 3).
+ * Construction: draw n (angle, radius) pairs, sort by angle, project to the
+ * integer lattice. Filters out degenerate cases where fewer than 3 distinct
+ * lattice points result.
+ *
+ * Used for: polygon area invariant tests (area > 0, invariant under translation).
+ * Note: coordinates are integers; use exact arithmetic in assertions.
+ * Shrinks toward a small triangle near the origin.
+ */
+export function convexPolygon(n: number): fc.Arbitrary<Point2D[]> {
+  if (n < 3) throw new Error("convexPolygon requires n >= 3");
+  return fc
+    .array(
+      fc.tuple(fc.float({ min: 0, max: Math.PI * 2, noNaN: true }), fc.integer({ min: 1, max: 5 })),
+      { minLength: n, maxLength: n },
+    )
+    .map((pairs) => {
+      const sorted = [...pairs].sort((a, b) => a[0] - b[0]);
+      return sorted.map(
+        ([angle, r]): Point2D => [Math.round(r * Math.cos(angle)), Math.round(r * Math.sin(angle))],
+      );
+    })
+    .filter((pts) => {
+      const unique = new Set(pts.map(([x, y]) => `${x},${y}`));
+      return unique.size >= 3;
+    });
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Phase 6 graph arbitraries
+// ──────────────────────────────────────────────────────────────────────────
+
 /**
  * Represents a directed or undirected graph as vertex count + edge list.
  * Vertices are 0-indexed integers in [0, vertexCount).
