@@ -38,6 +38,19 @@ const COLOR_DOT_BG: Record<ColorToken, string> = {
   control: "bg-role-control-fill border border-role-control-border",
 };
 
+// Badge colors by first output's MathType kind
+const TYPE_BADGE: Partial<Record<string, string>> = {
+  Scalar: "bg-role-source-fill text-role-source-border border-role-source-border",
+  Vector: "bg-role-operation-fill text-role-operation-border border-role-operation-border",
+  Matrix: "bg-role-function-fill text-role-function-border border-role-function-border",
+  Distribution: "bg-role-stochastic-fill text-role-stochastic-border border-role-stochastic-border",
+  Function: "bg-role-function-fill text-role-function-border border-role-function-border",
+  Expression: "bg-role-visualizer-fill text-role-visualizer-border border-role-visualizer-border",
+  Tuple: "bg-role-control-fill text-role-control-border border-role-control-border",
+  Point: "bg-role-visualizer-fill text-role-visualizer-border border-role-visualizer-border",
+  Polygon: "bg-role-visualizer-fill text-role-visualizer-border border-role-visualizer-border",
+};
+
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -170,14 +183,60 @@ function DomainSection({
   );
 }
 
-function blockTooltipContent(def: BlockDefinition): React.ReactNode {
+function blockTooltipContent(
+  def: BlockDefinition,
+  preview: React.ReactElement | undefined,
+): React.ReactNode {
   const what = typeof def.explain.what === "string" ? def.explain.what : null;
+  const firstOutput = def.outputs[0];
+  const outputTypeKind =
+    firstOutput !== undefined && typeof firstOutput.type !== "function"
+      ? firstOutput.type.kind
+      : def.outputs.length > 0
+        ? null
+        : "—";
+  const badgeClass =
+    outputTypeKind !== null && outputTypeKind !== "—"
+      ? (TYPE_BADGE[outputTypeKind] ?? "bg-surface-2 text-fg-muted border-border")
+      : null;
+
   return (
-    <span className="flex flex-col gap-1">
-      <span className="font-semibold text-fg">{def.label}</span>
-      {what !== null ? <span className="text-fg-muted">{what}</span> : null}
-      <span className="text-fg-faint">Drag to canvas to add</span>
-    </span>
+    <div className="flex flex-col gap-2.5 p-2.5" style={{ width: 220 }}>
+      {/* 112px scaled preview */}
+      {preview !== undefined ? (
+        <div
+          aria-hidden="true"
+          className={`flex items-center justify-center overflow-hidden rounded-md ${COLOR_DOT_BG[def.color]}`}
+          style={{ height: 88 }}
+        >
+          <div style={{ transform: "scale(2)", transformOrigin: "center" }}>{preview}</div>
+        </div>
+      ) : (
+        <div
+          aria-hidden="true"
+          className={`flex items-center justify-center rounded-md ${COLOR_DOT_BG[def.color]}`}
+          style={{ height: 88 }}
+        >
+          <span className="font-mono text-3xl text-fg-muted">{def.symbol ?? "?"}</span>
+        </div>
+      )}
+      <div className="flex flex-col gap-1">
+        <span className="text-[13px] font-semibold leading-tight text-fg">{def.label}</span>
+        {what !== null ? (
+          <span className="text-[11px] leading-snug text-fg-muted">{what}</span>
+        ) : null}
+      </div>
+      <div className="flex items-center justify-between">
+        {badgeClass !== null && outputTypeKind !== null ? (
+          <span className={`rounded border px-1.5 py-0.5 font-mono text-[10px] ${badgeClass}`}>
+            {outputTypeKind}
+          </span>
+        ) : (
+          <span />
+        )}
+        <span className="font-mono text-[10px] text-fg-faint">drag to add</span>
+      </div>
+    </div>
   );
 }
 
@@ -191,7 +250,7 @@ function BlockLibraryItem({
   const preview = BLOCK_PREVIEWS[def.id] ?? def.preview;
 
   return (
-    <Tooltip content={blockTooltipContent(def)} side="right" delay={400}>
+    <Tooltip content={blockTooltipContent(def, preview)} side="right" delay={400} maxWidth={0}>
       <button
         type="button"
         draggable

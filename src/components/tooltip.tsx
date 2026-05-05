@@ -13,9 +13,17 @@ export type TooltipProps = {
   delay?: number;
   /** Side to show the tooltip. Default "top". */
   side?: "top" | "bottom" | "left" | "right";
+  /** Override the default max-width of 220px. Use 0 to remove max-width. */
+  maxWidth?: number;
 };
 
-export function Tooltip({ content, children, delay = 300, side = "top" }: TooltipProps) {
+export function Tooltip({
+  content,
+  children,
+  delay = 300,
+  side = "top",
+  maxWidth = 220,
+}: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const id = useId();
@@ -33,6 +41,7 @@ export function Tooltip({ content, children, delay = 300, side = "top" }: Toolti
   }, []);
 
   const posClass = SIDE_CLASSES[side];
+  const widthStyle = maxWidth > 0 ? { maxWidth: `${maxWidth}px` } : {};
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: tooltip wrapper delegates interaction to child; no semantic role fits a transparent inline container
@@ -48,7 +57,8 @@ export function Tooltip({ content, children, delay = 300, side = "top" }: Toolti
         <span
           role="tooltip"
           id={id}
-          className={`pointer-events-none absolute z-50 w-max max-w-[220px] rounded-md border border-border bg-surface px-2.5 py-1.5 font-mono text-[11px] text-fg shadow-block-2 ${posClass}`}
+          style={widthStyle}
+          className={`pointer-events-none absolute z-50 w-max rounded-md border border-border bg-surface font-mono text-[11px] text-fg shadow-block-2 ${posClass}`}
         >
           {content}
         </span>

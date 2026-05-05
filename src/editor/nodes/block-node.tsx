@@ -150,47 +150,74 @@ function PortLabels({ def }: { def: BlockDefinition }) {
 }
 
 function portTooltip(port: InputPort | OutputPort): React.ReactNode {
-  const typeStr = formatMathType(typeof port.type === "function" ? null : port.type);
+  const t = typeof port.type === "function" ? null : port.type;
+  const { label: typeLabel, borderClass } = formatMathTypeRich(t);
   return (
-    <span className="flex flex-col gap-0.5">
-      <span className="font-semibold text-fg">{port.label}</span>
-      <span className="text-fg-muted">{typeStr}</span>
+    <span className={`flex flex-col gap-0.5 border-l-2 py-0.5 pl-2 pr-2.5 ${borderClass}`}>
+      <span className="text-[11px] font-semibold text-fg">{port.label}</span>
+      <span className="text-[10px] text-fg-muted">{typeLabel}</span>
     </span>
   );
 }
 
-function formatMathType(t: MathType | null): string {
-  if (t === null) return "polymorphic";
+function formatMathTypeRich(t: MathType | null): { label: string; borderClass: string } {
+  if (t === null) return { label: "polymorphic", borderClass: "border-border" };
   switch (t.kind) {
     case "Scalar":
-      return `Scalar(${t.field})`;
+      return { label: `ℝ (scalar)`, borderClass: "border-role-source-border" };
     case "Vector":
-      return `Vector<${String(t.n)}, ${t.field}>`;
+      return {
+        label: `v ∈ ℝ${superscript(t.n)}`,
+        borderClass: "border-role-operation-border",
+      };
     case "Matrix":
-      return `Matrix<${String(t.m)}×${String(t.n)}, ${t.field}>`;
-    case "Point":
-      return `Point<${String(t.n)}>`;
-    case "Line":
-      return `Line(${t.n}D)`;
-    case "Circle":
-      return "Circle";
-    case "Sphere":
-      return "Sphere";
-    case "Polygon":
-      return "Polygon";
+      return {
+        label: `M ∈ ℝ${superscript(t.m)}ˣ${superscript(t.n)}`,
+        borderClass: "border-role-function-border",
+      };
     case "Distribution":
-      return `Distribution(${typeof t.family === "string" ? t.family : t.family.custom})`;
+      return {
+        label: `X ~ ${typeof t.family === "string" ? t.family : t.family.custom}`,
+        borderClass: "border-role-stochastic-border",
+      };
     case "Function":
-      return `Function(arity=${t.arity})`;
+      return { label: `f: ℝ→ℝ (arity ${t.arity})`, borderClass: "border-role-function-border" };
     case "Expression":
-      return `Expression[${t.freeVars.join(",")}]`;
+      return {
+        label: `expr(${t.freeVars.join(", ")})`,
+        borderClass: "border-role-visualizer-border",
+      };
+    case "Point":
+      return {
+        label: `point ∈ ℝ${superscript(t.n)}`,
+        borderClass: "border-role-visualizer-border",
+      };
     case "Tuple":
-      return `Tuple(${t.elements.length})`;
-    case "Set":
-      return `Set<${formatMathType(t.element)}>`;
+      return { label: `tuple(${t.elements.length})`, borderClass: "border-border" };
     default:
-      return t.kind;
+      return { label: t.kind, borderClass: "border-border" };
   }
+}
+
+function superscript(n: import("~/math/types").Shape): string {
+  if (n === "any") return "ⁿ";
+  if (typeof n === "object") return "ⁿ";
+  const digits: Record<string, string> = {
+    "0": "⁰",
+    "1": "¹",
+    "2": "²",
+    "3": "³",
+    "4": "⁴",
+    "5": "⁵",
+    "6": "⁶",
+    "7": "⁷",
+    "8": "⁸",
+    "9": "⁹",
+  };
+  return String(n)
+    .split("")
+    .map((c) => digits[c] ?? c)
+    .join("");
 }
 
 function InlineParams({

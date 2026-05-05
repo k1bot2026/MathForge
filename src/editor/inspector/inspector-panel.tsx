@@ -247,26 +247,15 @@ function paramTooltip(
   spec: NonNullable<BlockDefinition["params"]>[string],
 ): React.ReactNode {
   const label = spec.label ?? key;
-  const lines: string[] = [`Type: ${spec.kind}`];
+  const footerParts: string[] = [];
   if ((spec.kind === "number" || spec.kind === "integer") && spec.min !== undefined) {
-    lines.push(`Range: ${spec.min} – ${spec.max ?? "∞"}`);
+    footerParts.push(`${spec.min} – ${spec.max ?? "∞"}`);
   }
-  if (
-    (spec.kind === "number" || spec.kind === "integer") &&
-    "step" in spec &&
-    spec.step !== undefined
-  ) {
-    lines.push(`Step: ${spec.step}`);
-  }
-  lines.push(`Default: ${String(spec.default)}`);
+  footerParts.push(`default: ${String(spec.default)}`);
   return (
-    <span className="flex flex-col gap-0.5">
-      <span className="font-semibold text-fg">{label}</span>
-      {lines.map((l) => (
-        <span key={l} className="text-fg-muted">
-          {l}
-        </span>
-      ))}
+    <span className="flex flex-col gap-1 px-2.5 py-1.5">
+      <span className="text-[11px] font-semibold text-fg">{label}</span>
+      <span className="text-[10px] text-fg-faint">{footerParts.join(" · ")}</span>
     </span>
   );
 }
@@ -316,29 +305,48 @@ function ValueStrip({ result }: { result: EvalResult | undefined }) {
   if (result === undefined || result.kind !== "value") return null;
   const { value } = result;
   const tooltipContent = (
-    <span className="flex flex-col gap-0.5">
-      <span className="text-fg">Type: {value.type.kind}</span>
-      <span className="text-fg-muted">Engine: {value.provenance.engine}</span>
-      <span className="text-fg-muted">Block: {value.provenance.blockId}</span>
+    <span className="flex flex-col gap-1 px-2.5 py-1.5">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-muted">
+        {value.type.kind}
+      </span>
+      <span className="whitespace-pre font-mono text-[11px] text-fg">
+        {formatPayloadVerbose(value.payload, value.type.kind)}
+      </span>
     </span>
   );
 
   return (
-    <Tooltip content={tooltipContent} side="top" delay={200}>
+    <Tooltip content={tooltipContent} side="top" delay={200} maxWidth={260}>
       <div
         data-testid="inspector-value-strip"
-        className="-mb-0 mt-auto border-t border-border bg-surface-2 px-4 py-2 cursor-default"
+        className="-mb-0 mt-auto cursor-default border-t border-border bg-surface-2 px-4 py-2"
       >
         <span className="font-mono text-[10px] uppercase tracking-wider text-fg-muted">value</span>
         <p className="mt-0.5 truncate font-mono text-xs text-fg">
           {formatPayload(result.value.payload)}
         </p>
-        <p className="mt-0.5 font-mono text-[10px] text-fg-faint">
-          {result.value.type.kind} · {result.value.provenance.engine}
-        </p>
+        <p className="mt-0.5 font-mono text-[10px] text-fg-faint">{result.value.type.kind}</p>
       </div>
     </Tooltip>
   );
+}
+
+function formatPayloadVerbose(payload: unknown, kind: string): string {
+  if (kind === "Matrix" && Array.isArray(payload)) {
+    const rows = payload as unknown[][];
+    const cols = rows[0]?.length ?? 0;
+    const lines = rows.map((row) => {
+      const cells = (row as unknown[]).map((c) => String(c).padStart(8)).join("  ");
+      return `│${cells}  │`;
+    });
+    const bar = `└${"─".repeat(cols * 10 + 2)}┘`;
+    return [`┌${"─".repeat(cols * 10 + 2)}┐`, ...lines, bar].join("\n");
+  }
+  if (kind === "Vector" && Array.isArray(payload)) {
+    const arr = payload as unknown[];
+    return `[ ${arr.map(String).join(",  ")} ]`;
+  }
+  return formatPayload(payload);
 }
 
 function formatPayload(payload: unknown): string {
