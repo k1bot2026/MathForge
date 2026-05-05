@@ -9,6 +9,7 @@ import { CircleFromThreePointsBlock } from "./circle-from-three-points/definitio
 import { ConicFromFivePointsBlock } from "./conic-from-five-points/definition";
 import { DistanceBlock } from "./distance/definition";
 import { GlideBlock } from "./glide/definition";
+import { IntersectionBlock } from "./intersection/definition";
 import { IsCollinearBlock } from "./is-collinear/definition";
 import { IsConcurrentBlock } from "./is-concurrent/definition";
 import { IsParallelBlock } from "./is-parallel/definition";
@@ -55,4 +56,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(GlideBlock);
   registry.register(AffineBlock);
   registry.register(ProjectBlock);
+  registry.register(IntersectionBlock);
 }
