@@ -10,9 +10,10 @@ MathForge is a visual environment for composing mathematical operations as type-
 2. [Blocks and connections](#2-blocks-and-connections)
 3. [The inspector panel](#3-the-inspector-panel)
 4. [Common workflows](#4-common-workflows)
-5. [Saving and sharing graphs](#5-saving-and-sharing-graphs)
-6. [Composite blocks (core.subgraph)](#6-composite-blocks-coresubgraph)
-7. [Domain examples](#7-domain-examples)
+5. [Importing existing formulas](#5-importing-existing-formulas)
+6. [Saving and sharing graphs](#6-saving-and-sharing-graphs)
+7. [Composite blocks (core.subgraph)](#7-composite-blocks-coresubgraph)
+8. [Domain examples](#8-domain-examples)
 
 ---
 
@@ -177,7 +178,69 @@ Note: `core.benchmark` has `determinism: stochastic` — its output varies acros
 
 ---
 
-## 5. Saving and sharing graphs
+## 5. Importing existing formulas
+
+The **Import** tab in the left panel converts a written formula into a block graph automatically. Open the tab, paste your expression, and click **Build Graph** (or press Cmd/Ctrl+Enter).
+
+### Plain-math import
+
+Write any expression using standard math.js syntax. The importer recognises top-level `diff` and `integrate` calls and decomposes them into a two-block chain; everything else becomes a single `calc.function` block.
+
+**Example 1 — scalar expression**
+
+Input: `sin(x) + cos(x)`
+
+Result: one `calc.function` block with `expression = "sin(x) + cos(x)"` and `variable = "x"`.
+
+**Example 2 — derivative chain**
+
+Input: `diff(sin(x), x)`
+
+Result: a `calc.function` block (`expression = "sin(x)"`, `variable = "x"`) wired into a `calc.derivative` block via the `fn` handle. The derivative block evaluates `d/dx sin(x) = cos(x)`.
+
+**Example 3 — integral chain**
+
+Input: `integrate(x^2, x)`
+
+Result: a `calc.function` block (`expression = "x^2"`) wired into a `calc.integrate` block.
+
+### LaTeX import
+
+Switch the format toggle to **LaTeX** and paste LaTeX source. The importer pre-processes common LaTeX macros before building the graph.
+
+Supported macros: `\frac`, `\sqrt`, `\sin`, `\cos`, `\tan`, `\ln`, `\log`, `\exp`, `\pi`, `\infty`, `\cdot`, `\times`, `^`.
+
+**Example 4 — LaTeX expression**
+
+Input: `\frac{x^2 - 1}{x + 1}`
+
+Result: one `calc.function` block with `expression = "(x^2 - 1)/(x + 1)"`.
+
+### LaTeX matrix import
+
+When the LaTeX input contains a matrix environment (`\begin{bmatrix}`, `\begin{pmatrix}`, or `\begin{matrix}`), the importer builds an `la.matrix` block directly — bypassing the expression preprocessor.
+
+Rules:
+- Rows are separated by `\\`.
+- Columns within a row are separated by `&`.
+- All cell values must be numeric (integer or decimal). Symbolic cells are not supported; the importer falls back to the expression path if a non-numeric cell is encountered.
+- Maximum supported dimension is 8×8.
+
+**Example 5 — 2×2 matrix**
+
+Input: `\begin{bmatrix}1 & 2 \\ 3 & 4\end{bmatrix}`
+
+Result: one `la.matrix` block with `rows=2`, `cols=2`, `r0c0=1`, `r0c1=2`, `r1c0=3`, `r1c1=4`.
+
+After import, open the inspector to edit individual cell values using the scrub grid — drag horizontally to change a value, double-click to type.
+
+### Positioning
+
+Imported blocks are centered on the current viewport. Multi-block graphs (e.g. the derivative chain) are positioned so the midpoint of the entire subgraph lands at the viewport centre, not just the leftmost block.
+
+---
+
+## 6. Saving and sharing graphs
 
 ### URL sharing
 
@@ -195,7 +258,7 @@ User-defined composite blocks are persisted locally in IndexedDB under the key p
 
 ---
 
-## 6. Composite blocks (`core.subgraph`)
+## 7. Composite blocks (`core.subgraph`)
 
 A composite block packages a sub-graph of blocks into a single reusable block with its own named typed ports. It appears in the registry alongside built-in blocks once registered.
 
@@ -260,7 +323,7 @@ Composite blocks use **named output ports** — one port per `core.output-proxy`
 
 ---
 
-## 7. Domain examples
+## 8. Domain examples
 
 ### Linear algebra: eigendecomposition
 
