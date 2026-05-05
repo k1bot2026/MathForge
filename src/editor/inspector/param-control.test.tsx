@@ -62,28 +62,34 @@ describe("ParamControl — number", () => {
     expect(screen.getByText("fallbackName")).toBeInTheDocument();
   });
 
-  test("min and max are forwarded to input", () => {
+  test("bounded number renders a slider (range input) not a spinbutton", () => {
     renderControl({ kind: "number", default: 0, min: -10, max: 10 }, 0);
-    const input = screen.getByRole("spinbutton");
-    expect(input).toHaveAttribute("min", "-10");
-    expect(input).toHaveAttribute("max", "10");
+    expect(screen.getByRole("slider")).toBeInTheDocument();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+  });
+
+  test("bounded slider has correct min/max attributes", () => {
+    renderControl({ kind: "number", default: 0, min: -10, max: 10 }, 0);
+    const slider = screen.getByRole("slider");
+    expect(slider).toHaveAttribute("min", "-10");
+    expect(slider).toHaveAttribute("max", "10");
   });
 });
 
 describe("ParamControl — boolean", () => {
-  test("renders a checkbox with the current value", () => {
+  test("renders a switch with the current value", () => {
     renderControl({ kind: "boolean", default: false }, true);
-    expect(screen.getByRole("checkbox")).toBeChecked();
+    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
   });
 
   test("unchecked when value is false", () => {
     renderControl({ kind: "boolean", default: true }, false);
-    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "false");
   });
 
   test("onChange reports the new checked state", () => {
     const onChange = renderControl({ kind: "boolean", default: false }, false);
-    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("switch"));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });
@@ -91,23 +97,23 @@ describe("ParamControl — boolean", () => {
 describe("ParamControl — select", () => {
   const spec: ParamSpec = { kind: "select", options: ["alpha", "beta", "gamma"], default: "alpha" };
 
-  test("renders a combobox with all options", () => {
+  test("renders buttons for each option", () => {
     renderControl(spec, "beta");
-    const select = screen.getByRole("combobox");
-    expect(select).toHaveValue("beta");
-    expect(screen.getByRole("option", { name: "alpha" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "gamma" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "alpha" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "beta" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "gamma" })).toBeInTheDocument();
   });
 
-  test("onChange reports the selected value", () => {
+  test("onChange reports the selected value when an option is clicked", () => {
     const onChange = renderControl(spec, "alpha");
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "gamma" } });
+    fireEvent.click(screen.getByRole("button", { name: "gamma" }));
     expect(onChange).toHaveBeenCalledWith("gamma");
   });
 
   test("uses default when value is not a string", () => {
     renderControl(spec, 99);
-    expect(screen.getByRole("combobox")).toHaveValue("alpha");
+    // The default "alpha" option should be rendered
+    expect(screen.getByRole("button", { name: "alpha" })).toBeInTheDocument();
   });
 });
 
