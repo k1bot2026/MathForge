@@ -28,6 +28,7 @@ import { BlockLibrary } from "./block-library";
 import { canConnect } from "./connections";
 import { InspectorPanel } from "./inspector/inspector-panel";
 import { BlockNode } from "./nodes/block-node";
+import { OnboardingHint } from "./onboarding-hint";
 import { ReplayBar } from "./replay-bar";
 import { ReplayToggle } from "./replay-toggle";
 
@@ -255,6 +256,7 @@ export function EditorCanvas() {
         <ReactFlowProvider>
           <CanvasInner />
         </ReactFlowProvider>
+        <OnboardingHint />
       </div>
     </div>
   );
