@@ -2,7 +2,7 @@
 
 Vertical slices over horizontal completeness. Each phase ends with a working, demonstrable artifact. Active phase is marked at the top; advance only after exit criteria are met.
 
-> **Active phase: Phase 6 — Discrete Mathematics & Combinatorics.** (Phase 5 shipped.)
+> **Active phase: Phase 8 — Geometry.** (Phases 5, 6, and 7 shipped.)
 
 ---
 
@@ -552,11 +552,11 @@ The composite block pattern demonstrates that the plugin architecture is extensi
 | **Set blocks** | `discrete.set` (`a1d2bf7`), `discrete.union`, `discrete.intersection`, `discrete.difference`, `discrete.cartesian-product` (all `a085ac1`) | — |
 | **Combinatorics** | `discrete.factorial`, `discrete.binomial`, `discrete.multinomial` (`7273ac1`), `discrete.permutations`, `discrete.combinations` (`0ff2c81`) | — |
 | **Number theory** | `discrete.gcd`, `discrete.lcm`, `discrete.modpow`, `discrete.is-prime`, `discrete.factor`, `discrete.totient`, `discrete.divisors`, `discrete.prime-factorize`, `discrete.modular-inverse` (`52d4fc8`) | — |
-| **Graph theory** | — | `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring` |
+| **Graph theory** | `discrete.graph`, `discrete.adjacency-matrix`, `discrete.shortest-path`, `discrete.minimum-spanning-tree`, `discrete.connected-components`, `discrete.coloring` (all `86ca40a`) | — |
 | **Sequences** | `discrete.fibonacci`, `discrete.partial-sum`, `discrete.recurrence` (`4d2a9c2`) | — |
-| **Visualization** | — | `viz.graph-2d`, `viz.set-venn`, `viz.permutation-cycles`, `viz.modular-clock` |
-| **Testing** | SymPy `discrete-*` fixture sets (`acd093a`); Fermat property + number-theory cross-engine (`1f85c40`); binomial cross-engine (`d7cd6b3`); set-op invariants (`ede07d9`, `5dc811d`, `8731b1f`); explain.effect + error-path coverage (`b5c05d8`) | Property invariants for gcd·lcm, Pascal, totient multiplicativity |
-| **Docs** | ROADMAP.md Phase 6 section; active-phase header; BLOCK_TAXONOMY.md `discrete.*` section; TYPES.md discrete kinds; CHANGELOG entries per block | — (watching brief active) |
+| **Visualization** | `viz.graph-2d`, `viz.set-venn`, `viz.permutation-cycles`, `viz.modular-clock` (all `e65f672`) | — |
+| **Testing** | SymPy `discrete-*` fixture sets (`acd093a`); Fermat property + number-theory cross-engine (`1f85c40`); binomial cross-engine (`d7cd6b3`); set-op invariants (`ede07d9`, `5dc811d`, `8731b1f`); explain.effect + error-path coverage (`b5c05d8`); Fibonacci SymPy + sequence properties (`86ca40a`) | — |
+| **Docs** | ROADMAP.md Phase 6 section; active-phase header; BLOCK_TAXONOMY.md `discrete.*` section; TYPES.md discrete kinds; CHANGELOG entries per block; TESTING.md discrete arbitraries | — |
 
 ### Phase 6 progress
 
