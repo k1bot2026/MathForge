@@ -2,6 +2,7 @@ import type { BlockRegistry } from "../registry";
 import { BfgsBlock } from "./bfgs/definition";
 import { FeasibleRegionBlock } from "./feasible-region/definition";
 import { GradientDescentBlock } from "./gradient-descent/definition";
+import { LeastSquaresBlock } from "./least-squares/definition";
 import { LineSearchBlock } from "./line-search/definition";
 import { LinearRegressionBlock } from "./linear-regression/definition";
 import { LpDualBlock } from "./lp-dual/definition";
@@ -31,4 +32,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(FixedPointBlock);
   registry.register(LinearRegressionBlock);
   registry.register(PolynomialRegressionBlock);
+  registry.register(LeastSquaresBlock);
 }
