@@ -1,14 +1,14 @@
 "use client";
 
-// Right-rail inspector — redesigned for UX Round 2.
+// Right-rail inspector — redesigned for UX Round 2/4.
 // Layout (top to bottom):
 //   1. Header: block name, id·category, StateChip, close
-//   2. Live preview: large preview SVG or visualization component
-//   3. Interactive param controls (sliders, toggles, segmented selects)
-//   4. Explanation section (collapsible tabs)
-//   5. Value strip (pinned to bottom)
+//   2. Edit | Explain mode toggle
+//   3. Edit mode: Live preview + compact param controls (matrix grid, sliders, etc.)
+//      Explain mode: Four explanation tabs (what / why / effect / impact)
+//   4. Value strip (pinned to bottom)
 
-import { useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
 import type { SubgraphDefinition } from "~/blocks/common/subgraph/types";
@@ -93,39 +93,91 @@ export function InspectorPanel() {
         </div>
       </header>
 
-      <div className="inspector-body themed-scrollbar flex flex-1 flex-col overflow-y-auto">
-        {def === undefined ? (
-          <p className="p-4 text-sm text-fg-muted">Block not registered: {data.blockId}</p>
-        ) : (
-          <>
-            {/* ── Live preview ─────────────────────────────────────── */}
-            <LivePreview
-              def={def}
-              result={result}
-              inputs={inputs}
-              params={(data.params ?? {}) as Record<string, unknown>}
-            />
-
-            {/* ── Param controls ───────────────────────────────────── */}
-            <ParamSection
-              params={data.params ?? {}}
-              specs={def.params ?? {}}
-              onUpdate={(next) => {
-                updateNodeParams(selectedId, next);
-              }}
-            />
-
-            {/* ── Explanation ──────────────────────────────────────── */}
-            <ExplanationSection def={def} inputs={inputs} result={result} />
-
-            {"subgraph" in def ? <SaveAsBlockButton def={def as SubgraphDefinition} /> : null}
-          </>
-        )}
-      </div>
+      <InspectorBody
+        def={def}
+        result={result}
+        inputs={inputs}
+        params={(data.params ?? {}) as Record<string, unknown>}
+        selectedId={selectedId}
+        updateNodeParams={updateNodeParams}
+      />
 
       {/* ── Value strip ──────────────────────────────────────────────── */}
       {state === "value" ? <ValueStrip result={result} /> : null}
     </aside>
+  );
+}
+
+// ── Inspector body (Edit / Explain modes) ────────────────────────────────
+
+type InspectorMode = "edit" | "explain";
+
+function InspectorBody({
+  def,
+  result,
+  inputs,
+  params,
+  selectedId,
+  updateNodeParams,
+}: {
+  def: BlockDefinition | undefined;
+  result: EvalResult | undefined;
+  inputs: ResolvedInputs;
+  params: Record<string, unknown>;
+  selectedId: string;
+  updateNodeParams: (id: string, params: Record<string, unknown>) => void;
+}) {
+  const [mode, setMode] = useState<InspectorMode>("edit");
+
+  return (
+    <div className="inspector-body themed-scrollbar flex flex-1 flex-col overflow-y-auto">
+      {def === undefined ? (
+        <p className="p-4 text-sm text-fg-muted">Block not registered.</p>
+      ) : (
+        <>
+          {/* ── Mode toggle ──────────────────────────────────────── */}
+          <div className="flex gap-0.5 border-b border-border bg-surface-2 p-1.5">
+            {(["edit", "explain"] as InspectorMode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`flex-1 rounded py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                  m === mode ? "bg-surface text-fg shadow-block-1" : "text-fg-muted hover:text-fg"
+                }`}
+                aria-pressed={m === mode}
+                data-testid={`inspector-mode-${m}`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
+          {mode === "edit" ? (
+            <>
+              {/* ── Live preview ─────────────────────────────────── */}
+              <LivePreview def={def} result={result} inputs={inputs} params={params} />
+
+              {/* ── Param controls ───────────────────────────────── */}
+              <ParamSection
+                params={params}
+                specs={def.params ?? {}}
+                onUpdate={(next) => {
+                  updateNodeParams(selectedId, next);
+                }}
+              />
+            </>
+          ) : (
+            /* ── Explain mode ──────────────────────────────────── */
+            <div className="p-4">
+              <ExplanationTabs def={def} inputs={inputs} result={result} />
+            </div>
+          )}
+
+          {"subgraph" in def ? <SaveAsBlockButton def={def as SubgraphDefinition} /> : null}
+        </>
+      )}
+    </div>
   );
 }
 
@@ -205,6 +257,11 @@ const previewBg: Readonly<Record<BlockDefinition["color"], string>> = {
 
 // ── Param section ─────────────────────────────────────────────────────────
 
+// Matches la.matrix cell params: r{row}c{col}
+const CELL_PARAM_RE = /^r(\d+)c(\d+)$/;
+// Matches la.vector component params: c{index}
+const COMP_PARAM_RE = /^c(\d+)$/;
+
 function ParamSection({
   params,
   specs,
@@ -216,6 +273,13 @@ function ParamSection({
 }) {
   const entries = Object.entries(specs);
 
+  // Separate cell/component params from regular params
+  const cellEntries = entries.filter(([k]) => CELL_PARAM_RE.test(k));
+  const compEntries = entries.filter(([k]) => COMP_PARAM_RE.test(k));
+  const regularEntries = entries.filter(([k]) => !CELL_PARAM_RE.test(k) && !COMP_PARAM_RE.test(k));
+
+  const hasGrid = cellEntries.length > 0 || compEntries.length > 0;
+
   return (
     <div className="border-b border-border p-4" data-testid="inspector-params">
       {entries.length === 0 ? <p className="text-xs text-fg-faint">No parameters.</p> : null}
@@ -223,7 +287,7 @@ function ParamSection({
         Parameters
       </span>
       <div className="flex flex-col gap-2">
-        {entries.map(([key, spec]) => (
+        {regularEntries.map(([key, spec]) => (
           <Tooltip key={key} content={paramTooltip(key, spec)} side="left" delay={400}>
             <div>
               <ParamControl
@@ -237,7 +301,152 @@ function ParamSection({
             </div>
           </Tooltip>
         ))}
+        {hasGrid && cellEntries.length > 0 ? (
+          <MatrixGridEditor
+            rows={typeof params.rows === "number" ? params.rows : 2}
+            cols={typeof params.cols === "number" ? params.cols : 2}
+            params={params}
+            onUpdate={onUpdate}
+          />
+        ) : null}
+        {hasGrid && compEntries.length > 0 && cellEntries.length === 0 ? (
+          <VectorGridEditor
+            dim={typeof params.dim === "number" ? params.dim : 2}
+            params={params}
+            onUpdate={onUpdate}
+          />
+        ) : null}
       </div>
+    </div>
+  );
+}
+
+// Matrix bracket aesthetic — thin left/right lines flanking the grid
+function MatrixGridEditor({
+  rows,
+  cols,
+  params,
+  onUpdate,
+}: {
+  rows: number;
+  cols: number;
+  params: ResolvedParams;
+  onUpdate: (next: ResolvedParams) => void;
+}) {
+  const clampedRows = Math.max(1, Math.min(rows, 8));
+  const clampedCols = Math.max(1, Math.min(cols, 8));
+
+  return (
+    <div className="mt-1 flex items-start gap-0" data-testid="matrix-grid-editor">
+      {/* Left bracket */}
+      <span
+        aria-hidden="true"
+        className="mr-1 self-stretch border-l-2 border-y-2 border-fg-muted rounded-l-[3px] w-2 shrink-0"
+      />
+      <div
+        className="grid gap-0.5"
+        style={{ gridTemplateColumns: `repeat(${clampedCols}, minmax(0, 1fr))` }}
+      >
+        {Array.from({ length: clampedRows }, (_, r) =>
+          Array.from({ length: clampedCols }, (_, c) => {
+            const key = `r${String(r)}c${String(c)}`;
+            const raw = params[key];
+            const numVal = typeof raw === "number" ? raw : 0;
+            return (
+              <MatrixCellInput
+                key={key}
+                paramKey={key}
+                value={numVal}
+                onUpdate={onUpdate}
+                params={params}
+              />
+            );
+          }),
+        )}
+      </div>
+      {/* Right bracket */}
+      <span
+        aria-hidden="true"
+        className="ml-1 self-stretch border-r-2 border-y-2 border-fg-muted rounded-r-[3px] w-2 shrink-0"
+      />
+    </div>
+  );
+}
+
+function MatrixCellInput({
+  paramKey,
+  value,
+  onUpdate,
+  params,
+}: {
+  paramKey: string;
+  value: number;
+  onUpdate: (next: ResolvedParams) => void;
+  params: ResolvedParams;
+}) {
+  const id = useId();
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value;
+      const next = raw === "" ? 0 : Number(raw);
+      onUpdate({ ...params, [paramKey]: Number.isFinite(next) ? next : 0 });
+    },
+    [paramKey, params, onUpdate],
+  );
+
+  return (
+    <input
+      id={id}
+      type="number"
+      value={Number.isFinite(value) ? value : 0}
+      step="any"
+      onChange={handleChange}
+      aria-label={paramKey}
+      className="nodrag h-8 w-full min-w-0 rounded border border-border bg-bg px-1 py-0.5 text-center font-mono text-xs text-fg outline-none focus:border-role-control-border focus:ring-1 focus:ring-role-control-border"
+      data-testid={`matrix-cell-${paramKey}`}
+    />
+  );
+}
+
+function VectorGridEditor({
+  dim,
+  params,
+  onUpdate,
+}: {
+  dim: number;
+  params: ResolvedParams;
+  onUpdate: (next: ResolvedParams) => void;
+}) {
+  const clampedDim = Math.max(1, Math.min(dim, 16));
+
+  return (
+    <div className="mt-1 flex items-start gap-0" data-testid="vector-grid-editor">
+      {/* Left bracket */}
+      <span
+        aria-hidden="true"
+        className="mr-1 self-stretch border-l-2 border-y-2 border-fg-muted rounded-l-[3px] w-2 shrink-0"
+      />
+      <div className="grid gap-0.5" style={{ gridTemplateColumns: "1fr" }}>
+        {Array.from({ length: clampedDim }, (_, i) => {
+          const key = `c${String(i)}`;
+          const raw = params[key];
+          const numVal = typeof raw === "number" ? raw : 0;
+          return (
+            <MatrixCellInput
+              key={key}
+              paramKey={key}
+              value={numVal}
+              onUpdate={onUpdate}
+              params={params}
+            />
+          );
+        })}
+      </div>
+      {/* Right bracket */}
+      <span
+        aria-hidden="true"
+        className="ml-1 self-stretch border-r-2 border-y-2 border-fg-muted rounded-r-[3px] w-2 shrink-0"
+      />
     </div>
   );
 }
@@ -257,45 +466,6 @@ function paramTooltip(
       <span className="text-[11px] font-semibold text-fg">{label}</span>
       <span className="text-[10px] text-fg-faint">{footerParts.join(" · ")}</span>
     </span>
-  );
-}
-
-// ── Explanation section ───────────────────────────────────────────────────
-
-function ExplanationSection({
-  def,
-  inputs,
-  result,
-}: {
-  def: BlockDefinition;
-  inputs: ResolvedInputs;
-  result: EvalResult | undefined;
-}) {
-  const [open, setOpen] = useState(true);
-
-  return (
-    <div className="border-b border-border">
-      <button
-        type="button"
-        onClick={() => {
-          setOpen((v) => !v);
-        }}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
-        aria-expanded={open}
-      >
-        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-muted">
-          Explanation
-        </span>
-        <span className="font-mono text-[10px] text-fg-faint" aria-hidden="true">
-          {open ? "−" : "+"}
-        </span>
-      </button>
-      {open && (
-        <div className="px-4 pb-4">
-          <ExplanationTabs def={def} inputs={inputs} result={result} />
-        </div>
-      )}
-    </div>
   );
 }
 

@@ -76,6 +76,7 @@ describe("InspectorPanel", () => {
   test("renders the four-tab explanation block; what / why are always available", () => {
     useGraphStore.getState().setSelectedNodeId("constant-1");
     render(<InspectorPanel />);
+    fireEvent.click(screen.getByTestId("inspector-mode-explain"));
     expect(screen.getByTestId("explanation-tab-what")).toBeInTheDocument();
     expect(screen.getByTestId("explanation-tab-why")).toBeInTheDocument();
     expect(screen.getByTestId("explanation-text-what")).toHaveTextContent(/fixed real value/i);
@@ -84,6 +85,7 @@ describe("InspectorPanel", () => {
   test("effect / impact tabs only appear once a result is in the store", () => {
     useGraphStore.getState().setSelectedNodeId("constant-1");
     const { rerender } = render(<InspectorPanel />);
+    fireEvent.click(screen.getByTestId("inspector-mode-explain"));
     expect(screen.queryByTestId("explanation-tab-effect")).toBeNull();
 
     useGraphStore.getState().setResults(valueResult("constant-1", 42));
@@ -153,6 +155,7 @@ describe("InspectorPanel", () => {
     useGraphStore.getState().setSelectedNodeId("constant-1");
     useGraphStore.getState().setResults(valueResult("constant-1", 42));
     const { rerender } = render(<InspectorPanel />);
+    fireEvent.click(screen.getByTestId("inspector-mode-explain"));
     fireEvent.click(screen.getByTestId("explanation-tab-effect"));
     expect(useUiStore.getState().activeExplanationTab).toBe("effect");
 

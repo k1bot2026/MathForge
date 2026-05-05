@@ -31,7 +31,6 @@ function computeCoords(anchor: DOMRect, side: NonNullable<TooltipProps["side"]>)
       return { top: anchor.top + anchor.height / 2, left: anchor.left - GAP };
     case "bottom":
       return { top: anchor.bottom + GAP, left: anchor.left + anchor.width / 2 };
-    case "top":
     default:
       return { top: anchor.top - GAP, left: anchor.left + anchor.width / 2 };
   }
