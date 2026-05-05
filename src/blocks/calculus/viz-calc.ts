@@ -1,16 +1,16 @@
 // Shared numeric evaluation utilities for calculus visualization blocks.
 //
-// SymPy str() output uses Python-style exponentiation (**) which mathjs
-// also supports. The main translations needed are:
+// SymPy str() output uses Python-style exponentiation (**) but mathjs uses ^.
+// We replace ** → ^ before passing to mathjs. Other identifiers match:
 //   - SymPy's `exp(x)` → mathjs's `exp(x)` (same)
 //   - SymPy's `log(x)` → mathjs's `log(x)` (same)
 //   - SymPy's `asin/acos/atan` → mathjs `asin/acos/atan` (same)
-//
-// mathjs's `evaluate()` handles `**`, function calls, and the standard
-// transcendentals. This covers the vast majority of single-variable
-// SymPy expressions.
 
 import { evaluate as mathjsEvaluate } from "mathjs";
+
+function toMathjsExpr(expr: string): string {
+  return expr.replace(/\*\*/g, "^");
+}
 
 /**
  * Evaluates a SymPy str() expression at a given variable value.
@@ -18,7 +18,7 @@ import { evaluate as mathjsEvaluate } from "mathjs";
  */
 export function evalAt(expr: string, variable: string, value: number): number {
   try {
-    const result = mathjsEvaluate(expr, { [variable]: value });
+    const result = mathjsEvaluate(toMathjsExpr(expr), { [variable]: value });
     if (typeof result !== "number" || !Number.isFinite(result)) return NaN;
     return result;
   } catch {
