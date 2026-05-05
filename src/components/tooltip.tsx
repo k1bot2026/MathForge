@@ -1,8 +1,8 @@
 "use client";
 
-// Lightweight Tooltip component. Uses CSS positioning relative to a wrapper
-// span rather than portals, which avoids React Flow stacking-context issues.
-// ~300ms open delay per UX Round 2 spec. Keyboard accessible (role="tooltip").
+// Lightweight Tooltip component. Uses position:fixed with ref-based coords
+// so the popup escapes any ancestor overflow:hidden (e.g. the block library
+// sidebar). ~300ms open delay per UX Round 2 spec. Keyboard accessible.
 
 import { useCallback, useId, useRef, useState } from "react";
 
@@ -15,6 +15,34 @@ export type TooltipProps = {
   side?: "top" | "bottom" | "left" | "right";
   /** Override the default max-width of 220px. Use 0 to remove max-width. */
   maxWidth?: number;
+  /** Additional classes for the wrapper span (e.g. "block" to make it full-width). */
+  wrapClass?: string;
+};
+
+type Coords = { top: number; left: number };
+
+const GAP = 8;
+
+function computeCoords(anchor: DOMRect, side: NonNullable<TooltipProps["side"]>): Coords {
+  switch (side) {
+    case "right":
+      return { top: anchor.top + anchor.height / 2, left: anchor.right + GAP };
+    case "left":
+      return { top: anchor.top + anchor.height / 2, left: anchor.left - GAP };
+    case "bottom":
+      return { top: anchor.bottom + GAP, left: anchor.left + anchor.width / 2 };
+    case "top":
+    default:
+      return { top: anchor.top - GAP, left: anchor.left + anchor.width / 2 };
+  }
+}
+
+// CSS transform to centre the tooltip on the computed anchor point
+const TRANSFORM: Readonly<Record<NonNullable<TooltipProps["side"]>, string>> = {
+  top: "translateX(-50%) translateY(-100%)",
+  bottom: "translateX(-50%)",
+  left: "translateX(-100%) translateY(-50%)",
+  right: "translateY(-50%)",
 };
 
 export function Tooltip({
@@ -23,42 +51,50 @@ export function Tooltip({
   delay = 300,
   side = "top",
   maxWidth = 220,
+  wrapClass = "",
 }: TooltipProps) {
-  const [visible, setVisible] = useState(false);
+  const [coords, setCoords] = useState<Coords | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapRef = useRef<HTMLSpanElement>(null);
   const id = useId();
 
   const open = useCallback(() => {
-    timerRef.current = setTimeout(() => setVisible(true), delay);
-  }, [delay]);
+    timerRef.current = setTimeout(() => {
+      const rect = wrapRef.current?.getBoundingClientRect();
+      if (rect !== undefined) setCoords(computeCoords(rect, side));
+    }, delay);
+  }, [delay, side]);
 
   const close = useCallback(() => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    setVisible(false);
+    setCoords(null);
   }, []);
 
-  const posClass = SIDE_CLASSES[side];
-  const widthStyle = maxWidth > 0 ? { maxWidth: `${maxWidth}px` } : {};
+  const widthStyle =
+    maxWidth > 0
+      ? { maxWidth: `${maxWidth}px`, transform: TRANSFORM[side] }
+      : { transform: TRANSFORM[side] };
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: tooltip wrapper delegates interaction to child; no semantic role fits a transparent inline container
     <span
-      className="relative inline-flex"
+      ref={wrapRef}
+      className={`inline-flex${wrapClass.length > 0 ? ` ${wrapClass}` : ""}`}
       onMouseEnter={open}
       onMouseLeave={close}
       onFocus={open}
       onBlur={close}
     >
       {children}
-      {visible && content != null ? (
+      {coords !== null && content != null ? (
         <span
           role="tooltip"
           id={id}
-          style={widthStyle}
-          className={`pointer-events-none absolute z-50 w-max rounded-md border border-border bg-surface font-mono text-[11px] text-fg shadow-block-2 ${posClass}`}
+          style={{ top: coords.top, left: coords.left, ...widthStyle }}
+          className="pointer-events-none fixed z-[9999] w-max rounded-md border border-border bg-surface font-mono text-[11px] text-fg shadow-block-2"
         >
           {content}
         </span>
@@ -66,10 +102,3 @@ export function Tooltip({
     </span>
   );
 }
-
-const SIDE_CLASSES: Readonly<Record<NonNullable<TooltipProps["side"]>, string>> = {
-  top: "bottom-full left-1/2 mb-1.5 -translate-x-1/2",
-  bottom: "top-full left-1/2 mt-1.5 -translate-x-1/2",
-  left: "right-full top-1/2 mr-1.5 -translate-y-1/2",
-  right: "left-full top-1/2 ml-1.5 -translate-y-1/2",
-};

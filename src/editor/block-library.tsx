@@ -250,7 +250,13 @@ function BlockLibraryItem({
   const preview = BLOCK_PREVIEWS[def.id] ?? def.preview;
 
   return (
-    <Tooltip content={blockTooltipContent(def, preview)} side="right" delay={400} maxWidth={0}>
+    <Tooltip
+      content={blockTooltipContent(def, preview)}
+      side="right"
+      delay={400}
+      maxWidth={0}
+      wrapClass="block px-1 pb-1"
+    >
       <button
         type="button"
         draggable
@@ -258,7 +264,7 @@ function BlockLibraryItem({
           onDragStart(e, def);
         }}
         aria-label={`${def.label} block — drag to canvas to add`}
-        className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] min-w-0 cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
+        className="flex w-full min-w-0 cursor-grab items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2 active:cursor-grabbing"
         data-testid={`library-item-${def.id}`}
       >
         <span
@@ -273,7 +279,9 @@ function BlockLibraryItem({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-fg">{def.label}</span>
-          <span className="block truncate font-mono text-[10px] text-fg-faint">{def.id}</span>
+          <span className="block break-all font-mono text-[10px] leading-tight text-fg-faint">
+            {def.id}
+          </span>
         </span>
       </button>
     </Tooltip>
