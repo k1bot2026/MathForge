@@ -45,12 +45,71 @@ function detectVariable(expr: string): string {
   return "x";
 }
 
+// ── LaTeX matrix parser ──────────────────────────────────────────────────────
+// Detects \begin{bmatrix|pmatrix|matrix}...\end{...} and emits an la.matrix
+// node directly — bypassing the expression path entirely.
+
+type ImportGraph = { nodes: Node[]; edges: Edge[] };
+
+const MATRIX_ENV_RE = /\\begin\{(?:b|p|v|V)?matrix\}([\s\S]*?)\\end\{(?:b|p|v|V)?matrix\}/;
+
+function parseBmatrixLatex(latex: string, originX: number, originY: number): ImportGraph | null {
+  const match = MATRIX_ENV_RE.exec(latex.trim());
+  if (match === null) return null;
+
+  const inner = match[1] ?? "";
+  const rowStrings = inner
+    .split(/\\\\/)
+    .map((r) => r.trim())
+    .filter((r) => r.length > 0);
+
+  if (rowStrings.length === 0) return null;
+
+  const rows: number[][] = [];
+  for (const rowStr of rowStrings) {
+    const cells = rowStr.split("&").map((c) => c.trim());
+    const nums: number[] = [];
+    for (const cell of cells) {
+      const n = Number(cell.replace(/\s/g, ""));
+      if (!Number.isFinite(n)) return null; // non-numeric cell — give up
+      nums.push(n);
+    }
+    rows.push(nums);
+  }
+
+  const numRows = rows.length;
+  const numCols = rows[0]?.length ?? 0;
+  if (numCols === 0) return null;
+
+  // Validate rectangular and within MAX_DIM (8)
+  for (const row of rows) {
+    if (row.length !== numCols) return null;
+  }
+  if (numRows > 8 || numCols > 8) return null;
+
+  const params: Record<string, unknown> = { rows: numRows, cols: numCols };
+  for (let r = 0; r < numRows; r++) {
+    for (let c = 0; c < numCols; c++) {
+      params[`r${r}c${c}`] = rows[r]?.[c] ?? 0;
+    }
+  }
+
+  const stamp = Date.now();
+  const nodeId = `import-matrix-${stamp}`;
+  const node: Node = {
+    id: nodeId,
+    type: "block",
+    position: { x: originX, y: originY },
+    data: { blockId: "la.matrix", params } satisfies BlockNodeData as Record<string, unknown>,
+  };
+
+  return { nodes: [node], edges: [] };
+}
+
 // ── AST decomposition ─────────────────────────────────────────────────────
 // Returns a list of nodes + edges to add to the canvas. For top-level
 // diff/integrate calls, emits a calc.function + operation block chained
 // left-to-right. Otherwise emits a single calc.function.
-
-type ImportGraph = { nodes: Node[]; edges: Edge[] };
 
 const BLOCK_GAP = 280;
 
@@ -142,7 +201,12 @@ function buildImportGraph(plain: string, originX: number, originY: number): Impo
 
 const EXAMPLES: Record<ImportFormat, string[]> = {
   plain: ["sin(x) + cos(x)", "diff(sin(x), x)", "integrate(x^2, x)", "exp(-x^2 / 2)"],
-  latex: ["\\sin(x) + \\cos(x)", "\\frac{x^2 - 1}{x + 1}", "\\sqrt{1 - x^2}"],
+  latex: [
+    "\\sin(x) + \\cos(x)",
+    "\\frac{x^2 - 1}{x + 1}",
+    "\\sqrt{1 - x^2}",
+    "\\begin{bmatrix}1 & 2 \\\\ 3 & 4\\end{bmatrix}",
+  ],
 };
 
 function useImportForm(onDone: () => void) {
@@ -159,6 +223,24 @@ function useImportForm(onDone: () => void) {
       setError("Enter an expression to import.");
       return;
     }
+    const vp = getViewport();
+    // Centre the first block on the viewport; subsequent blocks extend rightward
+    const x = (-vp.x + window.innerWidth / 2) / vp.zoom - 90;
+    const y = (-vp.y + window.innerHeight / 2) / vp.zoom - 40;
+
+    // Matrix environments bypass the expression path entirely
+    if (format === "latex") {
+      const matrixGraph = parseBmatrixLatex(raw, x, y);
+      if (matrixGraph !== null) {
+        for (const node of matrixGraph.nodes) addNode(node);
+        for (const edge of matrixGraph.edges) connect(edge);
+        setInput("");
+        setError(null);
+        onDone();
+        return;
+      }
+    }
+
     const plain = format === "latex" ? latexToPlain(raw) : raw;
     try {
       if (/[<>|&]/.test(plain)) throw new Error("Expression contains unsupported characters.");
@@ -166,10 +248,6 @@ function useImportForm(onDone: () => void) {
       setError(e instanceof Error ? e.message : "Invalid expression.");
       return;
     }
-    const vp = getViewport();
-    // Centre the first block on the viewport; subsequent blocks extend rightward
-    const x = (-vp.x + window.innerWidth / 2) / vp.zoom - 90;
-    const y = (-vp.y + window.innerHeight / 2) / vp.zoom - 40;
     const graph = buildImportGraph(plain, x, y);
     for (const node of graph.nodes) addNode(node);
     for (const edge of graph.edges) connect(edge);
@@ -273,7 +351,7 @@ export function ImportPanel() {
       <p className="font-mono text-[10px] text-fg-faint">
         {format === "plain"
           ? "Supports: sin, cos, sqrt, ^, *, +, −, /"
-          : "Supported: \\frac, \\sqrt, \\sin/cos/tan/ln, \\pi, \\cdot"}
+          : "Supports: \\frac, \\sqrt, \\sin/cos/tan/ln, \\pi, \\cdot, \\begin{bmatrix}…\\end{bmatrix}"}
       </p>
 
       <button
@@ -405,7 +483,7 @@ export function ImportDialog({ onClose }: ImportDialogProps) {
         <p className="font-mono text-[10px] text-fg-faint">
           {format === "plain"
             ? "Supports standard math.js syntax: sin, cos, sqrt, ^, *, +, −, /"
-            : "Supported: \\frac, \\sqrt, \\sin/cos/tan/ln, \\pi, \\cdot, \\times, ^"}
+            : "Supports: \\frac, \\sqrt, \\sin/cos/tan/ln, \\pi, \\cdot, \\times, ^, \\begin{bmatrix}…\\end{bmatrix}"}
         </p>
 
         <div className="flex justify-end gap-2">
