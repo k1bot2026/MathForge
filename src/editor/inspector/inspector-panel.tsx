@@ -8,7 +8,7 @@
 //      Explain mode: Four explanation tabs (what / why / effect / impact)
 //   4. Value strip (pinned to bottom)
 
-import { useCallback, useId, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { blockRegistry } from "~/blocks";
 import type { SubgraphDefinition } from "~/blocks/common/subgraph/types";
@@ -321,7 +321,8 @@ function ParamSection({
   );
 }
 
-// Matrix bracket aesthetic — thin left/right lines flanking the grid
+// ── Matrix / Vector grid editors with scrub cells ─────────────────────────
+
 function MatrixGridEditor({
   rows,
   cols,
@@ -336,13 +337,19 @@ function MatrixGridEditor({
   const clampedRows = Math.max(1, Math.min(rows, 8));
   const clampedCols = Math.max(1, Math.min(cols, 8));
 
+  // Compute max abs value across visible cells for heatmap normalisation
+  let maxAbs = 0;
+  for (let r = 0; r < clampedRows; r++) {
+    for (let c = 0; c < clampedCols; c++) {
+      const raw = params[`r${String(r)}c${String(c)}`];
+      const v = typeof raw === "number" ? Math.abs(raw) : 0;
+      if (v > maxAbs) maxAbs = v;
+    }
+  }
+
   return (
     <div className="mt-1 flex items-start gap-0" data-testid="matrix-grid-editor">
-      {/* Left bracket */}
-      <span
-        aria-hidden="true"
-        className="mr-1 self-stretch border-l-2 border-y-2 border-fg-muted rounded-l-[3px] w-2 shrink-0"
-      />
+      <BracketLine side="left" />
       <div
         className="grid gap-0.5"
         style={{ gridTemplateColumns: `repeat(${clampedCols}, minmax(0, 1fr))` }}
@@ -353,58 +360,20 @@ function MatrixGridEditor({
             const raw = params[key];
             const numVal = typeof raw === "number" ? raw : 0;
             return (
-              <MatrixCellInput
+              <ScrubCell
                 key={key}
                 paramKey={key}
                 value={numVal}
-                onUpdate={onUpdate}
+                maxAbs={maxAbs}
                 params={params}
+                onUpdate={onUpdate}
               />
             );
           }),
         )}
       </div>
-      {/* Right bracket */}
-      <span
-        aria-hidden="true"
-        className="ml-1 self-stretch border-r-2 border-y-2 border-fg-muted rounded-r-[3px] w-2 shrink-0"
-      />
+      <BracketLine side="right" />
     </div>
-  );
-}
-
-function MatrixCellInput({
-  paramKey,
-  value,
-  onUpdate,
-  params,
-}: {
-  paramKey: string;
-  value: number;
-  onUpdate: (next: ResolvedParams) => void;
-  params: ResolvedParams;
-}) {
-  const id = useId();
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value;
-      const next = raw === "" ? 0 : Number(raw);
-      onUpdate({ ...params, [paramKey]: Number.isFinite(next) ? next : 0 });
-    },
-    [paramKey, params, onUpdate],
-  );
-
-  return (
-    <input
-      id={id}
-      type="number"
-      value={Number.isFinite(value) ? value : 0}
-      step="any"
-      onChange={handleChange}
-      aria-label={paramKey}
-      className="nodrag h-8 w-full min-w-0 rounded border border-border bg-bg px-1 py-0.5 text-center font-mono text-xs text-fg outline-none focus:border-role-control-border focus:ring-1 focus:ring-role-control-border"
-      data-testid={`matrix-cell-${paramKey}`}
-    />
   );
 }
 
@@ -419,34 +388,176 @@ function VectorGridEditor({
 }) {
   const clampedDim = Math.max(1, Math.min(dim, 16));
 
+  let maxAbs = 0;
+  for (let i = 0; i < clampedDim; i++) {
+    const raw = params[`c${String(i)}`];
+    const v = typeof raw === "number" ? Math.abs(raw) : 0;
+    if (v > maxAbs) maxAbs = v;
+  }
+
   return (
     <div className="mt-1 flex items-start gap-0" data-testid="vector-grid-editor">
-      {/* Left bracket */}
-      <span
-        aria-hidden="true"
-        className="mr-1 self-stretch border-l-2 border-y-2 border-fg-muted rounded-l-[3px] w-2 shrink-0"
-      />
+      <BracketLine side="left" />
       <div className="grid gap-0.5" style={{ gridTemplateColumns: "1fr" }}>
         {Array.from({ length: clampedDim }, (_, i) => {
           const key = `c${String(i)}`;
           const raw = params[key];
           const numVal = typeof raw === "number" ? raw : 0;
           return (
-            <MatrixCellInput
+            <ScrubCell
               key={key}
               paramKey={key}
               value={numVal}
-              onUpdate={onUpdate}
+              maxAbs={maxAbs}
               params={params}
+              onUpdate={onUpdate}
             />
           );
         })}
       </div>
-      {/* Right bracket */}
-      <span
-        aria-hidden="true"
-        className="ml-1 self-stretch border-r-2 border-y-2 border-fg-muted rounded-r-[3px] w-2 shrink-0"
+      <BracketLine side="right" />
+    </div>
+  );
+}
+
+function BracketLine({ side }: { side: "left" | "right" }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`w-2 shrink-0 self-stretch border-y-2 border-fg-muted ${
+        side === "left" ? "mr-1 rounded-l-[3px] border-l-2" : "ml-1 rounded-r-[3px] border-r-2"
+      }`}
+    />
+  );
+}
+
+// ScrubCell: drag horizontally to change value; double-click to type precisely.
+// Background is heatmap-tinted by magnitude relative to matrix max.
+function ScrubCell({
+  paramKey,
+  value,
+  maxAbs,
+  params,
+  onUpdate,
+}: {
+  paramKey: string;
+  value: number;
+  maxAbs: number;
+  params: ResolvedParams;
+  onUpdate: (next: ResolvedParams) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const dragRef = useRef<{ startX: number; startVal: number } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Heatmap: intensity 0–1 based on abs(value)/maxAbs
+  const intensity = maxAbs > 0 ? Math.min(Math.abs(value), maxAbs) / maxAbs : 0;
+  // Positive → blue tint, negative → orange tint, zero → neutral
+  const hue = value >= 0 ? 240 : 30;
+  const cellBg =
+    intensity > 0.02
+      ? `oklch(${(85 - intensity * 25).toFixed(1)}% ${(intensity * 0.12).toFixed(3)} ${hue})`
+      : undefined;
+
+  const formatVal = useCallback((n: number) => {
+    if (!Number.isFinite(n)) return "0";
+    if (Number.isInteger(n)) return String(n);
+    return n.toPrecision(4).replace(/\.?0+$/, "");
+  }, []);
+
+  const commit = useCallback(
+    (next: number) => {
+      const v = Number.isFinite(next) ? next : 0;
+      onUpdate({ ...params, [paramKey]: v });
+    },
+    [paramKey, params, onUpdate],
+  );
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (editing) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      dragRef.current = { startX: e.clientX, startVal: value };
+    },
+    [editing, value],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (dragRef.current === null) return;
+      const dx = e.clientX - dragRef.current.startX;
+      const step = e.shiftKey ? 1 : e.altKey ? 0.01 : 0.1;
+      commit(dragRef.current.startVal + dx * step);
+    },
+    [commit],
+  );
+
+  const handlePointerUp = useCallback(() => {
+    dragRef.current = null;
+  }, []);
+
+  const handleDoubleClick = useCallback(() => {
+    setDraft(formatVal(value));
+    setEditing(true);
+    // Focus after render
+    setTimeout(() => inputRef.current?.select(), 0);
+  }, [value, formatVal]);
+
+  const handleEditKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        const next = Number(draft);
+        commit(Number.isFinite(next) ? next : value);
+        setEditing(false);
+      } else if (e.key === "Escape") {
+        setEditing(false);
+      }
+    },
+    [draft, value, commit],
+  );
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        type="number"
+        value={draft}
+        step="any"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={handleEditKeyDown}
+        onBlur={() => {
+          const next = Number(draft);
+          commit(Number.isFinite(next) ? next : value);
+          setEditing(false);
+        }}
+        aria-label={paramKey}
+        className="nodrag h-8 w-full min-w-0 rounded border border-role-control-border bg-bg px-1 py-0.5 text-center font-mono text-xs text-fg outline-none focus:ring-1 focus:ring-role-control-border"
+        data-testid={`matrix-cell-${paramKey}`}
       />
+    );
+  }
+
+  return (
+    <div
+      role="spinbutton"
+      aria-label={paramKey}
+      aria-valuenow={Number.isFinite(value) ? value : 0}
+      tabIndex={0}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onDoubleClick={handleDoubleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") handleDoubleClick();
+        if (e.key === "ArrowUp") commit(value + (e.shiftKey ? 1 : 0.1));
+        if (e.key === "ArrowDown") commit(value - (e.shiftKey ? 1 : 0.1));
+      }}
+      style={{ backgroundColor: cellBg }}
+      className="nodrag flex h-8 w-full min-w-0 cursor-ew-resize select-none items-center justify-center rounded border border-border font-mono text-xs text-fg transition-colors hover:border-role-control-border"
+      data-testid={`matrix-cell-${paramKey}`}
+    >
+      {formatVal(value)}
     </div>
   );
 }
