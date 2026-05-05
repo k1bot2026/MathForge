@@ -21,6 +21,7 @@ import { PolygonBlock } from "./polygon/definition";
 import { ReflectBlock } from "./reflect/definition";
 import { RegularPolygonBlock } from "./regular-polygon/definition";
 import { RotateBlock } from "./rotate/definition";
+import { ScaleBlock } from "./scale/definition";
 import { TranslateBlock } from "./translate/definition";
 
 export function register(registry: BlockRegistry): void {
@@ -47,4 +48,5 @@ export function register(registry: BlockRegistry): void {
   registry.register(TranslateBlock);
   registry.register(RotateBlock);
   registry.register(ReflectBlock);
+  registry.register(ScaleBlock);
 }
