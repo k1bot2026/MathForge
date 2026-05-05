@@ -271,7 +271,10 @@ export function convexPolygon(n: number): fc.Arbitrary<Point2D[]> {
   if (n < 3) throw new Error("convexPolygon requires n >= 3");
   return fc
     .array(
-      fc.tuple(fc.float({ min: 0, max: Math.PI * 2, noNaN: true }), fc.integer({ min: 1, max: 5 })),
+      fc.tuple(
+        fc.float({ min: 0, max: Math.fround(Math.PI * 2), noNaN: true }),
+        fc.integer({ min: 1, max: 5 }),
+      ),
       { minLength: n, maxLength: n },
     )
     .map((pairs) => {
